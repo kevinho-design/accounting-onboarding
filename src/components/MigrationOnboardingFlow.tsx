@@ -68,6 +68,13 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
     }
   };
 
+  const handleStepBack = () => {
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(steps[currentIndex - 1]);
+    }
+  };
+
   const handleSkipConfiguration = () => {
     // Skip from wizard-intro to configuring (skips workflow, reporting, goals)
     setCurrentStep("configuring");
@@ -82,21 +89,21 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
       case "intelligence":
         return <Screen2_MigrationIntelligence onComplete={handleStepComplete} />;
       case "services":
-        return <Screen3_ConnectedServices onComplete={handleStepComplete} />;
+        return <Screen3_ConnectedServices onComplete={handleStepComplete} onBack={handleStepBack} />;
       case "training":
         return <Screen4_AITraining onComplete={handleStepComplete} />;
       case "preview":
-        return <Screen5_DashboardPreview onComplete={handleStepComplete} />;
+        return <Screen5_DashboardPreview onComplete={handleStepComplete} onBack={handleStepBack} />;
       case "wizard-intro":
-        return <Screen6_WizardIntro onComplete={handleStepComplete} onSkip={handleSkipConfiguration} />;
+        return <Screen6_WizardIntro onComplete={handleStepComplete} onSkip={handleSkipConfiguration} onBack={handleStepBack} />;
       case "users":
-        return <Screen7_UserMapping onComplete={handleStepComplete} />;
+        return <Screen7_UserMapping onComplete={handleStepComplete} onBack={handleStepBack} />;
       case "workflow":
-        return <Screen8_WorkflowApprovals onComplete={handleStepComplete} />;
+        return <Screen8_WorkflowApprovals onComplete={handleStepComplete} onBack={handleStepBack} />;
       case "reporting":
-        return <Screen9_ReportingPreferences onComplete={handleStepComplete} />;
+        return <Screen9_ReportingPreferences onComplete={handleStepComplete} onBack={handleStepBack} />;
       case "goals":
-        return <Screen10_FinancialGoals onComplete={handleStepComplete} />;
+        return <Screen10_FinancialGoals onComplete={handleStepComplete} onBack={handleStepBack} />;
       case "configuring":
         return <Screen11_ConfiguringSystem onComplete={handleStepComplete} />;
       case "complete":

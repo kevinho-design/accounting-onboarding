@@ -1,11 +1,12 @@
 import * as React from "react";
-import { Users, Shield, Bell, Sparkles, Plus, X, Send, Trash2 } from "lucide-react";
+import { Users, Shield, Bell, Sparkles, Plus, X, Send, Trash2, ChevronLeft } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
 
 interface Screen8Props {
   onComplete: () => void;
+  onBack?: () => void;
 }
 
 interface Rule {
@@ -27,7 +28,7 @@ const EXAMPLE_PLACEHOLDERS = [
   "Block expense posting on weekends without manager override",
 ];
 
-export function Screen8_WorkflowApprovals({ onComplete }: Screen8Props) {
+export function Screen8_WorkflowApprovals({ onComplete, onBack }: Screen8Props) {
   const [mode, setMode] = React.useState<"suggested" | "advanced">("suggested");
   const [approvalThreshold, setApprovalThreshold] = React.useState("5000");
   const [dualApproval, setDualApproval] = React.useState(true);
@@ -363,12 +364,19 @@ export function Screen8_WorkflowApprovals({ onComplete }: Screen8Props) {
             </div>
           )}
 
-          <Button
-            onClick={onComplete}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"
-          >
-            Next: Reporting Preferences
-          </Button>
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <Button variant="ghost" onClick={onBack} className="text-gray-500 hover:text-gray-700 px-4 py-6 shrink-0">
+                <ChevronLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+            )}
+            <Button
+              onClick={onComplete}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"
+            >
+              Next: Reporting Preferences
+            </Button>
+          </div>
         </div>
       </div>
     </div>

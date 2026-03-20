@@ -1,9 +1,10 @@
 import * as React from "react";
-import { CheckCircle, ArrowRight, Copy, ShieldAlert, Tag } from "lucide-react";
+import { CheckCircle, ArrowRight, Copy, ShieldAlert, Tag, ChevronLeft } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface Screen5Props {
   onComplete: () => void;
+  onBack?: () => void;
 }
 
 const attentionItems = [
@@ -42,7 +43,7 @@ const attentionItems = [
   },
 ];
 
-export function Screen5_DashboardPreview({ onComplete }: Screen5Props) {
+export function Screen5_DashboardPreview({ onComplete, onBack }: Screen5Props) {
   return (
     <div className="flex-1 h-[calc(100vh-90px)] overflow-hidden bg-gray-50">
       <div className="h-full overflow-y-auto">
@@ -114,14 +115,21 @@ export function Screen5_DashboardPreview({ onComplete }: Screen5Props) {
             </div>
           </div>
 
-          <Button
-            onClick={onComplete}
-            size="lg"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-6 rounded-xl font-semibold text-lg"
-          >
-            Continue to Configuration
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <Button variant="ghost" onClick={onBack} className="text-gray-500 hover:text-gray-700 px-4 py-6 shrink-0">
+                <ChevronLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+            )}
+            <Button
+              onClick={onComplete}
+              size="lg"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-6 rounded-xl font-semibold text-lg"
+            >
+              Continue to Configuration
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -1,13 +1,14 @@
 import * as React from "react";
-import { CheckCircle, Mail } from "lucide-react";
+import { CheckCircle, Mail, ChevronLeft } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 
 interface Screen3Props {
   onComplete: () => void;
+  onBack?: () => void;
 }
 
-export function Screen3_ConnectedServices({ onComplete }: Screen3Props) {
+export function Screen3_ConnectedServices({ onComplete, onBack }: Screen3Props) {
   // All services pre-selected (email is optional)
   const [connectedServices, setConnectedServices] = React.useState({
     adp: true,
@@ -256,12 +257,19 @@ export function Screen3_ConnectedServices({ onComplete }: Screen3Props) {
             </div>
           </button>
 
-          <Button
-            onClick={onComplete}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"
-          >
-            Connect Services
-          </Button>
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <Button variant="ghost" onClick={onBack} className="text-gray-500 hover:text-gray-700 px-4 py-6 shrink-0">
+                <ChevronLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+            )}
+            <Button
+              onClick={onComplete}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"
+            >
+              Connect Services
+            </Button>
+          </div>
         </div>
       </div>
     </div>

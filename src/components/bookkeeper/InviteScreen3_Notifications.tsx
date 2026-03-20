@@ -1,10 +1,11 @@
 import * as React from "react";
-import { Bell, Zap, CalendarClock, ClipboardCheck } from "lucide-react";
+import { Bell, Zap, CalendarClock, ClipboardCheck, ChevronLeft } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 
 interface InviteScreen3Props {
   onComplete: () => void;
+  onBack?: () => void;
 }
 
 interface NotificationOption {
@@ -51,7 +52,7 @@ const NOTIFICATION_OPTIONS: NotificationOption[] = [
   },
 ];
 
-export function InviteScreen3_Notifications({ onComplete }: InviteScreen3Props) {
+export function InviteScreen3_Notifications({ onComplete, onBack }: InviteScreen3Props) {
   const [enabled, setEnabled] = React.useState<Set<string>>(
     new Set(NOTIFICATION_OPTIONS.filter(o => o.defaultOn).map(o => o.id))
   );
@@ -121,12 +122,19 @@ export function InviteScreen3_Notifications({ onComplete }: InviteScreen3Props) 
             })}
           </div>
 
-          <Button
-            onClick={onComplete}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"
-          >
-            Save Preferences
-          </Button>
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <Button variant="ghost" onClick={onBack} className="text-gray-500 hover:text-gray-700 px-4 py-6 shrink-0">
+                <ChevronLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+            )}
+            <Button
+              onClick={onComplete}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"
+            >
+              Save Preferences
+            </Button>
+          </div>
         </div>
       </div>
     </div>

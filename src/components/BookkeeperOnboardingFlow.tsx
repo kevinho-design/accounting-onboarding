@@ -70,8 +70,9 @@ function BookkeeperStepProgress({ currentStep }: { currentStep: BookkeeperStep }
 export function BookkeeperOnboardingFlow({ onComplete }: BookkeeperOnboardingFlowProps) {
   const [currentStep, setCurrentStep] = React.useState<BookkeeperStep>("welcome");
 
+  const order: BookkeeperStep[] = ["welcome", "role", "notifications", "setup"];
+
   const advance = () => {
-    const order: BookkeeperStep[] = ["welcome", "role", "notifications", "setup"];
     const idx = order.indexOf(currentStep);
     if (idx < order.length - 1) {
       setCurrentStep(order[idx + 1]);
@@ -80,13 +81,20 @@ export function BookkeeperOnboardingFlow({ onComplete }: BookkeeperOnboardingFlo
     }
   };
 
+  const goBack = () => {
+    const idx = order.indexOf(currentStep);
+    if (idx > 0) {
+      setCurrentStep(order[idx - 1]);
+    }
+  };
+
   return (
     <div className="flex-1 overflow-y-auto">
       <BookkeeperStepProgress currentStep={currentStep} />
       {currentStep === "welcome" && <InviteScreen1_Welcome onComplete={advance} />}
-      {currentStep === "role" && <InviteScreen2_RoleFocus onComplete={advance} />}
-      {currentStep === "notifications" && <InviteScreen3_Notifications onComplete={advance} />}
-      {currentStep === "setup" && <InviteScreen4_Setup onComplete={onComplete} />}
+      {currentStep === "role" && <InviteScreen2_RoleFocus onComplete={advance} onBack={goBack} />}
+      {currentStep === "notifications" && <InviteScreen3_Notifications onComplete={advance} onBack={goBack} />}
+      {currentStep === "setup" && <InviteScreen4_Setup onComplete={onComplete} onBack={goBack} />}
     </div>
   );
 }

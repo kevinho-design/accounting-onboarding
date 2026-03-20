@@ -10,6 +10,7 @@ import {
   X,
   Send,
   Trash2,
+  ChevronLeft,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
@@ -17,6 +18,7 @@ import { ConfigModeToggle } from "./ConfigModeToggle";
 
 interface Screen10Props {
   onComplete: () => void;
+  onBack?: () => void;
 }
 
 interface Goal {
@@ -31,7 +33,7 @@ const EXAMPLE_PLACEHOLDERS = [
   "Increase profit margin to 35% by end of year",
 ];
 
-export function Screen10_FinancialGoals({ onComplete }: Screen10Props) {
+export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
   const [mode, setMode] = React.useState<"suggested" | "advanced">("suggested");
   const [goals, setGoals] = React.useState(["cashRunway", "reduceAR", "compliance"]);
   const [collectionRate, setCollectionRate] = React.useState(92);
@@ -320,12 +322,19 @@ export function Screen10_FinancialGoals({ onComplete }: Screen10Props) {
             </div>
           )}
 
-          <Button
-            onClick={onComplete}
-            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"
-          >
-            Complete Configuration
-          </Button>
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <Button variant="ghost" onClick={onBack} className="text-gray-500 hover:text-gray-700 px-4 py-6 shrink-0">
+                <ChevronLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+            )}
+            <Button
+              onClick={onComplete}
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"
+            >
+              Complete Configuration
+            </Button>
+          </div>
         </div>
       </div>
     </div>

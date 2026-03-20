@@ -89,7 +89,7 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
       case "intelligence":
         return <Screen2_MigrationIntelligence onComplete={handleStepComplete} />;
       case "services":
-        return <Screen3_ConnectedServices onComplete={handleStepComplete} onBack={handleStepBack} />;
+        return <Screen3_ConnectedServices onComplete={handleStepComplete} onBack={() => setCurrentStep("upload")} />;
       case "training":
         return <Screen4_AITraining onComplete={handleStepComplete} />;
       case "preview":

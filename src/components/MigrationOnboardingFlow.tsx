@@ -93,7 +93,7 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
       case "training":
         return <Screen4_AITraining onComplete={handleStepComplete} />;
       case "preview":
-        return <Screen5_DashboardPreview onComplete={handleStepComplete} onBack={handleStepBack} />;
+        return <Screen5_DashboardPreview onComplete={handleStepComplete} />;
       case "wizard-intro":
         return <Screen6_WizardIntro onComplete={handleStepComplete} onSkip={handleSkipConfiguration} onBack={handleStepBack} />;
       case "users":

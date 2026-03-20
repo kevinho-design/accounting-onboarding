@@ -38,6 +38,7 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
             onRecentActionsChange={onRecentActionsChange}
             onExceptionsChange={onExceptionsChange}
             onAskTeammate={onAskTeammate}
+            onOpenRail={onOpenRail}
           />
         );
       case "Transactions":
@@ -86,6 +87,7 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
             onRecentActionsChange={onRecentActionsChange}
             onExceptionsChange={onExceptionsChange}
             onAskTeammate={onAskTeammate}
+            onOpenRail={onOpenRail}
           />
         );
     }

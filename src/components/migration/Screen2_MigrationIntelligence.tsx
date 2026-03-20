@@ -1,14 +1,15 @@
 import * as React from "react";
-import { MapPin, Scale, Building2, Sparkles, CheckCircle, ChevronDown, FileText, Shield } from "lucide-react";
+import { MapPin, Scale, Building2, Sparkles, CheckCircle, ChevronDown, FileText, Shield, ChevronLeft } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
 
 interface Screen2Props {
   onComplete: () => void;
+  onBack?: () => void;
 }
 
-export function Screen2_MigrationIntelligence({ onComplete }: Screen2Props) {
+export function Screen2_MigrationIntelligence({ onComplete, onBack }: Screen2Props) {
   const [mode, setMode] = React.useState<"suggested" | "advanced">("suggested");
   const [expandedAccount, setExpandedAccount] = React.useState<number | null>(null);
   const [expandedTransaction, setExpandedTransaction] = React.useState<number | null>(null);
@@ -316,6 +317,11 @@ export function Screen2_MigrationIntelligence({ onComplete }: Screen2Props) {
           )}
 
           <div className="flex gap-4">
+            {onBack && (
+              <Button variant="ghost" onClick={onBack} className="text-gray-500 hover:text-gray-700 px-4 py-6 shrink-0">
+                <ChevronLeft className="w-4 h-4 mr-1" /> Back
+              </Button>
+            )}
             <Button
               onClick={onComplete}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"

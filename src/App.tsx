@@ -1,5 +1,58 @@
 import * as React from "react";
 import { toast } from "sonner";
+
+const DEMO_PASSWORD = "clio2026";
+
+function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
+  const [value, setValue] = React.useState("");
+  const [error, setError] = React.useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (value === DEMO_PASSWORD) {
+      sessionStorage.setItem("demo_unlocked", "1");
+      onUnlock();
+    } else {
+      setError(true);
+      setValue("");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-gray-950 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl shadow-2xl p-10 w-full max-w-sm mx-4">
+        <div className="mb-6 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 mb-4">
+            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-semibold text-gray-900">Clio Accounting</h1>
+          <p className="text-sm text-gray-500 mt-1">Enter the password to view this prototype</p>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="password"
+            value={value}
+            onChange={(e) => { setValue(e.target.value); setError(false); }}
+            placeholder="Password"
+            autoFocus
+            className={`w-full px-4 py-2.5 rounded-lg border text-sm outline-none transition-colors ${
+              error ? "border-red-400 bg-red-50 placeholder:text-red-300" : "border-gray-200 focus:border-blue-500"
+            }`}
+          />
+          {error && <p className="text-xs text-red-500">Incorrect password. Try again.</p>}
+          <button
+            type="submit"
+            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+          >
+            Continue
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
 import { SimplifiedSidebar } from "./components/SimplifiedSidebar";
 import { EmptyWorkspace } from "./components/EmptyWorkspace";
 import { ContextAwareTeammateRail } from "./components/ContextAwareTeammateRail";
@@ -13,6 +66,14 @@ import { FloatingChatBar } from "./components/FloatingChatBar";
 import { AgentAction, Exception } from "./components/agents/AgentTypes";
 
 export default function App() {
+  const [unlocked, setUnlocked] = React.useState(
+    () => sessionStorage.getItem("demo_unlocked") === "1"
+  );
+
+  if (!unlocked) {
+    return <PasswordGate onUnlock={() => setUnlocked(true)} />;
+  }
+
   const [currentPage, setCurrentPage] = React.useState("Dashboard");
   const [showValueProp, setShowValueProp] = React.useState(true);
   const [inMigrationFlow, setInMigrationFlow] = React.useState(false);

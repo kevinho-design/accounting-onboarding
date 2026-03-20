@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ArrowRight, Copy, ShieldAlert, Tag, FileCheck, CheckCircle } from "lucide-react";
+import { ArrowRight, Copy, ShieldAlert, Tag, FileCheck, CheckCircle2 as CheckCircle } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface Screen5Props {
@@ -68,33 +68,23 @@ export function Screen5_DashboardPreview({ onComplete }: Screen5Props) {
           </p>
         </div>
 
-        {/* Health Score + Stats */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-5">
-          <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-gray-900">Migration Health Score</p>
-              <p className="text-xs text-gray-500 mt-0.5">Hartwell & Morris · 12 years of history</p>
+        {/* Stats card */}
+        <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl shadow-lg p-8 mb-5">
+          <p className="text-sm text-blue-100 mb-6">
+            12 years of Hartwell & Morris history is intact and immediately queryable. We trained an AI model on your firm's patterns and pre-configured everything for Delaware litigation practice.
+          </p>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="text-4xl font-semibold text-white mb-1">99.3%</div>
+              <div className="text-sm text-blue-100">Data auto-imported</div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="text-3xl font-semibold text-green-600">99.3%</div>
-              <div className="flex items-center gap-1 bg-green-50 border border-green-200 rounded-full px-2.5 py-1">
-                <CheckCircle className="w-3.5 h-3.5 text-green-600" />
-                <span className="text-xs font-semibold text-green-700">Excellent</span>
-              </div>
+            <div className="text-center border-x border-white/20">
+              <div className="text-4xl font-semibold text-white mb-1">34,520</div>
+              <div className="text-sm text-blue-100">Transactions migrated</div>
             </div>
-          </div>
-          <div className="grid grid-cols-3 divide-x divide-gray-100">
-            <div className="px-6 py-5 text-center">
-              <div className="text-2xl font-semibold text-gray-900 mb-1">34,520</div>
-              <div className="text-xs text-gray-500">Transactions migrated</div>
-            </div>
-            <div className="px-6 py-5 text-center">
-              <div className="text-2xl font-semibold text-gray-900 mb-1">127</div>
-              <div className="text-xs text-gray-500">Vendors imported</div>
-            </div>
-            <div className="px-6 py-5 text-center">
-              <div className="text-2xl font-semibold text-gray-900 mb-1">52</div>
-              <div className="text-xs text-gray-500">Accounts mapped</div>
+            <div className="text-center">
+              <div className="text-4xl font-semibold text-white mb-1">127</div>
+              <div className="text-sm text-blue-100">Vendors imported</div>
             </div>
           </div>
         </div>

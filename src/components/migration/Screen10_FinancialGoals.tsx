@@ -11,6 +11,8 @@ import {
   Send,
   Trash2,
   ChevronLeft,
+  Users,
+  Calendar,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
@@ -33,8 +35,84 @@ const EXAMPLE_PLACEHOLDERS = [
   "Increase profit margin to 35% by end of year",
 ];
 
+interface AIGoal {
+  id: string;
+  icon: React.ElementType;
+  iconColor: string;
+  title: string;
+  current: string;
+  peerAvg: string;
+  target: string;
+  trajectory: string;
+  reasoning: string;
+  priority: "high" | "medium" | "required";
+}
+
+const AI_GOALS: AIGoal[] = [
+  {
+    id: "cashRunway",
+    icon: DollarSign,
+    iconColor: "text-blue-600",
+    title: "Maintain 90+ days cash runway",
+    current: "74 days",
+    peerAvg: "82 days",
+    target: "90+ days by Q3 2026",
+    trajectory: "↑ 22% improvement",
+    reasoning:
+      "Your runway has trended down from 91 days last month. Comparable firms maintain a 90-day minimum as a buffer against seasonal billing dips.",
+    priority: "high",
+  },
+  {
+    id: "reduceAR",
+    icon: TrendingUp,
+    iconColor: "text-purple-600",
+    title: "Reduce days-to-collect from 52 to 35 days",
+    current: "52 days avg",
+    peerAvg: "38 days",
+    target: "35 days by Q4 2026",
+    trajectory: "↓ 33% faster collections",
+    reasoning:
+      "You have $47,800 in unbilled time aging past 52 days. Delaware litigation firms in our network average 38 days — a 35-day target is achievable within 12 months.",
+    priority: "high",
+  },
+  {
+    id: "collectionRate",
+    icon: TrendingUp,
+    iconColor: "text-orange-600",
+    title: "Reach 92% invoice collection rate",
+    current: "87% collected",
+    peerAvg: "91% avg",
+    target: "92% within 60 days",
+    trajectory: "↑ 5% improvement",
+    reasoning:
+      "Your 3-year average collection rate is 87%. Similar 50-attorney firms collect 91% within 60 days. Closing this gap represents an estimated $83,000 in additional annual cash flow.",
+    priority: "medium",
+  },
+  {
+    id: "compliance",
+    icon: Shield,
+    iconColor: "text-green-600",
+    title: "Maintain Delaware IOLTA compliance",
+    current: "7 items flagged",
+    peerAvg: "0 violations",
+    target: "Zero violations",
+    trajectory: "Continuous monitoring",
+    reasoning:
+      "Your migration identified 7 trust transactions requiring remediation. Ongoing three-way reconciliation keeps you audit-ready at all times — required under Delaware bar rules.",
+    priority: "required",
+  },
+];
+
+const PRIORITY_STYLES = {
+  high: { badge: "bg-blue-100 text-blue-700", label: "High Priority" },
+  medium: { badge: "bg-purple-100 text-purple-700", label: "Medium Priority" },
+  required: { badge: "bg-green-100 text-green-700", label: "Required · Delaware" },
+};
+
 export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
   const [mode, setMode] = React.useState<"suggested" | "advanced">("suggested");
+  const [acceptedGoals, setAcceptedGoals] = React.useState<string[]>(["cashRunway", "reduceAR", "collectionRate", "compliance"]);
+  const [expandedGoal, setExpandedGoal] = React.useState<string | null>(null);
   const [goals, setGoals] = React.useState(["cashRunway", "reduceAR", "compliance"]);
   const [collectionRate, setCollectionRate] = React.useState(92);
   const [nlGoals, setNlGoals] = React.useState<Goal[]>([]);
@@ -49,6 +127,12 @@ export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const toggleAccepted = (id: string) => {
+    setAcceptedGoals((prev) =>
+      prev.includes(id) ? prev.filter((g) => g !== id) : [...prev, id]
+    );
+  };
 
   const toggleGoal = (goalId: string) => {
     if (goals.includes(goalId)) {
@@ -75,6 +159,11 @@ export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
     if (e.key === "Enter") addGoal();
   };
 
+  // 90-day review date
+  const reviewDate = new Date();
+  reviewDate.setDate(reviewDate.getDate() + 90);
+  const reviewDateStr = reviewDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
   return (
     <div className="relative flex-1 min-h-[calc(100vh-140px)]">
       <CloudBackground />
@@ -84,82 +173,138 @@ export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
         <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-10 my-8">
           <div className="mb-8 mt-4">
             <div className="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-3">
-              Configuration • Financial Goals
+              Step 4 of 4 · Financial Goals
             </div>
-            <h2 className="text-3xl font-semibold text-gray-900 mb-3">Financial Goals</h2>
+            <h2 className="text-3xl font-semibold text-gray-900 mb-3">Your Firm's North Star</h2>
             <p className="text-gray-600 text-lg">
-              Define your firm's financial priorities to get personalized AI insights.
+              Your AI Teammate analyzed 3 years of Hartwell & Morris data and benchmarked against comparable firms to recommend these goals.
             </p>
           </div>
 
           <ConfigModeToggle mode={mode} onModeChange={setMode} />
 
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Configuration Progress</span>
-              <span className="text-sm font-semibold text-blue-600">Step 4 of 4</span>
-            </div>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div className="h-full w-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full" />
-            </div>
-          </div>
-
           {mode === "suggested" ? (
-            <div className="space-y-6 mb-8">
-              <div className="p-6 bg-blue-50 rounded-xl">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-gray-900">Recommended Financial Goals</h3>
+            <div className="space-y-4 mb-8">
+
+              {/* Analysis provenance banner */}
+              <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <p className="text-gray-700 mb-4">
-                  Based on your firm's current financial position and industry benchmarks for litigation firms:
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">Firm CFO Analysis Complete</p>
+                  <p className="text-xs text-gray-600">
+                    Benchmarked against <span className="font-medium text-blue-700">47 comparable Delaware litigation firms</span> · Based on 34,520 transactions
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-gray-500 flex-shrink-0">
+                  <Users className="w-3.5 h-3.5" />
+                  <span>47 peer firms</span>
+                </div>
+              </div>
+
+              {/* AI Goal Cards */}
+              {AI_GOALS.map((goal) => {
+                const Icon = goal.icon;
+                const isAccepted = acceptedGoals.includes(goal.id);
+                const isExpanded = expandedGoal === goal.id;
+                const priorityStyle = PRIORITY_STYLES[goal.priority];
+
+                return (
+                  <div
+                    key={goal.id}
+                    className={`rounded-xl border transition-all ${
+                      isAccepted
+                        ? "border-blue-200 bg-blue-50/50"
+                        : "border-gray-200 bg-gray-50 opacity-60"
+                    }`}
+                  >
+                    <div className="p-4">
+                      <div className="flex items-start gap-3">
+                        {/* Accept/reject toggle */}
+                        <button
+                          onClick={() => toggleAccepted(goal.id)}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                            isAccepted
+                              ? "border-blue-600 bg-blue-600"
+                              : "border-gray-300 bg-white"
+                          }`}
+                        >
+                          {isAccepted && <CheckCircle className="w-4 h-4 text-white" strokeWidth={2.5} />}
+                        </button>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <Icon className={`w-4 h-4 ${goal.iconColor} flex-shrink-0`} />
+                              <span className="font-semibold text-gray-900 text-sm">{goal.title}</span>
+                            </div>
+                            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 ${priorityStyle.badge}`}>
+                              {priorityStyle.label}
+                            </span>
+                          </div>
+
+                          {/* Benchmark comparison row */}
+                          <div className="flex items-center gap-4 mb-2">
+                            <div className="text-xs text-gray-500">
+                              <span className="font-medium text-gray-700">You: </span>{goal.current}
+                            </div>
+                            <div className="text-xs text-gray-400">·</div>
+                            <div className="text-xs text-gray-500">
+                              <span className="font-medium text-gray-700">Peers: </span>{goal.peerAvg}
+                            </div>
+                            <div className="text-xs text-gray-400">·</div>
+                            <div className="text-xs text-blue-700 font-semibold">{goal.trajectory}</div>
+                          </div>
+
+                          <div className="text-xs font-medium text-blue-800 bg-blue-100 px-2 py-1 rounded inline-block mb-2">
+                            Target: {goal.target}
+                          </div>
+
+                          {/* Expand for reasoning */}
+                          <button
+                            onClick={() => setExpandedGoal(isExpanded ? null : goal.id)}
+                            className="text-xs text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-1"
+                          >
+                            <Sparkles className="w-3 h-3" />
+                            {isExpanded ? "Hide reasoning" : "Why this goal?"}
+                          </button>
+
+                          {isExpanded && (
+                            <div className="mt-2 p-3 bg-white rounded-lg border border-blue-100 text-xs text-gray-600 leading-relaxed">
+                              {goal.reasoning}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* 90-day review checkpoint */}
+              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <p className="text-xs text-gray-600">
+                  Your first goal review checkpoint is scheduled for{" "}
+                  <span className="font-semibold text-gray-800">{reviewDateStr}</span>{" "}
+                  — 90 days from today. You'll get a full progress report against each goal.
                 </p>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                    <DollarSign className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">Maintain 90+ Days Cash Runway</div>
-                      <div className="text-sm text-gray-600 mb-2">
-                        Your current runway is 74 days. We'll alert you when it dips below 30 days and provide cash flow forecasting.
-                      </div>
-                      <div className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded inline-block">High Priority</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                    <TrendingUp className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">Reduce Outstanding AR by 20%</div>
-                      <div className="text-sm text-gray-600 mb-2">
-                        You have $47,800 in unbilled time over 52 days old. We'll identify collection opportunities weekly.
-                      </div>
-                      <div className="text-xs text-purple-700 bg-purple-100 px-2 py-1 rounded inline-block">Medium Priority</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                    <Shield className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">Maintain Trust Compliance</div>
-                      <div className="text-sm text-gray-600 mb-2">
-                        Stay audit-ready with automatic three-way reconciliation and Delaware IOLTA compliance.
-                      </div>
-                      <div className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded inline-block">Required for Delaware</div>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                    <TrendingUp className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">92% Collection Rate Target</div>
-                      <div className="text-sm text-gray-600">
-                        Collect 92% of invoices within 60 days (up from current 87%)
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           ) : (
             <div className="space-y-6 mb-8">
+
+              {/* Progress Bar */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">Configuration Progress</span>
+                  <span className="text-sm font-semibold text-blue-600">Step 4 of 4</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full">
+                  <div className="h-full w-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full" />
+                </div>
+              </div>
 
               {/* ── Natural language goals input ── */}
               <div>
@@ -186,7 +331,6 @@ export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
                   </button>
                 </div>
 
-                {/* Confirmation */}
                 {goalAdded && (
                   <p className="text-xs text-green-600 font-medium mt-2 transition-opacity">Goal added</p>
                 )}
@@ -332,7 +476,9 @@ export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
               onClick={onComplete}
               className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-6 rounded-lg font-semibold text-lg"
             >
-              Complete Configuration
+              {mode === "suggested"
+                ? `Set ${acceptedGoals.length} Goal${acceptedGoals.length !== 1 ? "s" : ""} as Firm North Star`
+                : "Complete Configuration"}
             </Button>
           </div>
         </div>

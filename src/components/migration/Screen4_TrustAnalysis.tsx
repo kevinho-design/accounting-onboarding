@@ -63,11 +63,11 @@ export function Screen4_TrustAnalysis({ onComplete }: Screen4Props) {
   ];
 
   return (
-    <div className="relative flex-1 h-screen overflow-hidden">
+    <div className="relative flex-1 min-h-screen">
       <CloudBackground />
       <div className="absolute inset-0 backdrop-blur-md bg-white/30 z-10" />
       
-      <div className="relative z-20 flex items-center justify-center h-full p-8 overflow-y-auto">
+      <div className="relative z-20 flex items-center justify-center min-h-full p-8 py-12 overflow-y-auto">
         <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full p-10 my-8">
           
           <div className="mb-8 mt-4">

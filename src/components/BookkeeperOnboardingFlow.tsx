@@ -81,7 +81,7 @@ export function BookkeeperOnboardingFlow({ onComplete }: BookkeeperOnboardingFlo
   };
 
   return (
-    <div className="flex-1 overflow-hidden">
+    <div className="flex-1 overflow-y-auto">
       <BookkeeperStepProgress currentStep={currentStep} />
       {currentStep === "welcome" && <InviteScreen1_Welcome onComplete={advance} />}
       {currentStep === "role" && <InviteScreen2_RoleFocus onComplete={advance} />}

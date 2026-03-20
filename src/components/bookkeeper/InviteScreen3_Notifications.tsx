@@ -66,11 +66,11 @@ export function InviteScreen3_Notifications({ onComplete }: InviteScreen3Props) 
   };
 
   return (
-    <div className="relative flex-1 h-[calc(100vh-90px)] overflow-hidden">
+    <div className="relative flex-1 min-h-[calc(100vh-140px)]">
       <CloudBackground />
       <div className="absolute inset-0 backdrop-blur-md bg-white/30 z-10" />
 
-      <div className="relative z-20 flex items-center justify-center h-full p-8">
+      <div className="relative z-20 flex items-center justify-center min-h-full p-8 py-12">
         <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-10">
 
           <div className="mb-8 text-center">

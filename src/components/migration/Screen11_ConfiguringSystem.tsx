@@ -37,11 +37,11 @@ export function Screen11_ConfiguringSystem({ onComplete }: Screen11Props) {
   }, []);
 
   return (
-    <div className="relative flex-1 h-[calc(100vh-90px)] overflow-hidden">
+    <div className="relative flex-1 min-h-[calc(100vh-140px)]">
       <CloudBackground />
       <div className="absolute inset-0 backdrop-blur-md bg-white/30 z-10" />
       
-      <div className="relative z-20 flex items-center justify-center h-full p-8">
+      <div className="relative z-20 flex items-center justify-center min-h-full p-8 py-12">
         <div className="relative">
           {/* Background Galaxy Nebula - Larger and Transparent */}
           <div className="absolute inset-0 flex items-center justify-center opacity-25 scale-[3] pointer-events-none">

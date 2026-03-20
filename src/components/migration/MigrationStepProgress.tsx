@@ -8,7 +8,7 @@ interface MigrationStepProgressProps {
 const steps = [
   { number: 1, label: "Import data" },
   { number: 2, label: "Connect your financial tools" },
-  { number: 3, label: "Review" },
+  { number: 3, label: "Migration results" },
   { number: 4, label: "Configuration" }
 ];
 

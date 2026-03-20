@@ -69,11 +69,6 @@ export default function App() {
   const [unlocked, setUnlocked] = React.useState(
     () => sessionStorage.getItem("demo_unlocked") === "1"
   );
-
-  if (!unlocked) {
-    return <PasswordGate onUnlock={() => setUnlocked(true)} />;
-  }
-
   const [currentPage, setCurrentPage] = React.useState("Dashboard");
   const [showValueProp, setShowValueProp] = React.useState(true);
   const [inMigrationFlow, setInMigrationFlow] = React.useState(false);
@@ -159,6 +154,10 @@ export default function App() {
     setInBookkeeperFlow(true);
   }, []);
 
+
+  if (!unlocked) {
+    return <PasswordGate onUnlock={() => setUnlocked(true)} />;
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">

@@ -3,6 +3,7 @@ import { Users, Shield, Bell, Sparkles, Plus, X, Send, Trash2, ChevronLeft } fro
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
+import { WizardProgress } from "./WizardProgress";
 
 interface Screen8Props {
   onComplete: () => void;
@@ -77,7 +78,7 @@ export function Screen8_WorkflowApprovals({ onComplete, onBack }: Screen8Props) 
 
           <div className="mb-8 mt-4">
             <div className="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-3">
-              Configuration • Workflow & Approvals
+              Step 2 of 4 · Workflow
             </div>
             <h2 className="text-3xl font-semibold text-gray-900 mb-3">
               Workflow & Approvals
@@ -87,18 +88,9 @@ export function Screen8_WorkflowApprovals({ onComplete, onBack }: Screen8Props) 
             </p>
           </div>
 
-          <ConfigModeToggle mode={mode} onModeChange={setMode} />
+          <WizardProgress currentStep={2} />
 
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Configuration Progress</span>
-              <span className="text-sm font-semibold text-blue-600">Step 2 of 4</span>
-            </div>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div className="h-full w-1/2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full" />
-            </div>
-          </div>
+          <ConfigModeToggle mode={mode} onModeChange={setMode} />
 
           {mode === "suggested" ? (
             <div className="space-y-6 mb-8">

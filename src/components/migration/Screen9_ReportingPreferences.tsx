@@ -3,6 +3,7 @@ import { FileText, Calendar, Mail, Sparkles, CheckCircle, Plus, X, Send, Chevron
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
+import { WizardProgress } from "./WizardProgress";
 
 interface Screen9Props {
   onComplete: () => void;
@@ -79,7 +80,7 @@ export function Screen9_ReportingPreferences({ onComplete, onBack }: Screen9Prop
         <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-10 my-8">
           <div className="mb-8 mt-4">
             <div className="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-3">
-              Configuration • Reporting Preferences
+              Step 3 of 4 · Reporting
             </div>
             <h2 className="text-3xl font-semibold text-gray-900 mb-3">
               Reporting Preferences
@@ -89,18 +90,9 @@ export function Screen9_ReportingPreferences({ onComplete, onBack }: Screen9Prop
             </p>
           </div>
 
-          <ConfigModeToggle mode={mode} onModeChange={setMode} />
+          <WizardProgress currentStep={3} />
 
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">Configuration Progress</span>
-              <span className="text-sm font-semibold text-blue-600">Step 3 of 4</span>
-            </div>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div className="h-full w-2/3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full" />
-            </div>
-          </div>
+          <ConfigModeToggle mode={mode} onModeChange={setMode} />
 
           {mode === "suggested" ? (
             <div className="space-y-6 mb-8">

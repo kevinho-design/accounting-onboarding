@@ -17,6 +17,7 @@ import {
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
+import { WizardProgress } from "./WizardProgress";
 
 interface Screen10Props {
   onComplete: () => void;
@@ -181,6 +182,8 @@ export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
             </p>
           </div>
 
+          <WizardProgress currentStep={4} />
+
           <ConfigModeToggle mode={mode} onModeChange={setMode} />
 
           {mode === "suggested" ? (
@@ -294,17 +297,6 @@ export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
             </div>
           ) : (
             <div className="space-y-6 mb-8">
-
-              {/* Progress Bar */}
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-600">Configuration Progress</span>
-                  <span className="text-sm font-semibold text-blue-600">Step 4 of 4</span>
-                </div>
-                <div className="w-full h-2 bg-gray-200 rounded-full">
-                  <div className="h-full w-full bg-gradient-to-r from-blue-500 to-purple-600 rounded-full" />
-                </div>
-              </div>
 
               {/* ── Natural language goals input ── */}
               <div>

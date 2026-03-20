@@ -11,6 +11,7 @@ import {
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
+import { WizardProgress } from "./WizardProgress";
 
 interface Screen7Props {
   onComplete: () => void;
@@ -136,7 +137,7 @@ export function Screen7_UserMapping({
           {/* Header */}
           <div className="mb-7 mt-4">
             <div className="text-[11px] font-bold uppercase tracking-[0.34px] text-[#6a7282] mb-[10.5px]">
-              Configuration • User Management
+              Step 1 of 4 · User Roles
             </div>
             <h2 className="text-[26.25px] font-semibold text-[#101828] mb-[10.5px] leading-[31.5px] tracking-[0.24px]">
               Import Your Team
@@ -148,25 +149,12 @@ export function Screen7_UserMapping({
             </p>
           </div>
 
+          <WizardProgress currentStep={1} />
+
           <ConfigModeToggle
             mode={mode}
             onModeChange={setMode}
           />
-
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-600">
-                Configuration Progress
-              </span>
-              <span className="text-sm font-semibold text-blue-600">
-                Step 1 of 4
-              </span>
-            </div>
-            <div className="w-full h-2 bg-gray-200 rounded-full">
-              <div className="h-full w-1/4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full" />
-            </div>
-          </div>
 
           {mode === "suggested" ? (
             // Suggested Mode - Simple Overview

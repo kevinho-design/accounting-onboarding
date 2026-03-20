@@ -113,12 +113,18 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
     }
   };
 
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    scrollContainerRef.current?.scrollTo({ top: 0 });
+  }, [currentStep]);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <div className="flex-shrink-0 sticky top-0 z-10">
         <MigrationStepProgress currentStep={mainStepNumber} />
       </div>
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         {renderStep()}
       </div>
     </div>

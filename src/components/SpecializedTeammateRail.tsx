@@ -1,9 +1,8 @@
 import * as React from "react";
-import { ChevronDown, ChevronUp, Send, Sparkles, X, AlertCircle, Zap, Activity, MessageSquare } from "lucide-react";
+import { Send, Sparkles, X, AlertCircle, Zap, Calendar, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "motion/react";
-import { AGENTS, AgentType, AgentAction, Exception } from "./agents/AgentTypes";
-import { AgentCard } from "./agents/AgentCard";
+import { AGENTS, AgentAction, Exception } from "./agents/AgentTypes";
 import { ExplainableAction } from "./agents/ExplainableAction";
 
 interface ChatMessage {
@@ -47,9 +46,7 @@ export function SpecializedTeammateRail({
   initialMessage,
   onMessageConsumed,
 }: SpecializedTeammateRailProps) {
-  const [activeTab, setActiveTab] = React.useState<"attention" | "team" | "chat">("attention");
-  const [activeAgents] = React.useState<AgentType[]>(["trust-compliance", "matching", "revenue-forecasting", "collections", "cash-flow"]);
-  const [isRosterExpanded, setIsRosterExpanded] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<"today" | "chat">("today");
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
   const [question, setQuestion] = React.useState("");
   const [isTyping, setIsTyping] = React.useState(false);
@@ -58,53 +55,37 @@ export function SpecializedTeammateRail({
   // Consume incoming message from the floating bar
   React.useEffect(() => {
     if (initialMessage && isVisible) {
-      setActiveTab("chat");
-      sendMessage(initialMessage);
+      if (initialMessage === "__sparkle__") {
+        setActiveTab("today");
+      } else {
+        setActiveTab("chat");
+        sendMessage(initialMessage);
+      }
       onMessageConsumed?.();
     }
   }, [initialMessage, isVisible]);
 
-  // Auto-scroll to bottom of chat
   React.useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  // Auto-switch to attention tab when exceptions exist (only if no chat started)
-  React.useEffect(() => {
-    if (exceptions?.length > 0 && messages.length === 0) {
-      setActiveTab("attention");
-    }
-  }, [exceptions]);
-
   const sendMessage = (text: string) => {
     const trimmed = text.trim();
     if (!trimmed) return;
-
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      text: trimmed,
-      timestamp: new Date(),
-    };
+    const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", text: trimmed, timestamp: new Date() };
     setMessages((prev) => [...prev, userMsg]);
     setQuestion("");
     setIsTyping(true);
-
     setTimeout(() => {
-      const response = getSimulatedResponse(trimmed);
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        text: response,
+        text: getSimulatedResponse(trimmed),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, assistantMsg]);
       setIsTyping(false);
     }, 1200);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !isTyping) sendMessage(question);
   };
 
   if (!isVisible) return null;
@@ -135,33 +116,21 @@ export function SpecializedTeammateRail({
       <div className="border-b border-gray-200 flex-shrink-0">
         <div className="flex">
           <button
-            onClick={() => setActiveTab("attention")}
+            onClick={() => setActiveTab("today")}
             className={`flex-1 px-3 py-3 text-xs font-medium transition-colors relative ${
-              activeTab === "attention" ? "text-blue-600 bg-white" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              activeTab === "today" ? "text-blue-600 bg-white" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
             }`}
           >
             <div className="flex items-center justify-center gap-1.5">
-              <AlertCircle className="w-3.5 h-3.5" />
-              <span>Attention</span>
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Today</span>
               {exceptions?.length > 0 && (
-                <div className="w-4 h-4 rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-bold">
+                <div className="w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] flex items-center justify-center font-bold">
                   {exceptions.length}
                 </div>
               )}
             </div>
-            {activeTab === "attention" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />}
-          </button>
-          <button
-            onClick={() => setActiveTab("team")}
-            className={`flex-1 px-3 py-3 text-xs font-medium transition-colors relative ${
-              activeTab === "team" ? "text-blue-600 bg-white" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-            }`}
-          >
-            <div className="flex items-center justify-center gap-1.5">
-              <Activity className="w-3.5 h-3.5" />
-              <span>Your Team</span>
-            </div>
-            {activeTab === "team" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />}
+            {activeTab === "today" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />}
           </button>
           <button
             onClick={() => setActiveTab("chat")}
@@ -172,118 +141,26 @@ export function SpecializedTeammateRail({
             <div className="flex items-center justify-center gap-1.5">
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Chat</span>
-              {messages.length > 0 && (
-                <div className="w-2 h-2 rounded-full bg-blue-500" />
-              )}
+              {messages.length > 0 && <div className="w-2 h-2 rounded-full bg-blue-500" />}
             </div>
             {activeTab === "chat" && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600" />}
           </button>
         </div>
       </div>
 
-      {/* Tab Content */}
-      {activeTab === "attention" ? (
+      {/* Tab content */}
+      {activeTab === "today" ? (
         <div className="flex-1 overflow-y-auto">
-          <AttentionTab exceptions={exceptions} />
-        </div>
-      ) : activeTab === "team" ? (
-        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-          {/* Agent status bar */}
-          <div className="px-4 py-2.5 border-b border-gray-100 flex items-center gap-2 flex-shrink-0 bg-white">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <span className="text-xs text-gray-500">{activeAgents.length} agents active and monitoring</span>
-            <button
-              onClick={() => setIsRosterExpanded(!isRosterExpanded)}
-              className="ml-auto text-xs text-blue-500 hover:text-blue-700 flex items-center gap-1"
-            >
-              Roster {isRosterExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            </button>
-          </div>
-
-          {/* Agent roster (collapsible) */}
-          <AnimatePresence>
-            {isRosterExpanded && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden border-b border-gray-100 flex-shrink-0"
-              >
-                <div className="p-3 space-y-2 bg-white">
-                  {Object.values(AGENTS).map((agent) => (
-                    <AgentCard key={agent.id} agent={agent} compact />
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Team content */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* Zero-Day Reconciliation status */}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200">
-              <div className="flex items-start gap-3 mb-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <Zap className="w-4 h-4 text-green-600" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-green-900 mb-1">Zero-Day Reconciliation</div>
-                  <p className="text-xs text-green-800 leading-relaxed">
-                    Matching Agent reconciled all accounts 2 minutes ago. Trust Compliance Agent verified three-way reconciliation.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-green-700">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                <span>Continuous monitoring active</span>
-              </div>
-            </div>
-
-            {/* Recent Activity */}
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">Recent Activity</h4>
-              <div className="space-y-3">
-                {recentActions && recentActions.length > 0 ? (
-                  recentActions.map((action) => (
-                    <ExplainableAction
-                      key={action.id}
-                      action={action}
-                      onEdit={action.isEditable ? () => console.log("Edit action", action) : undefined}
-                      onReverse={action.isReversible ? () => console.log("Reverse action", action) : undefined}
-                    />
-                  ))
-                ) : (
-                  <div className="text-xs text-gray-500 text-center py-4">No recent activity</div>
-                )}
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div>
-              <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">Quick Actions</h4>
-              <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start text-sm border-gray-300 bg-white hover:bg-gray-50">
-                  View All Agent Actions
-                </Button>
-                <Button variant="outline" className="w-full justify-start text-sm border-gray-300 bg-white hover:bg-gray-50">
-                  Configure Agent Rules
-                </Button>
-              </div>
-            </div>
-          </div>
+          <TodayTab exceptions={exceptions} recentActions={recentActions} />
         </div>
       ) : (
-        /* Chat tab */
         <div className="flex-1 flex flex-col min-h-0">
-          {/* Chat messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 && (
               <div className="text-center py-12 text-xs text-gray-400">
                 Ask your Teammate anything about your firm's finances.
               </div>
             )}
-
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 {msg.role === "assistant" && (
@@ -291,19 +168,15 @@ export function SpecializedTeammateRail({
                     <Sparkles className="w-3 h-3 text-white" />
                   </div>
                 )}
-                <div
-                  className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-blue-600 text-white rounded-br-sm"
-                      : "bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm"
-                  }`}
-                >
+                <div className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                  msg.role === "user"
+                    ? "bg-blue-600 text-white rounded-br-sm"
+                    : "bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm"
+                }`}>
                   {msg.text}
                 </div>
               </div>
             ))}
-
-            {/* Typing indicator */}
             {isTyping && (
               <div className="flex justify-start">
                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mr-2 mt-1">
@@ -311,24 +184,22 @@ export function SpecializedTeammateRail({
                 </div>
                 <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
                   <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    {[0, 150, 300].map((delay) => (
+                      <span key={delay} className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: `${delay}ms` }} />
+                    ))}
                   </div>
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
-
-          {/* Chat input */}
           <div className="flex-shrink-0 p-3 border-t border-gray-200 bg-white">
             <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
               <input
                 type="text"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={handleKeyDown}
+                onKeyDown={(e) => { if (e.key === "Enter" && !isTyping) sendMessage(question); }}
                 placeholder="Ask about your finances..."
                 disabled={isTyping}
                 className="flex-1 text-sm bg-transparent outline-none text-gray-700 placeholder:text-gray-400 disabled:opacity-50"
@@ -348,72 +219,117 @@ export function SpecializedTeammateRail({
   );
 }
 
-function AttentionTab({ exceptions }: { exceptions: Exception[] }) {
-  const severityColors = {
+function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; recentActions: AgentAction[] }) {
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
+
+  const severityColors: Record<string, string> = {
     critical: "from-red-500 to-red-600",
     high: "from-orange-500 to-orange-600",
     medium: "from-yellow-500 to-yellow-600",
     low: "from-blue-500 to-blue-600",
   };
 
-  if (!exceptions || exceptions.length === 0) {
-    return (
-      <div className="p-6">
-        <div className="text-center py-12">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-4">
-            <Zap className="w-8 h-8 text-white" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">All Clear!</h3>
-          <p className="text-sm text-gray-600">
-            Your financial team is actively monitoring. We'll alert you when something needs attention.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 space-y-4">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-          {exceptions.length} {exceptions.length === 1 ? "item" : "items"} need your attention
-        </h3>
-        <p className="text-sm text-gray-600">Your financial team flagged these exceptions</p>
-      </div>
-      <div className="space-y-3">
-        {exceptions.map((exception, idx) => {
-          const agent = AGENTS[exception.agentId];
-          return (
-            <div key={exception.id} className="p-4 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
-              <div className="flex items-start gap-3 mb-3">
-                <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${severityColors[exception.severity]} flex items-center justify-center flex-shrink-0`}>
-                  <span className="text-xs font-bold text-white">{idx + 1}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-1">{exception.title}</h4>
-                  <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
-                    <span>{agent.name}</span>
-                    <span>•</span>
-                    <span>{new Date(exception.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                  </div>
-                  <p className="text-xs text-gray-600 mb-2">{exception.description}</p>
-                  {exception.impact && (
-                    <div className="flex items-start gap-1.5 p-2 bg-amber-50 rounded text-xs text-amber-800 mb-3">
-                      <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                      <span>{exception.impact}</span>
-                    </div>
-                  )}
-                  {exception.suggestedAction && (
-                    <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs">
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      {exception.suggestedAction}
-                    </Button>
-                  )}
-                </div>
-              </div>
+    <div className="p-4 space-y-6">
+      {/* Section 1: Needs your input */}
+      <div>
+        <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">
+          Needs your input
+        </h4>
+        {exceptions.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-3">
+              <Zap className="w-6 h-6 text-white" />
             </div>
-          );
-        })}
+            <p className="text-sm font-semibold text-gray-900 mb-1">All clear!</p>
+            <p className="text-xs text-gray-500">Nothing needs your attention right now.</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {exceptions.map((exception, idx) => {
+              const agent = AGENTS[exception.agentId];
+              const isExpanded = expandedId === exception.id;
+              return (
+                <div
+                  key={exception.id}
+                  className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+                >
+                  {/* Collapsed header — always visible */}
+                  <button
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => setExpandedId(isExpanded ? null : exception.id)}
+                  >
+                    <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${severityColors[exception.severity]} flex items-center justify-center flex-shrink-0`}>
+                      <span className="text-[10px] font-bold text-white">{idx + 1}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">{exception.title}</p>
+                      <p className="text-xs text-gray-500 truncate">{agent.name}</p>
+                    </div>
+                    {isExpanded
+                      ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    }
+                  </button>
+
+                  {/* Expanded detail */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 pb-4 pt-1 border-t border-gray-100">
+                          <p className="text-xs text-gray-600 mb-3">{exception.description}</p>
+                          {exception.impact && (
+                            <div className="flex items-start gap-1.5 p-2 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
+                              <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                              <span>{exception.impact}</span>
+                            </div>
+                          )}
+                          {exception.suggestedAction && (
+                            <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs cursor-pointer">
+                              <Sparkles className="w-3 h-3 mr-1" />
+                              {exception.suggestedAction}
+                            </Button>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Section 2: Handled for you */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500">Handled for you</h4>
+          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span>5 agents active</span>
+          </div>
+        </div>
+        {recentActions.length === 0 ? (
+          <div className="text-xs text-gray-400 text-center py-4">No recent activity</div>
+        ) : (
+          <div className="space-y-2">
+            {recentActions.map((action) => (
+              <ExplainableAction
+                key={action.id}
+                action={action}
+                onEdit={action.isEditable ? () => {} : undefined}
+                onReverse={action.isReversible ? () => {} : undefined}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -4,13 +4,15 @@ import {
   Sparkles,
   ChevronRight,
   ChevronDown,
-  Shield,
-  RefreshCw,
   Info,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Receipt,
 } from "lucide-react";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { motion } from "motion/react";
-import { Exception, AgentAction, AGENTS } from "./agents/AgentTypes";
+import { Exception, AgentAction } from "./agents/AgentTypes";
+import { Button } from "./ui/button";
 
 interface BookkeeperDashboardProps {
   onAskTeammate?: (message: string) => void;
@@ -88,14 +90,26 @@ export const SARAH_AGENT_ACTIONS: AgentAction[] = [
   },
 ];
 
-// Per-exception action config
-const EXCEPTION_ACTIONS: Record<string, { label: string; askPrompt: string }> = {
-  s1: { label: "Review duplicates", askPrompt: "Walk me through the 2 duplicate ACH transactions held on Mar 15 — what should I look for before dismissing one?" },
-  s2: { label: "Categorize transactions", askPrompt: "Help me categorize the 14 Brex transactions blocking March reconciliation. What's the fastest way to resolve these?" },
-  s3: { label: "Assign client matter", askPrompt: "A $12,000 inbound transfer needs a client matter before it can post to IOLTA. How do I find and assign the right matter?" },
-  s4: { label: "Review expenses", askPrompt: "I have 3 expense reports totalling $4,380 pending approval. Can you summarize what each one is for so I can approve quickly?" },
-  s5: { label: "Review feed gap", askPrompt: "There's a 6-hour Bank of America feed gap on Mar 16. How do I identify which transactions are missing and add them?" },
+const EXCEPTION_ASK_PROMPTS: Record<string, string> = {
+  s1: "Walk me through the 2 duplicate ACH transactions held on Mar 15 — what should I look for before dismissing one?",
+  s2: "Help me categorize the 14 Brex transactions blocking March reconciliation. What's the fastest way to resolve these?",
+  s3: "A $12,000 inbound transfer needs a client matter before it can post to IOLTA. How do I find and assign the right matter?",
+  s4: "I have 3 expense reports totalling $4,380 pending approval. Can you summarize what each one is for?",
+  s5: "There's a 6-hour Bank of America feed gap on Mar 16. How do I identify which transactions are missing and add them?",
 };
+
+const RECENT_TRANSACTIONS = [
+  { date: "Mar 17", vendor: "Westfield & Partners", amount: -3400.00, account: "6200 · Operating Exp", type: "debit" as const },
+  { date: "Mar 17", vendor: "Chen & Associates", amount: 18400.00, account: "1100 · AR", type: "credit" as const },
+  { date: "Mar 16", vendor: "Brex Corporate Card", amount: -1240.50, account: "6400 · Uncategorized", type: "debit" as const, flagged: true },
+  { date: "Mar 16", vendor: "IOLTA Retainer — Case #4421", amount: 12000.00, account: "2000 · Trust", type: "credit" as const, flagged: true },
+  { date: "Mar 15", vendor: "Westfield & Partners (DUP)", amount: -3400.00, account: "6200 · Held", type: "debit" as const, flagged: true },
+  { date: "Mar 15", vendor: "Payroll — March 15", amount: -28750.00, account: "6100 · Payroll", type: "debit" as const },
+  { date: "Mar 14", vendor: "Harbor LLC", amount: 8900.00, account: "1100 · AR", type: "credit" as const },
+  { date: "Mar 14", vendor: "Adobe Creative Cloud", amount: -149.99, account: "6300 · Software", type: "debit" as const },
+  { date: "Mar 13", vendor: "Tech Startup Inc.", amount: 12400.00, account: "1100 · AR", type: "credit" as const },
+  { date: "Mar 13", vendor: "Comcast Business", amount: -215.00, account: "6300 · Utilities", type: "debit" as const },
+];
 
 const severityColors: Record<string, string> = {
   critical: "from-red-500 to-red-600",
@@ -107,9 +121,8 @@ const severityColors: Record<string, string> = {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsChange, onRecentActionsChange }: BookkeeperDashboardProps) {
+  const [expandedExceptionId, setExpandedExceptionId] = React.useState<string | null>(null);
   const [resolved, setResolved] = React.useState<Set<string>>(new Set());
-  const [queueExpanded, setQueueExpanded] = React.useState(true);
-  const [overnightExpanded, setOvernightExpanded] = React.useState(true);
 
   React.useEffect(() => { onExceptionsChange?.(SARAH_EXCEPTIONS); }, [onExceptionsChange]);
   React.useEffect(() => { onRecentActionsChange?.(SARAH_AGENT_ACTIONS); }, [onRecentActionsChange]);
@@ -119,214 +132,241 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
       <PulsatingCloudBackground />
 
       <div className="h-full overflow-y-auto relative z-10">
-        <div className="max-w-6xl mx-auto px-8 py-12">
+        <div className="px-8 py-10">
 
-          {/* Header — matches Jennifer exactly */}
-          <div className="mb-12">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-semibold text-gray-900">Good morning, Sarah</h1>
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+          {/* Header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-semibold text-gray-900">Good morning, Sarah</h1>
+              <span className="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
                 Bookkeeper · Hartwell &amp; Morris
               </span>
             </div>
-            <p className="text-gray-600 text-lg">Tuesday, March 18, 2026</p>
+            <p className="text-gray-500 text-sm">Tuesday, March 18, 2026</p>
           </div>
 
-          {/* ── Section 1: Today's Queue ── */}
-          <div className="mb-12">
-            <div
-              className="flex items-center justify-between mb-6 cursor-pointer group"
-              onClick={() => setQueueExpanded(v => !v)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-400 rounded-xl blur-md opacity-75 animate-pulse" />
-                  <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                </div>
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {SARAH_EXCEPTIONS.length} {SARAH_EXCEPTIONS.length === 1 ? "item" : "items"} need your attention today
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    Your AI teammate flagged these — they need a human call
-                  </p>
-                </div>
-              </div>
-              <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform group-hover:text-gray-600 ${queueExpanded ? "rotate-0" : "-rotate-90"}`} />
-            </div>
+          {/* 2-column layout */}
+          <div className="grid grid-cols-12 gap-8">
 
-            {queueExpanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                transition={{ duration: 0.3 }}
-                className="space-y-4"
-              >
+            {/* LEFT COLUMN — System of Action */}
+            <div className="col-span-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                </div>
+                <h2 className="text-base font-semibold text-gray-900">Today</h2>
+                <span className="text-xs text-gray-400 font-normal">— {SARAH_EXCEPTIONS.length} items need your input</span>
+              </div>
+
+              <div className="space-y-2">
                 {SARAH_EXCEPTIONS.slice(0, 3).map((exc, idx) => {
+                  const isExpanded = expandedExceptionId === exc.id;
                   const isResolved = resolved.has(exc.id);
-                  const action = EXCEPTION_ACTIONS[exc.id];
-                  const iconGradient = severityColors[exc.severity] ?? "from-blue-500 to-blue-600";
+                  const askPrompt = EXCEPTION_ASK_PROMPTS[exc.id];
 
                   return (
-                    <motion.div
+                    <div
                       key={exc.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.07 }}
-                      className={`p-6 bg-white rounded-2xl border border-gray-200 hover:shadow-lg transition-shadow ${isResolved ? "opacity-60" : ""}`}
+                      className={`bg-white rounded-xl border border-gray-200 overflow-hidden ${isResolved ? "opacity-60" : ""}`}
                     >
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${iconGradient} flex items-center justify-center flex-shrink-0`}>
-                          <span className="text-sm font-bold text-white">{idx + 1}</span>
+                      <button
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => setExpandedExceptionId(isExpanded ? null : exc.id)}
+                      >
+                        <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${severityColors[exc.severity]} flex items-center justify-center flex-shrink-0`}>
+                          {isResolved
+                            ? <CheckCircle className="w-3 h-3 text-white" />
+                            : <span className="text-[10px] font-bold text-white">{idx + 1}</span>
+                          }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-base font-semibold text-gray-900">{exc.title}</h3>
-                          <p className="text-sm text-gray-500 mt-0.5">{exc.description}</p>
+                          <p className="text-sm font-medium text-gray-900 leading-snug">{exc.title}</p>
+                          <p className="text-xs text-gray-500 truncate mt-0.5">{exc.description}</p>
                         </div>
-                      </div>
+                        <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                      </button>
 
-                      <div className="flex items-start gap-2 mb-4 p-3 bg-amber-50 rounded-lg">
-                        <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-amber-800">{exc.impact}</p>
-                      </div>
-
-                      {isResolved ? (
-                        <div className="flex items-center gap-2 text-green-700">
-                          <CheckCircle className="w-4 h-4" />
-                          <span className="text-sm font-medium">Resolved</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-                            onClick={() => setResolved(prev => new Set([...prev, exc.id]))}
-                          >
-                            {action.label}
-                            <ChevronRight className="w-4 h-4" />
-                          </button>
-                          {onAskTeammate && (
-                            <button
-                              className="inline-flex items-center gap-1.5 px-4 py-2 border border-gray-300 text-gray-600 hover:bg-gray-50 text-sm font-medium rounded-lg transition-colors"
-                              onClick={() => onAskTeammate(action.askPrompt)}
-                            >
-                              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-                              Ask Teammate
-                            </button>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="px-4 pb-4 pt-1 border-t border-gray-100"
+                        >
+                          {exc.impact && (
+                            <div className="flex items-start gap-1.5 p-2.5 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
+                              <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                              <span>{exc.impact}</span>
+                            </div>
                           )}
-                        </div>
+                          {isResolved ? (
+                            <div className="flex items-center gap-2 text-green-700 text-sm">
+                              <CheckCircle className="w-4 h-4" />
+                              <span className="font-medium">Resolved</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <Button
+                                size="sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer"
+                                onClick={() => setResolved(prev => new Set([...prev, exc.id]))}
+                              >
+                                {exc.suggestedAction}
+                                <ChevronRight className="w-3 h-3 ml-1" />
+                              </Button>
+                              {onAskTeammate && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAskTeammate(askPrompt);
+                                  }}
+                                >
+                                  <Sparkles className="w-3 h-3 mr-1 text-blue-500" />
+                                  Ask Teammate
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                        </motion.div>
                       )}
-                    </motion.div>
+                    </div>
                   );
                 })}
 
-                {/* See all link */}
-                {onOpenRail && SARAH_EXCEPTIONS.length > 3 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.25 }}
-                    className="pt-1"
+                {SARAH_EXCEPTIONS.length > 3 && onOpenRail && (
+                  <button
+                    onClick={onOpenRail}
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-blue-200 text-blue-600 text-sm font-medium hover:bg-blue-50 transition-colors cursor-pointer"
                   >
-                    <button
-                      onClick={onOpenRail}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-sm font-medium hover:bg-blue-100 transition-colors"
-                    >
-                      See all {SARAH_EXCEPTIONS.length} items
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </motion.div>
+                    See all {SARAH_EXCEPTIONS.length} items in Today
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
                 )}
-              </motion.div>
-            )}
-          </div>
-
-          {/* ── Section 2: What AI did overnight ── */}
-          <div className="mb-12">
-            <div
-              className="flex items-center justify-between mb-6 cursor-pointer group"
-              onClick={() => setOvernightExpanded(v => !v)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-blue-500 flex items-center justify-center shadow-md flex-shrink-0">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-xl font-semibold text-gray-900">What your AI did overnight</h2>
               </div>
-              <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform group-hover:text-gray-600 ${overnightExpanded ? "rotate-0" : "-rotate-90"}`} />
+
+              {/* Handled for you */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Handled for you</h3>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span>3 agents active</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {SARAH_AGENT_ACTIONS.map((action) => {
+                    const timeDiff = Date.now() - action.timestamp.getTime();
+                    const mins = Math.floor(timeDiff / 60000);
+                    const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
+                    return (
+                      <div key={action.id} className="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <CheckCircle className="w-3 h-3 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-gray-800 leading-snug">{action.action}</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">{timeLabel}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            {overnightExpanded && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="grid grid-cols-3 gap-6">
-
-                  {/* Auto-coded */}
-                  <div className="p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 hover:shadow-lg transition-all">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="text-sm font-medium text-gray-500">Auto-coded</div>
-                      <div className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded uppercase">Done</div>
-                    </div>
-                    <div className="text-xs text-gray-400 mb-4">Last night · 2:14 AM</div>
-                    <div className="text-3xl font-bold text-gray-900 mb-2">89</div>
-                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 rounded text-xs font-medium text-emerald-700 mb-4">
-                      <Sparkles className="w-3 h-3" />
-                      97% avg confidence
-                    </div>
-                    <div className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-blue-800">All matched to existing vendor patterns</p>
-                    </div>
+            {/* RIGHT COLUMN — System of Record */}
+            <div className="col-span-7">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-blue-500 flex items-center justify-center shadow-sm">
+                    <Receipt className="w-3.5 h-3.5 text-white" />
                   </div>
-
-                  {/* IOLTA status */}
-                  <div className="p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 hover:shadow-lg transition-all">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="text-sm font-medium text-gray-500">IOLTA Status</div>
-                      <div className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded uppercase">Clear</div>
-                    </div>
-                    <div className="text-xs text-gray-400 mb-4">Verified · 3:01 AM</div>
-                    <div className="flex items-center mb-2">
-                      <CheckCircle className="w-8 h-8 text-emerald-500" />
-                    </div>
-                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 rounded text-xs font-medium text-emerald-700 mb-4">
-                      <Shield className="w-3 h-3" />
-                      Three-way reconciled
-                    </div>
-                    <div className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-blue-800">City National balance matches all client ledgers</p>
-                    </div>
-                  </div>
-
-                  {/* Reconciliation */}
-                  <div className="p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 hover:shadow-lg transition-all">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="text-sm font-medium text-gray-500">March Reconciliation</div>
-                      <div className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded uppercase">Open</div>
-                    </div>
-                    <div className="text-xs text-gray-400 mb-4">Updated · 5:30 AM</div>
-                    <div className="text-3xl font-bold text-gray-900 mb-2">90%</div>
-                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 rounded text-xs font-medium text-yellow-700 mb-4">
-                      <RefreshCw className="w-3 h-3" />
-                      14 unmatched
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-1.5 mb-3">
-                      <div className="bg-purple-500 h-1.5 rounded-full" style={{ width: "90%" }} />
-                    </div>
-                    <div className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg">
-                      <Sparkles className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-xs text-blue-800">127/141 matched — Brex card needs your review</p>
-                    </div>
-                  </div>
-
+                  <h2 className="text-base font-semibold text-gray-900">Recent Transactions</h2>
                 </div>
-              </motion.div>
-            )}
+                <button className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                  View all transactions <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                {/* Table header */}
+                <div className="grid grid-cols-12 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
+                  <span className="col-span-2 text-xs font-medium text-gray-500">Date</span>
+                  <span className="col-span-4 text-xs font-medium text-gray-500">Vendor / Description</span>
+                  <span className="col-span-3 text-xs font-medium text-gray-500 text-right">Amount</span>
+                  <span className="col-span-3 text-xs font-medium text-gray-500 text-right">Account</span>
+                </div>
+
+                <div className="divide-y divide-gray-50">
+                  {RECENT_TRANSACTIONS.map((tx, i) => (
+                    <div
+                      key={i}
+                      className={`grid grid-cols-12 items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${tx.flagged ? 'bg-amber-50/40' : ''}`}
+                    >
+                      <span className="col-span-2 text-xs text-gray-500">{tx.date}</span>
+                      <div className="col-span-4 flex items-center gap-2 min-w-0">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          tx.type === 'credit' ? 'bg-emerald-100' : 'bg-gray-100'
+                        }`}>
+                          {tx.type === 'credit'
+                            ? <ArrowDownLeft className="w-3 h-3 text-emerald-600" />
+                            : <ArrowUpRight className="w-3 h-3 text-gray-500" />
+                          }
+                        </div>
+                        <span className="text-xs text-gray-800 font-medium truncate">{tx.vendor}</span>
+                        {tx.flagged && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" title="Flagged" />
+                        )}
+                      </div>
+                      <span className={`col-span-3 text-xs font-medium text-right tabular-nums ${
+                        tx.type === 'credit' ? 'text-emerald-700' : 'text-gray-800'
+                      }`}>
+                        {tx.type === 'credit' ? '+' : ''}
+                        {tx.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      </span>
+                      <span className="col-span-3 text-xs text-gray-400 text-right truncate">{tx.account}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                  <span className="text-xs text-gray-400">Showing last 10 of 141 transactions this month</span>
+                  <button className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                    View all <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Bank feed status */}
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
+                  <p className="text-xs text-gray-500 mb-1">Bank Feed</p>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-xs font-medium text-gray-800">Live · 2 min ago</span>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
+                  <p className="text-xs text-gray-500 mb-1">March Recon</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-gray-800">90%</span>
+                    <span className="text-xs text-yellow-600">14 unmatched</span>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
+                  <p className="text-xs text-gray-500 mb-1">Auto-coded today</p>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-medium text-gray-800">89 transactions</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

@@ -249,6 +249,7 @@ export default function App() {
           activeUser={activeUser}
           onOpen={() => {
             setIsTeammateRailOpen(true);
+            setIsChatBarVisible(false);
             setRailSeen(true);
           }}
           onSubmitMessage={(msg) => {

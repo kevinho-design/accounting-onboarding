@@ -10,11 +10,8 @@ import {
   ChevronDown
 } from "lucide-react";
 import { Button } from "./ui/button";
-import { Card } from "./ui/card";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { AGENTS, Exception, AgentAction } from "./agents/AgentTypes";
-import { AgentCard } from "./agents/AgentCard";
-import { ExplainableAction } from "./agents/ExplainableAction";
 import { DrillDownPanel } from "./DrillDownPanel";
 import { MigrationReportModal } from "./MigrationReportModal";
 import { FinancialGoalsViewModal } from "./FinancialGoalsViewModal";
@@ -34,10 +31,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
   const [showReportModal, setShowReportModal] = React.useState(false);
   const [showGoalsModal, setShowGoalsModal] = React.useState(false);
   const [goalsExpanded, setGoalsExpanded] = React.useState(false);
-  
-  // Collapsible sections state
-  const [exceptionsExpanded, setExceptionsExpanded] = React.useState(true);
-  const [financialHealthExpanded, setFinancialHealthExpanded] = React.useState(true);
+  const [expandedExceptionId, setExpandedExceptionId] = React.useState<string | null>(null);
 
   // Migration stats
   const migrationStats = [
@@ -204,57 +198,48 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
       <PulsatingCloudBackground />
       
       <div className="h-full overflow-y-auto relative z-10">
-        <div className="max-w-6xl mx-auto px-8 py-12">
+        <div className="px-8 py-10">
           
           {/* Header */}
-          <div className="mb-12">
-            <h1 className="text-3xl font-semibold text-gray-900 mb-2">Welcome back, Jennifer</h1>
-            <p className="text-gray-600 text-lg">Tuesday, March 17, 2026</p>
+          <div className="mb-8">
+            <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome back, Jennifer</h1>
+            <p className="text-gray-500 text-sm">Tuesday, March 17, 2026</p>
           </div>
 
-          {/* Migration Success Banner - Dismissible */}
+          {/* Migration Success Banner - full width, dismissible */}
           {showMigrationBanner && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-2xl border border-gray-200 p-8 mb-12"
+              className="bg-white rounded-2xl border border-gray-200 p-6 mb-8"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
+                    <CheckCircle className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-semibold text-gray-900">Migration Complete</h2>
-                    <p className="text-gray-600">Your financial team started monitoring immediately. During migration, they already found 3 things that need your attention — see below.</p>
+                    <h2 className="text-base font-semibold text-gray-900">Migration Complete</h2>
+                    <p className="text-sm text-gray-500">Your financial team started monitoring immediately. During migration, they found items that need your review.</p>
                   </div>
                 </div>
                 <Button 
                   variant="outline"
                   onClick={() => setShowMigrationBanner(false)}
-                  className="border-white/60 bg-white/70 hover:bg-white text-gray-700 flex-shrink-0"
+                  className="border-gray-200 bg-white hover:bg-gray-50 text-gray-600 text-sm flex-shrink-0"
                 >
                   Dismiss
                 </Button>
               </div>
 
-              {/* Agent Roster */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
-                {Object.values(AGENTS).map(agent => (
-                  <AgentCard key={agent.id} agent={agent} compact />
-                ))}
-              </div>
-
-              {/* Migration Stats Summary */}
-              <div className="grid grid-cols-4 gap-4 mb-6">
+              {/* Migration Stats */}
+              <div className="grid grid-cols-4 gap-3 mb-4">
                 {migrationStats.map((stat) => (
-                  <div key={stat.label} className="p-4 bg-white rounded-xl shadow-sm">
-                    <div className="text-xl font-bold text-gray-900 mb-1">{stat.value}</div>
-                    <div className="text-xs text-gray-600 mb-2">{stat.label}</div>
+                  <div key={stat.label} className="p-3 bg-gray-50 rounded-xl">
+                    <div className="text-lg font-bold text-gray-900 mb-0.5">{stat.value}</div>
+                    <div className="text-xs text-gray-500 mb-1">{stat.label}</div>
                     {stat.percentage && (
-                      <div className={`text-xs font-medium ${
-                        stat.status === 'success' ? 'text-green-600' : 'text-yellow-600'
-                      }`}>
+                      <div className={`text-xs font-medium ${stat.status === 'success' ? 'text-green-600' : 'text-yellow-600'}`}>
                         {stat.percentage}
                       </div>
                     )}
@@ -262,549 +247,366 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                 ))}
               </div>
 
-              {/* Quick Actions */}
-              <div className="flex gap-3">
-                <Button 
-                  onClick={() => onOpenRail?.()}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
+              <div className="flex gap-2">
+                <Button onClick={() => onOpenRail?.()} className="bg-blue-600 hover:bg-blue-700 text-white text-sm cursor-pointer">
                   Review items in Teammate
-                  <ChevronRight className="w-4 h-4 ml-1" />
+                  <ChevronRight className="w-3.5 h-3.5 ml-1" />
                 </Button>
-                <Button 
-                  variant="outline" 
-                  className="border-gray-300 bg-white hover:bg-gray-50"
-                  onClick={() => setShowReportModal(true)}
-                >
+                <Button variant="outline" className="border-gray-300 bg-white hover:bg-gray-50 text-sm" onClick={() => setShowReportModal(true)}>
                   View Full Migration Report
                 </Button>
               </div>
             </motion.div>
           )}
 
-          {/* Exception-First Content */}
-          {hasExceptions ? (
-            <>
-              {/* Exception Summary - Collapsible */}
-              <div className="mb-8">
-                <div 
-                  className="flex items-center justify-between mb-6 cursor-pointer group"
-                  onClick={() => setExceptionsExpanded(!exceptionsExpanded)}
+          {/* 2-column layout */}
+          <div className="grid grid-cols-12 gap-8">
+
+            {/* LEFT COLUMN — System of Action */}
+            <div className="col-span-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-sm">
+                  <Sparkles className="w-3.5 h-3.5 text-white" />
+                </div>
+                <h2 className="text-base font-semibold text-gray-900">Today</h2>
+                <span className="text-xs text-gray-400 font-normal">— {exceptions.length} items need your input</span>
+              </div>
+
+              {hasExceptions ? (
+                <div className="space-y-2">
+                  {exceptions.slice(0, 3).map((exception, idx) => {
+                    const severityColors = {
+                      critical: "from-red-500 to-red-600",
+                      high: "from-orange-500 to-orange-600",
+                      medium: "from-yellow-500 to-yellow-600",
+                      low: "from-blue-500 to-blue-600"
+                    };
+                    const isExpanded = expandedExceptionId === exception.id;
+
+                    return (
+                      <div key={exception.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        {/* Collapsed header */}
+                        <button
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={() => setExpandedExceptionId(isExpanded ? null : exception.id)}
+                        >
+                          <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${severityColors[exception.severity]} flex items-center justify-center flex-shrink-0`}>
+                            <span className="text-[10px] font-bold text-white">{idx + 1}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 leading-snug">{exception.title}</p>
+                            <p className="text-xs text-gray-500 truncate mt-0.5">{exception.description}</p>
+                          </div>
+                          <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {/* Expanded detail */}
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="px-4 pb-4 pt-1 border-t border-gray-100"
+                          >
+                            {exception.impact && (
+                              <div className="flex items-start gap-1.5 p-2.5 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
+                                <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                                <span>{exception.impact}</span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2">
+                              {exception.suggestedAction && (
+                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer">
+                                  {exception.suggestedAction}
+                                  <ChevronRight className="w-3 h-3 ml-1" />
+                                </Button>
+                              )}
+                              {onAskTeammate && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onAskTeammate(`Help me with: "${exception.title}"`);
+                                  }}
+                                >
+                                  <Sparkles className="w-3 h-3 mr-1 text-blue-500" />
+                                  Ask Teammate
+                                </Button>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {exceptions.length > 3 && onOpenRail && (
+                    <button
+                      onClick={onOpenRail}
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-blue-200 text-blue-600 text-sm font-medium hover:bg-blue-50 transition-colors cursor-pointer"
+                    >
+                      See all {exceptions.length} items in Today
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 mb-1">You're all caught up!</p>
+                  <p className="text-xs text-gray-500">Your financial team is actively monitoring.</p>
+                </div>
+              )}
+
+              {/* Handled for you */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide text-xs">Handled for you</h3>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span>3 agents active</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {recentActions.map((action) => {
+                    const timeDiff = Date.now() - action.timestamp.getTime();
+                    const mins = Math.floor(timeDiff / 60000);
+                    const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
+                    return (
+                      <div key={action.id} className="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <CheckCircle className="w-3 h-3 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-gray-800 leading-snug">{action.action}</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">{timeLabel}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN — System of Record */}
+            <div className="col-span-7">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
+                  <TrendingUp className="w-3.5 h-3.5 text-white" />
+                </div>
+                <h2 className="text-base font-semibold text-gray-900">Financial Health</h2>
+              </div>
+
+              {/* Goals card */}
+              <div className="bg-white rounded-xl border border-gray-200 mb-4">
+                <div
+                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                  onClick={() => setGoalsExpanded(!goalsExpanded)}
                 >
                   <div className="flex items-center gap-3">
-                    {/* AI Icon */}
-                    <div className="relative">
-                      <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-md">
-                        <Sparkles className="w-5 h-5 text-white" />
-                      </div>
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                      <Target className="w-4 h-4 text-green-600" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-gray-900">
-                        {exceptions.length} {exceptions.length === 1 ? 'item' : 'items'} need your attention
-                      </h2>
-                      <p className="text-sm text-gray-500">
-                        Your financial team flagged these exceptions that require human judgment
-                      </p>
+                      <p className="text-sm font-semibold text-gray-900">Q1 2026 Financial Goals</p>
+                      <p className="text-xs text-gray-500">3 of 4 on track • 1 at risk</p>
                     </div>
                   </div>
-                  <ChevronDown 
-                    className={`w-6 h-6 text-gray-400 transition-transform group-hover:text-gray-600 ${exceptionsExpanded ? 'rotate-0' : '-rotate-90'}`} 
-                  />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="border-gray-300 bg-white hover:bg-gray-50 text-xs"
+                      onClick={(e) => { e.stopPropagation(); setShowGoalsModal(true); }}
+                    >
+                      Review Goals
+                    </Button>
+                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${goalsExpanded ? 'rotate-180' : ''}`} />
+                  </div>
                 </div>
-
-                {/* Exception Queue */}
-                {exceptionsExpanded && (
+                {goalsExpanded && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="space-y-4"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="border-t border-gray-100 p-4 grid grid-cols-2 gap-3"
                   >
-                    {exceptions.slice(0, 3).map((exception, idx) => {
-                      const agent = AGENTS[exception.agentId];
-                      const severityColors = {
-                        critical: "from-red-500 to-red-600",
-                        high: "from-orange-500 to-orange-600",
-                        medium: "from-yellow-500 to-yellow-600",
-                        low: "from-blue-500 to-blue-600"
-                      };
-
-                      return (
-                        <motion.div
-                          key={exception.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                          className="p-6 bg-white rounded-2xl border border-gray-200"
-                        >
-                          <div className="flex items-start justify-between gap-6">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-3 mb-3">
-                                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${severityColors[exception.severity]} flex items-center justify-center flex-shrink-0`}>
-                                  <span className="text-sm font-bold text-white">{idx + 1}</span>
-                                </div>
-                                <div>
-                                  <h3 className="text-base font-semibold text-gray-900">{exception.title}</h3>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-xs text-gray-500">{agent.name}</span>
-                                    <span className="text-xs text-gray-400">•</span>
-                                    <span className="text-xs text-gray-500">
-                                      {new Date(exception.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-500 mb-2">{exception.description}</p>
-                              {exception.impact && (
-                                <div className="flex items-start gap-2 mb-4 p-3 bg-amber-50 rounded-lg">
-                                  <Info className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                                  <p className="text-sm text-amber-800">{exception.impact}</p>
-                                </div>
-                              )}
-                              {exception.suggestedAction && (
-                                <div className="flex items-center gap-2">
-                                  <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
-                                    {exception.suggestedAction}
-                                    <ChevronRight className="w-4 h-4 ml-1" />
-                                  </Button>
-                                  {onAskTeammate && (
-                                    <Button
-                                      variant="outline"
-                                      className="border-gray-300 text-gray-600 hover:bg-gray-50 cursor-pointer"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        onAskTeammate(`Help me with this exception: "${exception.title}" — ${exception.description}${exception.impact ? `. Impact: ${exception.impact}` : ""}`);
-                                      }}
-                                    >
-                                      <Sparkles className="w-3.5 h-3.5 mr-1.5 text-blue-500" />
-                                      Ask Teammate
-                                    </Button>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-
-                    {/* See all pill */}
-                    {exceptions.length > 3 && onOpenRail && (
-                      <div className="flex justify-center pt-2">
-                        <button
-                          onClick={onOpenRail}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 text-sm font-medium transition-colors"
-                        >
-                          See all {exceptions.length} items
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                    {financialGoals.map((goal, idx) => (
+                      <div key={idx} className="p-4 bg-gray-50 rounded-xl">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-medium text-gray-700">{goal.goal}</p>
+                          <div className={`w-2 h-2 rounded-full ${goal.status === 'on-track' ? 'bg-green-500' : goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                        </div>
+                        <div className="flex items-baseline gap-1.5 mb-2">
+                          <span className="text-xl font-bold text-gray-900">{goal.current}</span>
+                          <span className="text-xs text-gray-500">of {goal.target}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-1 mb-2">
+                          <div className={`h-1 rounded-full ${goal.status === 'on-track' ? 'bg-green-500' : goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${goal.progress}%` }} />
+                        </div>
+                        <p className="text-xs text-gray-500">{goal.insight}</p>
                       </div>
-                    )}
+                    ))}
                   </motion.div>
                 )}
               </div>
 
-              {/* Financial Health Overview - Controller Metrics */}
-              <div className="mb-12">
-                <div 
-                  className="flex items-center justify-between mb-6 cursor-pointer group"
-                  onClick={() => setFinancialHealthExpanded(!financialHealthExpanded)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md flex-shrink-0">
-                      <TrendingUp className="w-5 h-5 text-white" />
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-900">Financial Health Overview</h2>
+              {/* 2x2 metric cards */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {/* Operating Cash */}
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("operating")}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-gray-500">Operating Cash</p>
+                    <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Healthy</span>
                   </div>
-                  <ChevronDown 
-                    className={`w-6 h-6 text-gray-400 transition-transform group-hover:text-gray-600 ${financialHealthExpanded ? 'rotate-0' : '-rotate-90'}`} 
-                  />
+                  <p className="text-xs text-gray-400 mb-2">March 2026</p>
+                  <p className="text-2xl font-bold text-gray-900 mb-1">$142,847</p>
+                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 rounded text-xs font-medium text-emerald-700 mb-2">
+                    <TrendingUp className="w-3 h-3" />+8% MoM
+                  </div>
+                  <svg className="w-full h-10" viewBox="0 0 200 60">
+                    <defs>
+                      <linearGradient id="areaGradient2" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#6EE7B7" stopOpacity="0.3"/>
+                        <stop offset="100%" stopColor="#6EE7B7" stopOpacity="0.05"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10 L200,60 L0,60 Z" fill="url(#areaGradient2)" />
+                    <path d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10" fill="none" stroke="#6EE7B7" strokeWidth="2" />
+                  </svg>
                 </div>
-                
-                {financialHealthExpanded && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {/* Goal Progress - Expandable */}
-                    <div className="p-6 bg-white rounded-2xl border border-gray-200 mb-6">
-                      <div 
-                        className="flex items-center justify-between cursor-pointer"
-                        onClick={() => setGoalsExpanded(!goalsExpanded)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                            <Target className="w-5 h-5 text-green-600" />
-                          </div>
-                          <div>
-                            <h3 className="text-base font-semibold text-gray-900">Q1 2026 Financial Goals</h3>
-                            <p className="text-sm text-gray-600">3 of 4 on track • 1 at risk (Cash Runway)</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowGoalsModal(true);
-                            }}
-                            variant="outline" 
-                            className="border-gray-300 bg-white hover:bg-gray-50"
-                          >
-                            Review Goals
-                          </Button>
-                          <ChevronDown 
-                            className={`w-5 h-5 text-gray-400 transition-transform ${goalsExpanded ? 'rotate-0' : '-rotate-90'}`} 
-                          />
-                        </div>
-                      </div>
 
-                      {/* Expanded Content */}
-                      {goalsExpanded && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="mt-6 grid grid-cols-2 gap-4"
-                        >
-                          {financialGoals.map((goal, idx) => (
-                            <div key={idx} className="p-5 bg-white rounded-xl border border-gray-200">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="text-sm font-medium text-gray-900">{goal.goal}</div>
-                                <div className={`w-2 h-2 rounded-full ${
-                                  goal.status === 'on-track' ? 'bg-green-500' :
-                                  goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'
-                                }`} />
-                              </div>
-                              <div className="flex items-baseline gap-2 mb-2">
-                                <div className="text-2xl font-bold text-gray-900">{goal.current}</div>
-                                <div className="text-sm text-gray-600">of {goal.target}</div>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-1.5 mb-3">
-                                <div 
-                                  className={`h-1.5 rounded-full ${
-                                    goal.status === 'on-track' ? 'bg-green-500' :
-                                    goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'
-                                  }`}
-                                  style={{ width: `${goal.progress}%` }}
-                                />
-                              </div>
-                              <div className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg">
-                                <Sparkles className="w-3.5 h-3.5 text-blue-600 flex-shrink-0 mt-0.5" />
-                                <p className="text-xs text-blue-800">{goal.insight}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </motion.div>
-                      )}
+                {/* Revenue */}
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("revenue")}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-gray-500">Revenue</p>
+                    <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">On Track</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mb-2">March 2026 MTD</p>
+                  <p className="text-2xl font-bold text-gray-900 mb-1">$284,500</p>
+                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 rounded text-xs font-medium text-emerald-700 mb-2">
+                    <TrendingUp className="w-3 h-3" />+12% MoM
+                  </div>
+                  <div className="flex items-end h-10 gap-0.5">
+                    {[25,15,65,70,68,72,60,20,18,75,78,80,76,70,22,16,82].map((h, i) => (
+                      <div key={i} className={`flex-1 rounded-t ${i === 16 ? 'bg-blue-500' : h < 30 ? 'bg-gray-200' : 'bg-emerald-400'}`} style={{ height: `${h}%` }} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* AR at Risk */}
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("collections")}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-gray-500">AR at Risk</p>
+                    <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded uppercase">Behind Goal</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mb-2">60+ Days Overdue</p>
+                  <p className="text-2xl font-bold text-gray-900 mb-1">$73,700</p>
+                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 rounded text-xs font-medium text-orange-700 mb-2">
+                    <AlertTriangle className="w-3 h-3" />3 invoices
+                  </div>
+                  <div>
+                    <div className="flex items-end gap-1 h-10">
+                      {[{h:45,c:'bg-emerald-200'},{h:60,c:'bg-blue-200'},{h:35,c:'bg-yellow-200'},{h:50,c:'bg-orange-300'},{h:75,c:'bg-red-400'}].map((b,i) => (
+                        <div key={i} className="flex-1 flex flex-col justify-end h-full">
+                          <div className={`w-full rounded-t ${b.c}`} style={{ height: `${b.h}%` }} />
+                        </div>
+                      ))}
                     </div>
-
-                    {/* Top Row - 4 Key Metrics */}
-                    <div className="grid grid-cols-4 gap-6 mb-6">
-                      
-                      {/* Operating Cash */}
-                      <div 
-                        className="p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 hover:shadow-lg transition-all cursor-pointer"
-                        onClick={() => setSelectedMetric("operating")}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-sm font-medium text-gray-500">Operating Cash</div>
-                          <div className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded uppercase">Healthy</div>
-                        </div>
-                        <div className="text-xs text-gray-400 mb-2">March 2026</div>
-                        
-                        <div className="text-3xl font-bold text-gray-900 mb-1">$142,847</div>
-                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 rounded text-xs font-medium text-emerald-700 mb-3">
-                          <TrendingUp className="w-3 h-3" />
-                          +8% MoM
-                        </div>
-
-                        {/* Mini area chart */}
-                        <svg className="w-full h-12" viewBox="0 0 200 60">
-                          <defs>
-                            <linearGradient id="areaGradient" x1="0" x2="0" y1="0" y2="1">
-                              <stop offset="0%" stopColor="#6EE7B7" stopOpacity="0.3"/>
-                              <stop offset="100%" stopColor="#6EE7B7" stopOpacity="0.05"/>
-                            </linearGradient>
-                          </defs>
-                          <path
-                            d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10 L200,60 L0,60 Z"
-                            fill="url(#areaGradient)"
-                          />
-                          <path
-                            d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10"
-                            fill="none"
-                            stroke="#6EE7B7"
-                            strokeWidth="2"
-                          />
-                        </svg>
-
-                      </div>
-
-                      {/* Revenue MTD */}
-                      <div 
-                        className="p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 hover:shadow-lg transition-all cursor-pointer"
-                        onClick={() => setSelectedMetric("revenue")}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-sm font-medium text-gray-500">Revenue</div>
-                          <div className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded uppercase">On Track</div>
-                        </div>
-                        <div className="text-xs text-gray-400 mb-2">March 2026 MTD</div>
-                        
-                        <div className="text-3xl font-bold text-gray-900 mb-1">$284,500</div>
-                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 rounded text-xs font-medium text-emerald-700 mb-3">
-                          <TrendingUp className="w-3 h-3" />
-                          +12% MoM
-                        </div>
-
-                        {/* Daily revenue bars for March 1-17 */}
-                        <div className="flex items-end justify-between h-12 gap-0.5">
-                          {[
-                            { height: 25, day: 1 },
-                            { height: 15, day: 2 },
-                            { height: 65, day: 3 },
-                            { height: 70, day: 4 },
-                            { height: 68, day: 5 },
-                            { height: 72, day: 6 },
-                            { height: 60, day: 7 },
-                            { height: 20, day: 8 },
-                            { height: 18, day: 9 },
-                            { height: 75, day: 10 },
-                            { height: 78, day: 11 },
-                            { height: 80, day: 12 },
-                            { height: 76, day: 13 },
-                            { height: 70, day: 14 },
-                            { height: 22, day: 15 },
-                            { height: 16, day: 16 },
-                            { height: 82, day: 17, isToday: true },
-                          ].map((bar, i) => (
-                            <div
-                              key={i}
-                              className={`flex-1 rounded-t transition-all ${
-                                bar.isToday 
-                                  ? 'bg-blue-500' 
-                                  : bar.height < 30 
-                                    ? 'bg-gray-200' 
-                                    : 'bg-emerald-400'
-                              }`}
-                              style={{ height: `${bar.height}%` }}
-                              title={`Mar ${bar.day}${bar.isToday ? ' (Today)' : ''}`}
-                            />
-                          ))}
-                        </div>
-
-                      </div>
-
-                      {/* Collections / AR Risk */}
-                      <div 
-                        className="p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 hover:shadow-lg transition-all cursor-pointer"
-                        onClick={() => setSelectedMetric("collections")}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-sm font-medium text-gray-500">AR at Risk</div>
-                          <div className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded uppercase">Behind Goal</div>
-                        </div>
-                        <div className="text-xs text-gray-400 mb-2">60+ Days Overdue</div>
-                        
-                        <div className="text-3xl font-bold text-gray-900 mb-1">$73,700</div>
-                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 rounded text-xs font-medium text-orange-700 mb-3">
-                          <AlertTriangle className="w-3 h-3" />
-                          3 invoices
-                        </div>
-
-                        {/* AR Aging Buckets */}
-                        <div>
-                          <div className="flex items-end gap-1 h-12">
-                            {[
-                              { height: 45, label: 'Current', color: 'bg-emerald-200' },
-                              { height: 60, label: '1-30', color: 'bg-blue-200' },
-                              { height: 35, label: '31-60', color: 'bg-yellow-200' },
-                              { height: 50, label: '61-90', color: 'bg-orange-300' },
-                              { height: 75, label: '90+', color: 'bg-red-400' },
-                            ].map((bucket, i) => (
-                              <div key={i} className="flex-1 flex flex-col justify-end h-full">
-                                <div
-                                  className={`w-full rounded-t ${bucket.color}`}
-                                  style={{ height: `${bucket.height}%` }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex gap-1 mt-1">
-                            {[
-                              { label: 'Current', className: 'text-gray-400' },
-                              { label: '1-30', className: 'text-gray-400' },
-                              { label: '31-60', className: 'text-gray-400' },
-                              { label: '61-90', className: 'text-gray-400' },
-                              { label: '90+', className: 'text-red-500 font-medium' },
-                            ].map((item, i) => (
-                              <div key={i} className={`flex-1 text-center text-[9px] ${item.className}`}>
-                                {item.label}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                      </div>
-
-                      {/* Cash Runway */}
-                      <div 
-                        className="p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 hover:shadow-lg transition-all cursor-pointer"
-                        onClick={() => setSelectedMetric("cash-runway")}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-sm font-medium text-gray-500">Runway</div>
-                          <div className="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-bold rounded uppercase">Behind Goal</div>
-                        </div>
-                        <div className="text-xs text-gray-400 mb-2">vs 90-day target</div>
-                        
-                        <div className="text-3xl font-bold text-gray-900 mb-1">74 Days</div>
-                        <div className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 rounded text-xs font-medium text-yellow-700 mb-3">
-                          <Info className="w-3 h-3" />
-                          -16 days from goal
-                        </div>
-
-                        {/* Gauge/Arc visualization */}
-                        <div className="relative h-16 flex items-end justify-center pb-1">
-                          <svg className="w-28 h-16" viewBox="0 0 120 65" preserveAspectRatio="xMidYMid meet">
-                            <path
-                              d="M 10,50 A 50,50 0 0,1 110,50"
-                              fill="none"
-                              stroke="#E5E7EB"
-                              strokeWidth="8"
-                              strokeLinecap="round"
-                            />
-                            <path
-                              d="M 10,50 A 50,50 0 0,1 102,23"
-                              fill="none"
-                              stroke="#FCD34D"
-                              strokeWidth="8"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700">82%</div>
-                        </div>
-
-                      </div>
-
+                    <div className="flex gap-1 mt-1">
+                      {['Current','1-30','31-60','61-90','90+'].map((l,i) => (
+                        <div key={i} className={`flex-1 text-center text-[9px] ${i === 4 ? 'text-red-500 font-medium' : 'text-gray-400'}`}>{l}</div>
+                      ))}
                     </div>
+                  </div>
+                </div>
 
-                    {/* Bottom Row - Trust Compliance & Unbilled Time */}
-                    <div className="grid grid-cols-2 gap-6">
-                      
-                      {/* Trust Account Status */}
-                      <div 
-                        className="p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 hover:shadow-lg transition-all cursor-pointer"
-                        onClick={() => setSelectedMetric("trust")}
-                      >
-                        <div className="flex items-center justify-between mb-4">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <div className="text-sm font-medium text-gray-500">IOLTA Trust</div>
-                              <div className="px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded uppercase">MA Compliant</div>
-                            </div>
-                            <div className="text-xs text-gray-400">March 2026</div>
-                          </div>
-                          <div className="text-gray-300">•••</div>
-                        </div>
-                        
-                        <div className="flex items-baseline gap-4 mb-4">
-                          <div>
-                            <div className="text-2xl font-bold text-gray-900">$89,235</div>
-                            <div className="text-xs text-gray-500">Bank Balance</div>
-                          </div>
-                          <div>
-                            <div className="text-2xl font-bold text-gray-900">$89,235</div>
-                            <div className="text-xs text-gray-500">Client Ledgers</div>
-                          </div>
-                        </div>
+                {/* Cash Runway */}
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("cash-runway")}>
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-gray-500">Runway</p>
+                    <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded uppercase">Behind Goal</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mb-2">vs 90-day target</p>
+                  <p className="text-2xl font-bold text-gray-900 mb-1">74 Days</p>
+                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-yellow-100 rounded text-xs font-medium text-yellow-700 mb-2">
+                    <Info className="w-3 h-3" />-16 days from goal
+                  </div>
+                  <div className="relative h-14 flex items-end justify-center pb-1">
+                    <svg className="w-24 h-14" viewBox="0 0 120 65" preserveAspectRatio="xMidYMid meet">
+                      <path d="M 10,50 A 50,50 0 0,1 110,50" fill="none" stroke="#E5E7EB" strokeWidth="8" strokeLinecap="round" />
+                      <path d="M 10,50 A 50,50 0 0,1 102,23" fill="none" stroke="#FCD34D" strokeWidth="8" strokeLinecap="round" />
+                    </svg>
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700">82%</div>
+                  </div>
+                </div>
+              </div>
 
-                        <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg mb-3">
-                          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
-                          <div className="text-xs text-green-800">
-                            <span className="font-medium">Three-way reconciled</span> • Last check: 2 min ago
-                          </div>
-                        </div>
-
+              {/* Trust + Unbilled */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("trust")}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-xs font-medium text-gray-500">IOLTA Trust</p>
+                        <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Compliant</span>
                       </div>
-
-                      {/* Unbilled Time Opportunity */}
-                      <div 
-                        className="p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 hover:shadow-lg transition-all cursor-pointer"
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <div className="text-sm font-medium text-gray-500">Unbilled Time</div>
-                          <div className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded uppercase">Opportunity</div>
-                        </div>
-                        <div className="text-xs text-gray-400 mb-4">90+ Days Aged</div>
-                        
-                        <div className="text-3xl font-bold text-gray-900 mb-2">$52,500</div>
-                        <div className="text-xs text-gray-500 mb-4">40.4 hours • 8 matters</div>
-
-                        <div className="space-y-1 mb-3">
-                          <p className="text-xs text-gray-700">Top 3 aged matters:</p>
-                          <p className="text-xs text-gray-500 ml-3">• Venture Partners M&A: $18.2K</p>
-                          <p className="text-xs text-gray-500 ml-3">• Tech Startup Inc: $12.4K</p>
-                          <p className="text-xs text-gray-500 ml-3">• Harbor LLC: $8.9K</p>
-                        </div>
-
-                      </div>
-
+                      <p className="text-xs text-gray-400">March 2026</p>
                     </div>
-                  </motion.div>
-                )}
-              </div>
-            </>
-          ) : (
-            /* All Clear State */
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-24"
-            >
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-10 h-10 text-white" />
-              </div>
-              <h2 className="text-3xl font-semibold text-gray-900 mb-3">You're all caught up!</h2>
-              <p className="text-lg text-gray-600 mb-8">
-                Your financial team is actively monitoring. We'll alert you when something needs attention.
-              </p>
-              
-              {/* Reconciliation Status */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 rounded-full">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-sm text-green-700 font-medium">Last reconciled: 2 minutes ago</span>
-              </div>
-            </motion.div>
-          )}
+                  </div>
+                  <div className="flex items-baseline gap-3 mb-3">
+                    <div>
+                      <p className="text-xl font-bold text-gray-900">$89,235</p>
+                      <p className="text-xs text-gray-500">Bank Balance</p>
+                    </div>
+                    <div>
+                      <p className="text-xl font-bold text-gray-900">$89,235</p>
+                      <p className="text-xs text-gray-500">Client Ledgers</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
+                    <p className="text-xs text-gray-700"><span className="font-medium">Three-way reconciled</span> • 2 min ago</p>
+                  </div>
+                </div>
 
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-xs font-medium text-gray-500">Unbilled Time</p>
+                    <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded uppercase">Opportunity</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mb-2">90+ Days Aged</p>
+                  <p className="text-2xl font-bold text-gray-900 mb-1">$52,500</p>
+                  <p className="text-xs text-gray-500 mb-3">40.4 hours • 8 matters</p>
+                  <div className="space-y-1">
+                    <p className="text-xs text-gray-500">• Venture Partners M&A: $18.2K</p>
+                    <p className="text-xs text-gray-500">• Tech Startup Inc: $12.4K</p>
+                    <p className="text-xs text-gray-500">• Harbor LLC: $8.9K</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
 
       {/* Drill-Down Panel */}
       {selectedMetric && (
-        <DrillDownPanel
-          metricId={selectedMetric}
-          onClose={() => setSelectedMetric(null)}
-        />
+        <DrillDownPanel metricId={selectedMetric} onClose={() => setSelectedMetric(null)} />
       )}
 
       {/* Migration Report Modal */}
-      <MigrationReportModal
-        isOpen={showReportModal}
-        stats={migrationStats}
-        onClose={() => setShowReportModal(false)}
-      />
+      <MigrationReportModal isOpen={showReportModal} stats={migrationStats} onClose={() => setShowReportModal(false)} />
 
       {/* Financial Goals View Modal */}
-      <FinancialGoalsViewModal
-        isOpen={showGoalsModal}
-        onClose={() => setShowGoalsModal(false)}
-      />
+      <FinancialGoalsViewModal isOpen={showGoalsModal} onClose={() => setShowGoalsModal(false)} />
     </div>
   );
 }

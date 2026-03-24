@@ -15,7 +15,7 @@ export function Screen3_ConnectedServices({ onComplete, onBack }: Screen3Props) 
     brex: true,
     bankOfAmerica: true,
     cityNational: true,
-    email: false // Optional
+    email: true // Recommended
   });
 
   const toggleService = (serviceId: keyof typeof connectedServices) => {
@@ -196,7 +196,7 @@ export function Screen3_ConnectedServices({ onComplete, onBack }: Screen3Props) 
                     ? 'bg-blue-100 text-blue-700' 
                     : 'bg-gray-200 text-gray-500'
                 }`}>
-                  Optional • Recommended
+                  Recommended
                 </span>
                 <CheckCircle 
                   className={`w-[21px] h-[21px] flex-shrink-0 transition-colors ${

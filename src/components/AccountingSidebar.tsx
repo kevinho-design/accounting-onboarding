@@ -10,6 +10,7 @@ import {
   FileText,
   Settings,
   ArrowLeft,
+  Wifi,
 } from "lucide-react";
 import { cn } from "./ui/utils";
 
@@ -66,6 +67,11 @@ export function AccountingSidebar({ onPageChange, currentPage, onBackToClio }: A
       icon: FileText, 
       label: "Documents", 
       onClick: () => onPageChange("Documents") 
+    },
+    { 
+      icon: Wifi, 
+      label: "Connections", 
+      onClick: () => onPageChange("Connections") 
     },
   ];
 

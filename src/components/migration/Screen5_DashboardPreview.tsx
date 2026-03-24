@@ -1,6 +1,7 @@
 import * as React from "react";
 import { ArrowRight, Copy, ShieldAlert, Tag, FileCheck, CheckCircle2 as CheckCircle } from "lucide-react";
 import { Button } from "../ui/button";
+import { MigrationReportModal } from "../MigrationReportModal";
 
 interface Screen5Props {
   onComplete: () => void;
@@ -44,7 +45,10 @@ const attentionItems = [
 ];
 
 export function Screen5_DashboardPreview({ onComplete }: Screen5Props) {
+  const [showReport, setShowReport] = React.useState(false);
+
   return (
+    <>
     <div className="flex-1 min-h-[calc(100vh-90px)] bg-gray-50">
       <div className="max-w-3xl mx-auto px-8 py-16">
 
@@ -87,6 +91,12 @@ export function Screen5_DashboardPreview({ onComplete }: Screen5Props) {
               <div className="text-sm text-blue-100">Vendors imported</div>
             </div>
           </div>
+          <button
+            onClick={() => setShowReport(true)}
+            className="mt-6 w-full text-center text-sm text-blue-100 hover:text-white underline underline-offset-2 transition-colors"
+          >
+            View full migration report
+          </button>
         </div>
 
         {/* What was done automatically */}
@@ -160,5 +170,8 @@ export function Screen5_DashboardPreview({ onComplete }: Screen5Props) {
 
       </div>
     </div>
+
+    <MigrationReportModal isOpen={showReport} onClose={() => setShowReport(false)} />
+  </>
   );
 }

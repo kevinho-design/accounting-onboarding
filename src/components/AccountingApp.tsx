@@ -2,6 +2,7 @@ import * as React from "react";
 import { AccountingSidebar } from "./AccountingSidebar";
 import { ExceptionFirstDashboard } from "./ExceptionFirstDashboard";
 import { BookkeeperDashboard } from "./BookkeeperDashboard";
+import { UnifiedTransactionInbox } from "./accounting/UnifiedTransactionInbox";
 import { BankingPage } from "./accounting/BankingPage";
 import { FundsInPage } from "./accounting/FundsInPage";
 import { FundsOutPage } from "./accounting/FundsOutPage";
@@ -21,6 +22,14 @@ interface AccountingAppProps {
 
 export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onOpenRail, activeUser = "jennifer" }: AccountingAppProps) {
   const [currentPage, setCurrentPage] = React.useState("Dashboard");
+  const [transactionFilter, setTransactionFilter] = React.useState<"all" | "critical" | "high" | "medium" | "low">("all");
+
+  const navigateToTransactions = (filter: "all" | "critical" | "high" | "medium" | "low" = "all") => {
+    setTransactionFilter(filter);
+    setCurrentPage("Transactions");
+  };
+
+  const navigateToConnections = () => setCurrentPage("Connections");
 
   const renderPage = () => {
     switch (currentPage) {
@@ -31,6 +40,9 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
             onOpenRail={onOpenRail}
             onExceptionsChange={onExceptionsChange}
             onRecentActionsChange={onRecentActionsChange}
+            onNavigateToTransactions={() => navigateToTransactions("all")}
+            onNavigateToTransactionsFiltered={navigateToTransactions}
+            onNavigateToConnections={navigateToConnections}
           />
         ) : (
           <ExceptionFirstDashboard 
@@ -39,10 +51,24 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
             onExceptionsChange={onExceptionsChange}
             onAskTeammate={onAskTeammate}
             onOpenRail={onOpenRail}
+            onNavigateToTransactions={() => navigateToTransactions("all")}
+            onNavigateToTransactionsFiltered={navigateToTransactions}
+            onNavigateToConnections={navigateToConnections}
           />
         );
       case "Transactions":
-        return <BankingPage />;
+        return <UnifiedTransactionInbox onOpenRail={onOpenRail} initialFilter={transactionFilter} onNavigateToConnections={navigateToConnections} />;
+      case "Connections":
+        return (
+          <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#FAFBFF' }}>
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Connections</h2>
+                <p className="text-gray-500">Coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
       case "Funds In":
         return <FundsInPage />;
       case "Funds Out":
@@ -80,6 +106,9 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
             onOpenRail={onOpenRail}
             onExceptionsChange={onExceptionsChange}
             onRecentActionsChange={onRecentActionsChange}
+            onNavigateToTransactions={() => navigateToTransactions("all")}
+            onNavigateToTransactionsFiltered={navigateToTransactions}
+            onNavigateToConnections={navigateToConnections}
           />
         ) : (
           <ExceptionFirstDashboard 
@@ -88,6 +117,9 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
             onExceptionsChange={onExceptionsChange}
             onAskTeammate={onAskTeammate}
             onOpenRail={onOpenRail}
+            onNavigateToTransactions={() => navigateToTransactions("all")}
+            onNavigateToTransactionsFiltered={navigateToTransactions}
+            onNavigateToConnections={navigateToConnections}
           />
         );
     }

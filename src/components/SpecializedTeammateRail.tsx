@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Send, Sparkles, X, AlertCircle, Zap, Calendar, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { Send, Sparkles, X, AlertCircle, Zap, Calendar, MessageSquare, ChevronDown, ChevronUp, Shield, GitMerge, TrendingUp, BarChart3, DollarSign, Waves, WifiOff, AlertTriangle } from "lucide-react";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "motion/react";
 import { AGENTS, AgentAction, Exception } from "./agents/AgentTypes";
@@ -13,8 +13,8 @@ interface ChatMessage {
 }
 
 const SIMULATED_RESPONSES: Record<string, string> = {
-  default: "I'm reviewing your firm's data. Based on current accounts, Hartwell & Morris has 74 days of operating cash runway and $47,800 in outstanding AR. Is there something specific you'd like me to dig into?",
-  cash: "Your current operating balance is $284,500. At your current burn rate of $38,400/month, you have approximately 74 days of runway — down from 91 days last month. The main driver is a 12% increase in operating expenses in October.",
+  default: "I'm reviewing your firm's data. Based on current accounts, Hartwell & Morris has 74 days of operating cash runway and $52,500 in unbilled time. Is there something specific you'd like me to dig into?",
+  cash: "Your current operating balance is $142,847. At your current burn rate of $57,900/month, you have approximately 74 days of runway — down from 91 days last month. The main driver is a 12% increase in operating expenses in October.",
   trust: "I've reviewed all IOLTA trust accounts. Two transactions from last week are flagged against Delaware state bar rules — both are retainer deposits that need client matter assignment. Suggested fixes are ready for your review.",
   invoice: "You have 14 invoices over 30 days past due, totalling $47,200. The highest risk is Chen & Associates ($18,400, 62 days). Based on historical payment patterns, I estimate a 78% probability of collection within the next 30 days without intervention.",
   realization: "Your firm's realization rate this month is 87.3%, up from 84.1% last month. Litigation matters are performing best at 92%. Family law is lagging at 79% — primarily due to two matters with write-downs over $5,000.",
@@ -222,11 +222,21 @@ export function SpecializedTeammateRail({
 function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; recentActions: AgentAction[] }) {
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
-  const severityColors: Record<string, string> = {
-    critical: "from-red-500 to-red-600",
-    high: "from-orange-500 to-orange-600",
-    medium: "from-yellow-500 to-yellow-600",
-    low: "from-blue-500 to-blue-600",
+  const AGENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+    "trust-compliance": Shield,
+    "matching": GitMerge,
+    "revenue-forecasting": TrendingUp,
+    "matter-profitability": BarChart3,
+    "collections": DollarSign,
+    "cash-flow": Waves,
+  };
+  const ICON_OVERRIDES: Record<string, React.ComponentType<{ className?: string }>> = {
+    "sys-bank-disconnect": WifiOff,
+    "sys-trust-balance": AlertTriangle,
+  };
+  const COLOR_OVERRIDES: Record<string, string> = {
+    "sys-bank-disconnect": "from-red-500 to-red-600",
+    "sys-trust-balance": "from-amber-500 to-orange-500",
   };
 
   return (
@@ -246,8 +256,10 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
           </div>
         ) : (
           <div className="space-y-2">
-            {exceptions.map((exception, idx) => {
+            {exceptions.map((exception) => {
               const agent = AGENTS[exception.agentId];
+              const AgentIcon = ICON_OVERRIDES[exception.id] ?? AGENT_ICONS[exception.agentId] ?? Sparkles;
+              const agentColor = COLOR_OVERRIDES[exception.id] ?? AGENTS[exception.agentId]?.color ?? "from-blue-500 to-blue-600";
               const isExpanded = expandedId === exception.id;
               return (
                 <div
@@ -259,8 +271,8 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
                     className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : exception.id)}
                   >
-                    <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${severityColors[exception.severity]} flex items-center justify-center flex-shrink-0`}>
-                      <span className="text-[10px] font-bold text-white">{idx + 1}</span>
+                    <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${agentColor} flex items-center justify-center flex-shrink-0`}>
+                      <AgentIcon className="w-3 h-3 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{exception.title}</p>
@@ -313,7 +325,7 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
           <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500">Handled for you</h4>
           <div className="flex items-center gap-1.5 text-xs text-gray-400">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            <span>5 agents active</span>
+            <span>3 agents active</span>
           </div>
         </div>
         {recentActions.length === 0 ? (

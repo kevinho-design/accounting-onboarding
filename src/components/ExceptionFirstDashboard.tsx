@@ -7,7 +7,13 @@ import {
   ChevronRight,
   Info,
   AlertTriangle,
-  ChevronDown
+  ChevronDown,
+  WifiOff,
+  Shield,
+  GitMerge,
+  DollarSign,
+  BarChart3,
+  Waves,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
@@ -17,15 +23,101 @@ import { MigrationReportModal } from "./MigrationReportModal";
 import { FinancialGoalsViewModal } from "./FinancialGoalsViewModal";
 import { motion } from "motion/react";
 
+export const JENNIFER_EXCEPTIONS: Exception[] = [
+  {
+    id: "sys-bank-disconnect",
+    agentId: "matching",
+    severity: "critical",
+    title: "Chase ··4892 lost connection",
+    description: "12 transactions waiting — re-authenticate to resume syncing.",
+    impact: "~$8,420 in transactions cannot sync until reconnected.",
+    suggestedAction: "Reconnect bank feed",
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
+  },
+  {
+    id: "sys-trust-balance",
+    agentId: "trust-compliance",
+    severity: "critical",
+    title: "Jane Doe's trust will drop below the $1,000 floor",
+    description: "A $1,250 filing fee will leave only $592 in the account.",
+    impact: "Trust balance will fall to $592 — $408 below the required $1,000 floor for this matter.",
+    suggestedAction: "Allocate top-up",
+    createdAt: new Date(Date.now() - 2 * 60 * 1000)
+  },
+  {
+    id: "m1",
+    agentId: "trust-compliance",
+    severity: "high",
+    title: "8 possible duplicate vendors to merge",
+    description: "We found vendor records that may be the same entity under different names — likely created separately in QuickBooks over time.",
+    impact: "Duplicate vendors cause split payment history and inflate your vendor count. Merging takes about 2 minutes.",
+    suggestedAction: "Review & merge vendors",
+    createdAt: new Date(Date.now() - 10 * 60 * 1000)
+  },
+  {
+    id: "m2",
+    agentId: "matching",
+    severity: "medium",
+    title: "4 transactions need a category",
+    description: "These couldn't be auto-matched with high confidence during import. One quick confirmation each.",
+    impact: "Uncategorized transactions will be excluded from financial reports until assigned.",
+    suggestedAction: "Categorize transactions",
+    createdAt: new Date(Date.now() - 8 * 60 * 1000)
+  },
+  {
+    id: "m3",
+    agentId: "trust-compliance",
+    severity: "high",
+    title: "2 IOLTA trust items flagged",
+    description: "Two transactions flagged against Delaware state bar rules — both are retainer deposits that need client matter assignment.",
+    impact: "Potential compliance issue if not resolved. Suggested fixes are pre-drafted and ready to apply.",
+    suggestedAction: "Apply pre-drafted fixes",
+    createdAt: new Date(Date.now() - 6 * 60 * 1000)
+  },
+  {
+    id: "o1",
+    agentId: "collections",
+    severity: "high",
+    title: "3 high-risk invoices overdue 12+ days",
+    description: "$73,700 revenue at risk across Acme Corp, Tech Solutions, and Global Industries.",
+    impact: "Could delay cash runway by 7 days if not collected this week.",
+    suggestedAction: "Send payment reminders",
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000)
+  },
+  {
+    id: "o2",
+    agentId: "matching",
+    severity: "medium",
+    title: "Bank reconciliation has unmatched transactions",
+    description: "Several recent transactions couldn't be matched to GL accounts with high confidence.",
+    impact: "March reconciliation will remain incomplete until these are resolved.",
+    suggestedAction: "Review unmatched items",
+    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000)
+  },
+  {
+    id: "o3",
+    agentId: "revenue-forecasting",
+    severity: "medium",
+    title: "Cash runway below 90-day target",
+    description: "74 days current vs 90-day goal set during onboarding.",
+    impact: "$52.5K in aged unbilled time could extend runway by 12 days if invoiced this week.",
+    suggestedAction: "Convert unbilled time to invoices",
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
+  }
+];
+
 interface ExceptionFirstDashboardProps {
   onReviewFinancialGoals?: () => void;
   onRecentActionsChange?: (actions: AgentAction[]) => void;
   onExceptionsChange?: (exceptions: Exception[]) => void;
   onAskTeammate?: (message: string) => void;
   onOpenRail?: () => void;
+  onNavigateToTransactions?: () => void;
+  onNavigateToTransactionsFiltered?: (filter: "all" | "critical" | "high" | "medium" | "low") => void;
+  onNavigateToConnections?: () => void;
 }
 
-export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onOpenRail }: ExceptionFirstDashboardProps) {
+export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onOpenRail, onNavigateToTransactions, onNavigateToTransactionsFiltered, onNavigateToConnections }: ExceptionFirstDashboardProps) {
   const [selectedMetric, setSelectedMetric] = React.useState<string | null>(null);
   const [showMigrationBanner, setShowMigrationBanner] = React.useState(true);
   const [showReportModal, setShowReportModal] = React.useState(false);
@@ -78,68 +170,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
   ];
 
   // Migration items surface first, followed by ongoing operational exceptions
-  const exceptions: Exception[] = [
-    {
-      id: "m1",
-      agentId: "trust-compliance",
-      severity: "high",
-      title: "8 possible duplicate vendors to merge",
-      description: "We found vendor records that may be the same entity under different names — likely created separately in QuickBooks over time.",
-      impact: "Duplicate vendors cause split payment history and inflate your vendor count. Merging takes about 2 minutes.",
-      suggestedAction: "Review & merge vendors",
-      createdAt: new Date(Date.now() - 10 * 60 * 1000) // surfaced during migration
-    },
-    {
-      id: "m2",
-      agentId: "matching",
-      severity: "medium",
-      title: "4 transactions need a category",
-      description: "These couldn't be auto-matched with high confidence during import. One quick confirmation each.",
-      impact: "Uncategorized transactions will be excluded from financial reports until assigned.",
-      suggestedAction: "Categorize transactions",
-      createdAt: new Date(Date.now() - 8 * 60 * 1000)
-    },
-    {
-      id: "m3",
-      agentId: "trust-compliance",
-      severity: "high",
-      title: "2 IOLTA trust items flagged",
-      description: "Two transactions flagged against Delaware state bar rules — both are retainer deposits that need client matter assignment.",
-      impact: "Potential compliance issue if not resolved. Suggested fixes are pre-drafted and ready to apply.",
-      suggestedAction: "Apply pre-drafted fixes",
-      createdAt: new Date(Date.now() - 6 * 60 * 1000)
-    },
-    {
-      id: "o1",
-      agentId: "collections",
-      severity: "high",
-      title: "3 high-risk invoices overdue 12+ days",
-      description: "$73,700 revenue at risk across Acme Corp, Tech Solutions, and Global Industries.",
-      impact: "Could delay cash runway by 7 days if not collected this week.",
-      suggestedAction: "Send payment reminders",
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000)
-    },
-    {
-      id: "o2",
-      agentId: "matching",
-      severity: "medium",
-      title: "Bank reconciliation has unmatched transactions",
-      description: "Several recent transactions couldn't be matched to GL accounts with high confidence.",
-      impact: "March reconciliation will remain incomplete until these are resolved.",
-      suggestedAction: "Review unmatched items",
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000)
-    },
-    {
-      id: "o3",
-      agentId: "revenue-forecasting",
-      severity: "medium",
-      title: "Cash runway below 90-day target",
-      description: "74 days current vs 90-day goal set during onboarding.",
-      impact: "$52.5K in aged unbilled time could extend runway by 12 days if invoiced this week.",
-      suggestedAction: "Convert unbilled time to invoices",
-      createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
-    }
-  ];
+  const exceptions = JENNIFER_EXCEPTIONS;
 
   // Mock recent agent actions
   const recentActions: AgentAction[] = [
@@ -166,7 +197,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
       agentId: "revenue-forecasting",
       timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
       action: "Updated cash runway forecast to 74 days",
-      reasoning: "Based on current burn rate ($18.2K/day), AR aging (52 days DSO), and pipeline conversion (67% historical rate). Factored in your 90-day runway goal.",
+      reasoning: "Based on current burn rate ($1,930/day), AR aging (52 days DSO), and pipeline conversion (67% historical rate). Factored in your 90-day runway goal.",
       isEditable: false,
       isReversible: false
     }
@@ -184,7 +215,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
     if (onExceptionsChange) {
       onExceptionsChange(exceptions);
     }
-  }, [onExceptionsChange]);
+  }, [onExceptionsChange, exceptions]);
 
   // Check if we have any exceptions
   const hasExceptions = exceptions.length > 0;
@@ -203,7 +234,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome back, Jennifer</h1>
-            <p className="text-gray-500 text-sm">Tuesday, March 17, 2026</p>
+            <p className="text-gray-500 text-sm">Tuesday, March 18, 2026</p>
           </div>
 
           {/* Migration Success Banner - full width, dismissible */}
@@ -274,13 +305,25 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
 
               {hasExceptions ? (
                 <div className="space-y-2">
-                  {exceptions.slice(0, 3).map((exception, idx) => {
-                    const severityColors = {
-                      critical: "from-red-500 to-red-600",
-                      high: "from-orange-500 to-orange-600",
-                      medium: "from-yellow-500 to-yellow-600",
-                      low: "from-blue-500 to-blue-600"
+                  {exceptions.slice(0, 5).map((exception) => {
+                    const AGENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+                      "trust-compliance": Shield,
+                      "matching": GitMerge,
+                      "revenue-forecasting": TrendingUp,
+                      "matter-profitability": BarChart3,
+                      "collections": DollarSign,
+                      "cash-flow": Waves,
                     };
+                    const ICON_OVERRIDES: Record<string, React.ComponentType<{ className?: string }>> = {
+                      "sys-bank-disconnect": WifiOff,
+                      "sys-trust-balance": AlertTriangle,
+                    };
+                    const COLOR_OVERRIDES: Record<string, string> = {
+                      "sys-bank-disconnect": "from-red-500 to-red-600",
+                      "sys-trust-balance": "from-amber-500 to-orange-500",
+                    };
+                    const AgentIcon = ICON_OVERRIDES[exception.id] ?? AGENT_ICONS[exception.agentId] ?? Sparkles;
+                    const agentColor = COLOR_OVERRIDES[exception.id] ?? AGENTS[exception.agentId]?.color ?? "from-blue-500 to-blue-600";
                     const isExpanded = expandedExceptionId === exception.id;
 
                     return (
@@ -290,8 +333,8 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                           className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
                           onClick={() => setExpandedExceptionId(isExpanded ? null : exception.id)}
                         >
-                          <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${severityColors[exception.severity]} flex items-center justify-center flex-shrink-0`}>
-                            <span className="text-[10px] font-bold text-white">{idx + 1}</span>
+                          <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${agentColor} flex items-center justify-center flex-shrink-0`}>
+                            <AgentIcon className="w-3 h-3 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-gray-900 leading-snug">{exception.title}</p>
@@ -317,7 +360,18 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                             )}
                             <div className="flex items-center gap-2">
                               {exception.suggestedAction && (
-                                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer">
+                                <Button
+                                  size="sm"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (exception.id === "sys-bank-disconnect") {
+                                      onNavigateToConnections?.();
+                                    } else {
+                                      onNavigateToTransactionsFiltered?.(exception.severity as "critical" | "high" | "medium" | "low");
+                                    }
+                                  }}
+                                >
                                   {exception.suggestedAction}
                                   <ChevronRight className="w-3 h-3 ml-1" />
                                 </Button>
@@ -562,11 +616,11 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   </div>
                   <div className="flex items-baseline gap-3 mb-3">
                     <div>
-                      <p className="text-xl font-bold text-gray-900">$89,235</p>
+                      <p className="text-xl font-bold text-gray-900">$89,234.67</p>
                       <p className="text-xs text-gray-500">Bank Balance</p>
                     </div>
                     <div>
-                      <p className="text-xl font-bold text-gray-900">$89,235</p>
+                      <p className="text-xl font-bold text-gray-900">$89,234.67</p>
                       <p className="text-xs text-gray-500">Client Ledgers</p>
                     </div>
                   </div>

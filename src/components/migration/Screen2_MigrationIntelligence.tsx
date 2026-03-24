@@ -146,7 +146,7 @@ export function Screen2_MigrationIntelligence({ onComplete, onBack }: Screen2Pro
                     <div className="flex-1">
                       <div className="font-medium text-gray-900">Trust Transactions Validated</div>
                       <div className="text-sm text-gray-600">
-                        34,382 of 34,520 transactions compliant (99.6%) • 138 transactions flagged
+                        34,279 of 34,520 transactions compliant (99.3%) • 241 transactions flagged
                       </div>
                     </div>
                   </div>
@@ -276,7 +276,7 @@ export function Screen2_MigrationIntelligence({ onComplete, onBack }: Screen2Pro
                   <div className="p-4 bg-green-50 rounded-lg mb-4">
                     <div className="flex items-center gap-2 mb-1">
                       <CheckCircle className="w-5 h-5 text-green-600" />
-                      <span className="text-2xl font-semibold text-gray-900">34,382 of 34,520</span>
+                      <span className="text-2xl font-semibold text-gray-900">34,279 of 34,520</span>
                     </div>
                     <div className="text-sm text-gray-600">IOLTA compliant</div>
                   </div>

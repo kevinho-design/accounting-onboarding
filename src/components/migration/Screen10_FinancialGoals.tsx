@@ -73,7 +73,7 @@ const AI_GOALS: AIGoal[] = [
     target: "35 days by Q4 2026",
     trajectory: "↓ 33% faster collections",
     reasoning:
-      "You have $47,800 in unbilled time aging past 52 days. Delaware litigation firms in our network average 38 days — a 35-day target is achievable within 12 months.",
+      "You have $52,500 in unbilled time aging past 52 days. Delaware litigation firms in our network average 38 days — a 35-day target is achievable within 12 months.",
     priority: "high",
   },
   {

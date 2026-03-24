@@ -8,10 +8,18 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Receipt,
+  WifiOff,
+  AlertTriangle,
+  Shield,
+  GitMerge,
+  TrendingUp,
+  DollarSign,
+  BarChart3,
+  Waves,
 } from "lucide-react";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { motion } from "motion/react";
-import { Exception, AgentAction } from "./agents/AgentTypes";
+import { Exception, AgentAction, AGENTS } from "./agents/AgentTypes";
 import { Button } from "./ui/button";
 
 interface BookkeeperDashboardProps {
@@ -19,11 +27,34 @@ interface BookkeeperDashboardProps {
   onOpenRail?: () => void;
   onExceptionsChange?: (exceptions: Exception[]) => void;
   onRecentActionsChange?: (actions: AgentAction[]) => void;
+  onNavigateToTransactions?: () => void;
+  onNavigateToTransactionsFiltered?: (filter: "all" | "critical" | "high" | "medium" | "low") => void;
+  onNavigateToConnections?: () => void;
 }
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 export const SARAH_EXCEPTIONS: Exception[] = [
+  {
+    id: "sys-bank-disconnect",
+    agentId: "matching",
+    severity: "critical",
+    title: "Chase ··4892 lost connection",
+    description: "12 transactions waiting — re-authenticate to resume syncing.",
+    impact: "~$8,420 in transactions cannot sync until reconnected.",
+    suggestedAction: "Reconnect bank feed",
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
+  },
+  {
+    id: "sys-trust-balance",
+    agentId: "trust-compliance",
+    severity: "critical",
+    title: "Jane Doe's trust will drop below the $1,000 floor",
+    description: "A $1,250 filing fee will leave only $592 in the account.",
+    impact: "Trust balance will fall to $592 — $408 below the required $1,000 floor for this matter.",
+    suggestedAction: "Allocate top-up",
+    createdAt: new Date(Date.now() - 2 * 60 * 1000)
+  },
   {
     id: "s1", agentId: "matching", severity: "high",
     title: "2 duplicate ACH transactions held",
@@ -36,7 +67,7 @@ export const SARAH_EXCEPTIONS: Exception[] = [
     id: "s2", agentId: "matching", severity: "high",
     title: "14 Brex transactions blocking reconciliation",
     description: "AI confidence below 95% — March close cannot complete until resolved",
-    impact: "March reconciliation stuck at 90% until these are categorized",
+    impact: "March reconciliation stuck at 78% until these are categorized",
     suggestedAction: "Review transactions",
     createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
   },
@@ -120,11 +151,11 @@ const severityColors: Record<string, string> = {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsChange, onRecentActionsChange }: BookkeeperDashboardProps) {
+export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsChange, onRecentActionsChange, onNavigateToTransactions, onNavigateToTransactionsFiltered, onNavigateToConnections }: BookkeeperDashboardProps) {
   const [expandedExceptionId, setExpandedExceptionId] = React.useState<string | null>(null);
   const [resolved, setResolved] = React.useState<Set<string>>(new Set());
 
-  React.useEffect(() => { onExceptionsChange?.(SARAH_EXCEPTIONS); }, [onExceptionsChange]);
+  React.useEffect(() => { onExceptionsChange?.(SARAH_EXCEPTIONS); }, [onExceptionsChange, SARAH_EXCEPTIONS]);
   React.useEffect(() => { onRecentActionsChange?.(SARAH_AGENT_ACTIONS); }, [onRecentActionsChange]);
 
   return (
@@ -159,7 +190,25 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
               </div>
 
               <div className="space-y-2">
-                {SARAH_EXCEPTIONS.slice(0, 3).map((exc, idx) => {
+                {SARAH_EXCEPTIONS.slice(0, 5).map((exc) => {
+                  const AGENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+                    "trust-compliance": Shield,
+                    "matching": GitMerge,
+                    "revenue-forecasting": TrendingUp,
+                    "matter-profitability": BarChart3,
+                    "collections": DollarSign,
+                    "cash-flow": Waves,
+                  };
+                  const ICON_OVERRIDES: Record<string, React.ComponentType<{ className?: string }>> = {
+                    "sys-bank-disconnect": WifiOff,
+                    "sys-trust-balance": AlertTriangle,
+                  };
+                  const COLOR_OVERRIDES: Record<string, string> = {
+                    "sys-bank-disconnect": "from-red-500 to-red-600",
+                    "sys-trust-balance": "from-amber-500 to-orange-500",
+                  };
+                  const AgentIcon = ICON_OVERRIDES[exc.id] ?? AGENT_ICONS[exc.agentId] ?? Sparkles;
+                  const agentColor = COLOR_OVERRIDES[exc.id] ?? AGENTS[exc.agentId]?.color ?? "from-blue-500 to-blue-600";
                   const isExpanded = expandedExceptionId === exc.id;
                   const isResolved = resolved.has(exc.id);
                   const askPrompt = EXCEPTION_ASK_PROMPTS[exc.id];
@@ -173,10 +222,10 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                         className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
                         onClick={() => setExpandedExceptionId(isExpanded ? null : exc.id)}
                       >
-                        <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${severityColors[exc.severity]} flex items-center justify-center flex-shrink-0`}>
+                        <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${agentColor} flex items-center justify-center flex-shrink-0`}>
                           {isResolved
                             ? <CheckCircle className="w-3 h-3 text-white" />
-                            : <span className="text-[10px] font-bold text-white">{idx + 1}</span>
+                            : <AgentIcon className="w-3 h-3 text-white" />
                           }
                         </div>
                         <div className="flex-1 min-w-0">
@@ -210,7 +259,14 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                               <Button
                                 size="sm"
                                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer"
-                                onClick={() => setResolved(prev => new Set([...prev, exc.id]))}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (exc.id === "sys-bank-disconnect") {
+                                    onNavigateToConnections?.();
+                                  } else {
+                                    onNavigateToTransactionsFiltered?.(exc.severity as "critical" | "high" | "medium" | "low");
+                                  }
+                                }}
                               >
                                 {exc.suggestedAction}
                                 <ChevronRight className="w-3 h-3 ml-1" />
@@ -354,8 +410,8 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                 <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
                   <p className="text-xs text-gray-500 mb-1">March Recon</p>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-gray-800">90%</span>
-                    <span className="text-xs text-yellow-600">14 unmatched</span>
+                    <span className="text-xs font-medium text-gray-800">78%</span>
+                    <span className="text-xs text-yellow-600">3 blockers</span>
                   </div>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">

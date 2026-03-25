@@ -23,10 +23,10 @@ interface AccountingAppProps {
 
 export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onOpenRail, activeUser = "jennifer", initialPage = "Dashboard" }: AccountingAppProps) {
   const [currentPage, setCurrentPage] = React.useState(initialPage);
-  const [transactionFilter, setTransactionFilter] = React.useState<"all" | "critical" | "high" | "medium" | "processed">("all");
+  const [transactionFilter, setTransactionFilter] = React.useState<string>("all");
   const [transactionMonth, setTransactionMonth] = React.useState<string | undefined>();
 
-  const navigateToTransactions = (filter: "all" | "critical" | "high" | "medium" | "processed" = "all", month?: string) => {
+  const navigateToTransactions = (filter: string = "all", month?: string) => {
     setTransactionFilter(filter);
     setTransactionMonth(month);
     setCurrentPage("Transactions");

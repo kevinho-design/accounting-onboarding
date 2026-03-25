@@ -344,8 +344,8 @@ const _actionCardById = Object.fromEntries(mockActionCards.map(c => [c.id, c]));
 );
 ledgerData.push(
   // Critical — trust floor breaches
-  { id: "pf-trust-green",   date: "Mar 17", payee: "Green Estate Heirs",       category: "Trust Disbursement", matter: "Green Estate Admin.",    client: "Green Family",    amount: -2800.00, type: "debit",  status: "pending", method: "Wire", agentRationale: "Pending disbursement will drop IOLTA balance to $340 — $660 below the $1,000 floor.", confidence: 0, bankAccount: "boa-7721",   source: "manage",    flag: _actionCardById["trust-green"] },
-  { id: "pf-trust-martinez",date: "Mar 18", payee: "Martinez Estate",          category: "Trust Disbursement", matter: "Martinez Estate Admin.", client: "Martinez Family", amount: -5500.00, type: "debit",  status: "pending", method: "Wire", agentRationale: "Scheduled disbursement exceeds current trust balance of $4,250 — would create a $1,250 deficit.", confidence: 0, bankAccount: "boa-7721",   source: "manage",    flag: _actionCardById["trust-martinez"] },
+  { id: "pf-trust-green",   date: "Mar 17", payee: "Green Estate Heirs",       category: "Trust Disbursement", matter: "Green Estate Admin.",    client: "Green Family",    amount: -2800.00, type: "debit",  status: "pending", method: "Wire", agentRationale: "Pending disbursement will drop IOLTA balance to $340 — $660 below the $1,000 floor.", confidence: 0, bankAccount: "boa-7721",   source: "manage" },
+  { id: "pf-trust-martinez",date: "Mar 18", payee: "Martinez Estate",          category: "Trust Disbursement", matter: "Martinez Estate Admin.", client: "Martinez Family", amount: -5500.00, type: "debit",  status: "pending", method: "Wire", agentRationale: "Scheduled disbursement exceeds current trust balance of $4,250 — would create a $1,250 deficit.", confidence: 0, bankAccount: "boa-7721",   source: "manage" },
   // Critical — anomaly
   { id: "pf-meridian",      date: "Mar 17", payee: "Meridian Consulting LLC",  category: "Legal Consulting",   matter: "Overhead",              client: "—",               amount: -42000.00, type: "debit", status: "pending", method: "Wire", agentRationale: "First-ever wire to this vendor. No invoice, contract, or vendor record on file. 5× typical operating wire.", confidence: 15, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["anomaly-42k"] },
   // High — bulk court fees
@@ -366,7 +366,7 @@ ledgerData.push(
   { id: "pf-united",        date: "Mar 17", payee: "United Airlines",          category: "Travel & Transport", matter: "Williams IP Filing",    client: "D. Williams",     amount:   -145.20, type: "debit",  status: "pending", method: "Card",  agentRationale: "Sarah Kim Amex ··3847, over $100 receipt threshold. Receipt not yet attached.", confidence: 78, bankAccount: "amex-1247",  source: "bank_feed", flag: _actionCardById["m4"] },
   { id: "pf-pacific-court", date: "Mar 16", payee: "Pacific Court Reporters",  category: "Uncategorized",      matter: "Overhead",              client: "—",               amount:   -350.00, type: "debit",  status: "pending", method: "ACH",   agentRationale: "First-ever payment to this vendor. No category assigned. Looks like court reporting.", confidence: 55, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["m7"] },
   // Feb reconciliation blocker
-  { id: "feb-blocker", date: "Feb 14", payee: "Unknown vendor", category: "Uncategorized", matter: "Overhead", client: "—", amount: -2858.19, type: "debit", status: "pending", method: "Card", agentRationale: "We downloaded your Chase ··4892 February statement and cross-referenced all 312 transactions. 311 matched. This $2,858.19 charge has no corresponding entry in your books. We recommend adding it as a miscellaneous expense to complete February reconciliation.", confidence: 0, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["recon-imbalance-1"] },
+  { id: "feb-blocker", date: "Feb 14", payee: "Henderson & Associates", category: "Consulting Fees", matter: "Overhead", client: "—", amount: -2858.19, type: "debit", status: "pending", method: "Check", agentRationale: "Check #847, issued Jan 28 to Henderson & Associates for $2,858.19, cleared on Feb 14 but was never recorded as an expense. We found this during automatic bank statement reconciliation — 311 of 312 February transactions matched. Record this as a Consulting Fees expense to complete reconciliation.", confidence: 0, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["recon-imbalance-1"] },
 );
 
 // Generate 311 auto-matched Feb transactions to match the reconciliation bar numbers
@@ -1190,7 +1190,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   flaggedCount?: number;
   onBannerAction?: (type: "bank_disconnect" | "trust_balance") => void;
   onCloseMonth?: () => void;
-  initialFilter?: "all" | "critical" | "high" | "medium" | "processed";
+  initialFilter?: string;
   febReconciled?: boolean;
   initialMonth?: string;
 }) {
@@ -1200,7 +1200,12 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   const [viewingRowId, setViewingRowId] = React.useState<string | null>(null);
   const [pulsingRowId, setPulsingRowId] = React.useState<string | null>(null);
   const [accountFilter, setAccountFilter] = React.useState("all");
-  const [priorityFilter, setPriorityFilter] = React.useState<"all" | "critical" | "high" | "medium" | "processed">(initialFilter);
+  const ACTION_FILTER_GROUPS: Record<string, string[]> = {
+    approval: ["approval_required", "hard_cost", "hard_cost_multiline", "user_config_trigger"],
+    anomalies: ["anomaly_amount", "duplicate"],
+    missing_info: ["matching_gap", "partial_match", "blind_check", "receipt_required", "first_time_vendor", "reconciliation_block", "recon_imbalance", "stale_check", "orphaned_trust"],
+  };
+  const [priorityFilter, setPriorityFilter] = React.useState<"all" | "approval" | "anomalies" | "missing_info" | "processed">(initialFilter as any);
   const [showBankAlert, setShowBankAlert] = React.useState(true);
   const [showTrustAlert, setShowTrustAlert] = React.useState(true);
   const [selectedMonth, setSelectedMonth] = React.useState(initialMonth ?? "mar");
@@ -1229,7 +1234,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
       ? monthFiltered
       : priorityFilter === "processed"
         ? monthFiltered.filter((r) => !r.flag)
-        : monthFiltered.filter((r) => r.flag?.priority === priorityFilter);
+        : monthFiltered.filter((r) => r.flag && ACTION_FILTER_GROUPS[priorityFilter]?.includes(r.flag.type));
     const MONTHS: Record<string, number> = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
     return [...base].sort((a, b) => {
       const [aM, aD] = a.date.split(" ");
@@ -1243,10 +1248,12 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   const hasMore = visibleCount < filteredLedger.length;
 
   const priorityCounts = React.useMemo(() => {
-    const counts: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0, processed: 0 };
+    const counts: Record<string, number> = { approval: 0, anomalies: 0, missing_info: 0, processed: 0 };
     monthFiltered.forEach((r) => {
-      if (r.flag) counts[r.flag.priority] = (counts[r.flag.priority] || 0) + 1;
-      else counts.processed = (counts.processed || 0) + 1;
+      if (!r.flag) { counts.processed += 1; return; }
+      for (const [key, types] of Object.entries(ACTION_FILTER_GROUPS)) {
+        if (types.includes(r.flag.type)) { counts[key] += 1; return; }
+      }
     });
     return counts;
   }, [monthFiltered]);
@@ -1271,26 +1278,18 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   return (
     <div className="flex flex-col h-full overflow-hidden relative" style={{ backgroundColor: "#F9FAFB" }}>
 
-      {/* System Alert Banners — combined when both active */}
-      {(showBankAlert || showTrustAlert) && (
+      {/* System Alert Banner */}
+      {showBankAlert && (
         <div className="px-6 pt-4 pb-2 flex-shrink-0">
           <CombinedAlertBanner alerts={[
-            ...(showBankAlert ? [{
+            {
               type: "bank_disconnect" as const,
               title: mockActionCards.find(c => c.id === "c2")?.title ?? "Chase ··4892 connection expires in 5 days",
               subtitle: mockActionCards.find(c => c.id === "c2")?.subtitle ?? "Re-authenticate now to avoid interruption to your bank feed",
               cta: "Re-authenticate",
               onAction: () => { onBannerAction?.("bank_disconnect"); setShowBankAlert(false); },
               onDismiss: () => setShowBankAlert(false),
-            }] : []),
-            ...(showTrustAlert ? [{
-              type: "trust_balance" as const,
-              title: mockActionCards.find(c => c.id === "c1")?.title ?? "Jane Doe's trust will drop below the $1,000 floor",
-              subtitle: mockActionCards.find(c => c.id === "c1")?.subtitle ?? "A $1,250 filing fee will leave only $592 in the account",
-              cta: "Allocate top-up",
-              onAction: () => { onBannerAction?.("trust_balance"); setShowTrustAlert(false); },
-              onDismiss: () => setShowTrustAlert(false),
-            }] : []),
+            },
           ]} />
         </div>
       )}
@@ -1310,50 +1309,50 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
             febReconciled={febReconciled}
             onScrollToFlagged={() => {
               if (selectedMonth === "feb") {
-                setPriorityFilter("high");
+                setPriorityFilter("missing_info");
               } else {
-                setPriorityFilter("critical");
+                setPriorityFilter("all");
               }
             }}
           />
         );
       })()}
 
-      {/* Priority Filter Bar */}
+      {/* Action Filter Bar */}
       <div className="flex items-center justify-between px-6 py-2 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: "#FFFFFF" }}>
-        <div className="flex items-center gap-2">
-        {(["all", "critical", "high", "medium", "processed"] as const).map((p) => {
-          const isActive = priorityFilter === p;
-          const count = p === "all" ? Object.values(priorityCounts).reduce((a, b) => a + b, 0) : priorityCounts[p] || 0;
-          const cfg = (p !== "all" && p !== "processed") ? priorityConfig[p] : null;
-          const isProcessed = p === "processed";
+        <div className="flex items-center gap-1.5">
+        {([
+          { key: "all", label: "All" },
+          { key: "approval", label: "Needs Approval" },
+          { key: "anomalies", label: "Anomalies" },
+          { key: "missing_info", label: "Missing Info" },
+          { key: "processed", label: "Processed" },
+        ] as const).map(({ key, label }) => {
+          const isActive = priorityFilter === key;
+          const count = key === "all" ? Object.values(priorityCounts).reduce((a, b) => a + b, 0) : priorityCounts[key] || 0;
+          const isProcessed = key === "processed";
           return (
             <button
-              key={p}
-              onClick={() => setPriorityFilter(p)}
+              key={key}
+              onClick={() => setPriorityFilter(key)}
               className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] transition-all"
               style={{
                 fontWeight: isActive ? 600 : 400,
-                color: isActive ? (isProcessed ? "#166534" : cfg ? cfg.badgeText : "#0F172A") : "#64748B",
-                backgroundColor: isActive ? (isProcessed ? "#DCFCE7" : cfg ? cfg.badgeBg : "#F1F5F9") : "transparent",
-                border: isActive ? `1px solid ${isProcessed ? "#86EFAC" : cfg ? cfg.accentColor + "40" : "#CBD5E1"}` : "1px solid transparent",
+                color: isActive ? (isProcessed ? "#166534" : "#0F172A") : "#64748B",
+                backgroundColor: isActive ? (isProcessed ? "#DCFCE7" : "#F1F5F9") : "transparent",
+                border: isActive ? `1px solid ${isProcessed ? "#86EFAC" : "#CBD5E1"}` : "1px solid transparent",
               }}
             >
-              {isProcessed ? (
+              {isProcessed && (
                 <CheckCircle2 className="w-[9px] h-[9px] flex-shrink-0" style={{ color: isActive ? "#16A34A" : "#94A3B8" }} />
-              ) : cfg ? (
-                <span
-                  className="w-[7px] h-[7px] rounded-full flex-shrink-0"
-                  style={{ backgroundColor: cfg.accentColor }}
-                />
-              ) : null}
-              {p === "all" ? "All" : isProcessed ? "Processed" : cfg!.label}
+              )}
+              {label}
               {count > 0 && (
                 <span
                   className="text-[11px] px-1.5 py-0.5 rounded-full ml-0.5"
                   style={{
-                    backgroundColor: isActive ? (isProcessed ? "#86EFAC40" : cfg ? cfg.accentColor + "20" : "#E2E8F0") : "#F1F5F9",
-                    color: isActive ? (isProcessed ? "#166534" : cfg ? cfg.badgeText : "#475569") : "#94A3B8",
+                    backgroundColor: isActive ? (isProcessed ? "#86EFAC40" : "#E2E8F0") : "#F1F5F9",
+                    color: isActive ? (isProcessed ? "#166534" : "#475569") : "#94A3B8",
                     fontWeight: 600,
                   }}
                 >
@@ -1457,7 +1456,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                     style={{
                       borderBottom: "1px solid #F8FAFC",
                       ...(row.flag ? {
-                        borderLeft: `3px solid ${priorityConfig[row.flag.priority].accentColor}`,
+                        borderLeft: "3px solid #F59E0B",
                       } : {}),
                       ...(isPulsing ? { animation: "tealPulse 1.2s ease-out forwards" } : {}),
                     }}
@@ -1628,7 +1627,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
             onResolveBlocker={() => {
               setReconModalOpen(false);
               setSelectedMonth("feb");
-              setPriorityFilter("high");
+              setPriorityFilter("missing_info");
               setViewingRowId("feb-blocker");
             }}
           />
@@ -2584,14 +2583,14 @@ interface Toast {
   duration?: number;
 }
 
-export function UnifiedTransactionInbox({ onOpenRail, initialFilter = "all", initialMonth, onNavigateToConnections }: { onOpenRail?: () => void; initialFilter?: "all" | "critical" | "high" | "medium" | "processed"; initialMonth?: string; onNavigateToConnections?: () => void }) {
+export function UnifiedTransactionInbox({ onOpenRail, initialFilter = "all", initialMonth, onNavigateToConnections }: { onOpenRail?: () => void; initialFilter?: string; initialMonth?: string; onNavigateToConnections?: () => void }) {
   const [ledger, setLedger] = React.useState(ledgerData);
   const [editedCategories, setEditedCategories] = React.useState<Set<string>>(new Set());
   const [toasts, setToasts] = React.useState<Toast[]>([]);
   const [newRowId, setNewRowId] = React.useState<string | null>(null);
   const [febReconciled, setFebReconciled] = React.useState(false);
 
-  const flaggedCount = React.useMemo(() => ledger.filter(r => r.flag).length, [ledger]);
+  const flaggedCount = React.useMemo(() => ledger.filter(r => r.flag && r.date.startsWith("Mar")).length, [ledger]);
 
   const addToast = (toast: Toast) => {
     setToasts((prev) => [...prev, toast]);

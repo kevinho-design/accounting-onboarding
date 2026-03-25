@@ -106,7 +106,7 @@ const MONTH_DATA: Record<string, {
       { date: "Feb 19", payee: "Thomson Legal Services",  amount: -2100.00, type: "debit"  },
     ],
     unmatched: [
-      { date: "Feb 14", payee: "Unknown vendor", amount: -2858.19, recommendation: "Add as miscellaneous expense" },
+      { date: "Feb 14", payee: "Henderson & Associates (Check #847)", amount: -2858.19, recommendation: "Record as Consulting Fees expense" },
     ],
   },
   mar: {
@@ -148,9 +148,6 @@ export function ReconciliationReviewModal({ open, onClose, month, monthLabel, is
     unmatched: [],
   } : rawData;
 
-  const diff = data.statementBalance - data.bookBalance;
-  const hasDiff = Math.abs(diff) > 0.005;
-
   const visibleMatched = showAll ? data.matched : data.matched.slice(0, 20);
 
   return (
@@ -175,62 +172,60 @@ export function ReconciliationReviewModal({ open, onClose, month, monthLabel, is
           </div>
         </div>
 
-        {/* Summary cards */}
-        <div className="px-6 py-4 grid grid-cols-3 gap-3" style={{ borderBottom: "1px solid #F1F5F9" }}>
-          <div className="rounded-xl p-3.5" style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}>
-            <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "#94A3B8", fontWeight: 600 }}>Bank Statement</p>
-            <p className="text-lg font-bold text-gray-900">{fmt(data.statementBalance)}</p>
-          </div>
-          <div className="rounded-xl p-3.5" style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}>
-            <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: "#94A3B8", fontWeight: 600 }}>Book Balance</p>
-            <p className="text-lg font-bold" style={{ color: hasDiff ? "#D97706" : "#0F172A" }}>{fmt(data.bookBalance)}</p>
-          </div>
-          <div className="rounded-xl p-3.5" style={{ backgroundColor: hasDiff ? "#FFFBEB" : "#F0FDF4", border: `1px solid ${hasDiff ? "#FDE68A" : "#BBF7D0"}` }}>
-            <p className="text-[10px] uppercase tracking-wide mb-1" style={{ color: hasDiff ? "#D97706" : "#16A34A", fontWeight: 600 }}>Difference</p>
-            <div className="flex items-center gap-1.5">
-              {hasDiff
-                ? <AlertTriangle className="w-4 h-4" style={{ color: "#D97706" }} />
-                : <CheckCircle2 className="w-4 h-4" style={{ color: "#16A34A" }} />
-              }
-              <p className="text-lg font-bold" style={{ color: hasDiff ? "#D97706" : "#16A34A" }}>
-                {hasDiff ? fmt(Math.abs(diff)) : "$0.00"}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Account breakdown */}
+        {/* Account breakdown with per-account balances */}
         <div className="px-6 py-4" style={{ borderBottom: "1px solid #F1F5F9" }}>
-          <h3 className="text-[12px] font-semibold text-gray-500 uppercase tracking-wide mb-3">Account Breakdown</h3>
-          <div className="space-y-2">
-            {data.accounts.map((acct) => (
-              <div key={acct.name} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: acct.status === "reconciled" ? "#F0FDF4" : "#FFFBEB" }}>
-                    <Landmark className="w-4 h-4" style={{ color: acct.status === "reconciled" ? "#16A34A" : "#D97706" }} />
+          <div className="space-y-3">
+            {data.accounts.map((acct) => {
+              const acctDiff = acct.statementBalance - acct.bookBalance;
+              const hasAcctDiff = Math.abs(acctDiff) > 0.005;
+              return (
+                <div key={acct.name} className="rounded-xl overflow-hidden" style={{ border: `1px solid ${hasAcctDiff ? "#FDE68A" : "#E2E8F0"}` }}>
+                  <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: "#F8FAFC" }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: acct.status === "reconciled" ? "#F0FDF4" : "#FFFBEB" }}>
+                        <Landmark className="w-4 h-4" style={{ color: acct.status === "reconciled" ? "#16A34A" : "#D97706" }} />
+                      </div>
+                      <p className="text-[13px] font-semibold text-gray-900">{acct.name}</p>
+                    </div>
+                    {acct.status === "reconciled" ? (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0" }}>
+                        <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "#16A34A" }} />
+                        <span className="text-[11px] font-semibold" style={{ color: "#15803D" }}>Reconciled</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A" }}>
+                        <AlertTriangle className="w-3.5 h-3.5" style={{ color: "#D97706" }} />
+                        <span className="text-[11px] font-semibold" style={{ color: "#B45309" }}>
+                          {acct.blockerCount} unmatched — {acct.blockerAmount}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-[13px] font-semibold text-gray-900">{acct.name}</p>
-                    <p className="text-[11px] text-gray-500">
-                      Statement: {fmt(acct.statementBalance)} · Books: {fmt(acct.bookBalance)}
-                    </p>
+                  <div className="grid grid-cols-3 gap-3 px-4 py-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide mb-0.5" style={{ color: "#94A3B8", fontWeight: 600 }}>Statement</p>
+                      <p className="text-[14px] font-bold text-gray-900">{fmt(acct.statementBalance)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide mb-0.5" style={{ color: "#94A3B8", fontWeight: 600 }}>Books</p>
+                      <p className="text-[14px] font-bold" style={{ color: hasAcctDiff ? "#D97706" : "#0F172A" }}>{fmt(acct.bookBalance)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wide mb-0.5" style={{ color: hasAcctDiff ? "#D97706" : "#16A34A", fontWeight: 600 }}>Difference</p>
+                      <div className="flex items-center gap-1">
+                        {hasAcctDiff
+                          ? <AlertTriangle className="w-3 h-3" style={{ color: "#D97706" }} />
+                          : <CheckCircle2 className="w-3 h-3" style={{ color: "#16A34A" }} />
+                        }
+                        <p className="text-[14px] font-bold" style={{ color: hasAcctDiff ? "#D97706" : "#16A34A" }}>
+                          {hasAcctDiff ? fmt(Math.abs(acctDiff)) : "$0.00"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                {acct.status === "reconciled" ? (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0" }}>
-                    <CheckCircle2 className="w-3.5 h-3.5" style={{ color: "#16A34A" }} />
-                    <span className="text-[11px] font-semibold" style={{ color: "#15803D" }}>Reconciled</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A" }}>
-                    <AlertTriangle className="w-3.5 h-3.5" style={{ color: "#D97706" }} />
-                    <span className="text-[11px] font-semibold" style={{ color: "#B45309" }}>
-                      {acct.blockerCount} unmatched — {acct.blockerAmount}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

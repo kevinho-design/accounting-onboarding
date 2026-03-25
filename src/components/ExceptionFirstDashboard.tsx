@@ -14,6 +14,7 @@ import {
   DollarSign,
   BarChart3,
   Waves,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
@@ -50,10 +51,19 @@ export const JENNIFER_EXCEPTIONS: Exception[] = [
     agentId: "matching",
     severity: "high",
     title: "February operating account not fully reconciled",
-    description: "We downloaded your bank statement and matched 311 of 312 transactions. 1 unmatched $2,858.19 charge needs your review.",
-    impact: "Trust account reconciled successfully. Operating cannot close until this is resolved.",
+    description: "Check #847 to Henderson & Associates ($2,858.19) cleared Feb 14 but was never recorded. 311 of 312 transactions matched automatically.",
+    impact: "Trust account reconciled. Operating cannot close until this cleared cheque is recorded as an expense.",
     suggestedAction: "Review blocker",
     createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000)
+  },
+  {
+    id: "sys-pending-approvals",
+    agentId: "matching",
+    severity: "high",
+    title: "3 payments pending partner approval",
+    description: "$21,800 total across 3 transactions exceeding the $5,000 threshold. Approve to unblock posting.",
+    suggestedAction: "Review approvals",
+    createdAt: new Date(Date.now() - 30 * 60 * 1000)
   },
   {
     id: "m1",
@@ -124,7 +134,7 @@ interface ExceptionFirstDashboardProps {
   onAskTeammate?: (message: string) => void;
   onOpenRail?: () => void;
   onNavigateToTransactions?: () => void;
-  onNavigateToTransactionsFiltered?: (filter: "all" | "critical" | "high" | "medium" | "processed", month?: string) => void;
+  onNavigateToTransactionsFiltered?: (filter: string, month?: string) => void;
   onNavigateToConnections?: () => void;
 }
 
@@ -329,10 +339,12 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                       "sys-bank-disconnect": AlertTriangle,
                       "sys-trust-balance": AlertTriangle,
                       "sys-feb-recon-blocker": AlertTriangle,
+                      "sys-pending-approvals": ShieldCheck,
                     };
                     const COLOR_OVERRIDES: Record<string, string> = {
                       "sys-bank-disconnect": "from-amber-500 to-orange-500",
                       "sys-feb-recon-blocker": "from-amber-500 to-orange-500",
+                      "sys-pending-approvals": "from-blue-500 to-blue-600",
                       "sys-trust-balance": "from-amber-500 to-orange-500",
                     };
                     const AgentIcon = ICON_OVERRIDES[exception.id] ?? AGENT_ICONS[exception.agentId] ?? Sparkles;
@@ -383,9 +395,11 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                                     if (exception.id === "sys-bank-disconnect") {
                                       onNavigateToConnections?.();
                                     } else if (exception.id === "sys-feb-recon-blocker") {
-                                      onNavigateToTransactionsFiltered?.("high", "feb");
+                                      onNavigateToTransactionsFiltered?.("missing_info", "feb");
+                                    } else if (exception.id === "sys-pending-approvals") {
+                                      onNavigateToTransactionsFiltered?.("approval");
                                     } else {
-                                      onNavigateToTransactionsFiltered?.(exception.severity as "critical" | "high" | "medium" | "processed");
+                                      onNavigateToTransactionsFiltered?.("all");
                                     }
                                   }}
                                 >

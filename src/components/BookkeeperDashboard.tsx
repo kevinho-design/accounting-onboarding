@@ -17,6 +17,7 @@ import {
   DollarSign,
   BarChart3,
   Waves,
+  ShieldCheck,
 } from "lucide-react";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { motion } from "motion/react";
@@ -31,7 +32,7 @@ interface BookkeeperDashboardProps {
   onExceptionsChange?: (exceptions: Exception[]) => void;
   onRecentActionsChange?: (actions: AgentAction[]) => void;
   onNavigateToTransactions?: () => void;
-  onNavigateToTransactionsFiltered?: (filter: "all" | "critical" | "high" | "medium" | "processed", month?: string) => void;
+  onNavigateToTransactionsFiltered?: (filter: string, month?: string) => void;
   onNavigateToConnections?: () => void;
 }
 
@@ -63,10 +64,19 @@ export const SARAH_EXCEPTIONS: Exception[] = [
     agentId: "matching",
     severity: "high",
     title: "February operating account not fully reconciled",
-    description: "We downloaded your bank statement and matched 311 of 312 transactions. 1 unmatched $2,858.19 charge needs your review.",
-    impact: "Trust account reconciled successfully. Operating cannot close until this is resolved.",
+    description: "Check #847 to Henderson & Associates ($2,858.19) cleared Feb 14 but was never recorded. 311 of 312 transactions matched automatically.",
+    impact: "Trust account reconciled. Operating cannot close until this cleared cheque is recorded as an expense.",
     suggestedAction: "Review blocker",
     createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000)
+  },
+  {
+    id: "sys-pending-approvals",
+    agentId: "matching",
+    severity: "high",
+    title: "3 payments pending partner approval",
+    description: "$21,800 total across 3 transactions exceeding the $5,000 threshold. Approve to unblock posting.",
+    suggestedAction: "Review approvals",
+    createdAt: new Date(Date.now() - 30 * 60 * 1000)
   },
   {
     id: "s1", agentId: "matching", severity: "high",
@@ -216,10 +226,12 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                     "sys-bank-disconnect": AlertTriangle,
                     "sys-trust-balance": AlertTriangle,
                     "sys-feb-recon-blocker": AlertTriangle,
+                    "sys-pending-approvals": ShieldCheck,
                   };
                   const COLOR_OVERRIDES: Record<string, string> = {
                     "sys-bank-disconnect": "from-amber-500 to-orange-500",
                     "sys-feb-recon-blocker": "from-amber-500 to-orange-500",
+                    "sys-pending-approvals": "from-blue-500 to-blue-600",
                     "sys-trust-balance": "from-amber-500 to-orange-500",
                   };
                   const AgentIcon = ICON_OVERRIDES[exc.id] ?? AGENT_ICONS[exc.agentId] ?? Sparkles;
@@ -282,9 +294,11 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                                   if (exc.id === "sys-bank-disconnect") {
                                     onNavigateToConnections?.();
                                   } else if (exc.id === "sys-feb-recon-blocker") {
-                                    onNavigateToTransactionsFiltered?.("high", "feb");
+                                    onNavigateToTransactionsFiltered?.("missing_info", "feb");
+                                  } else if (exc.id === "sys-pending-approvals") {
+                                    onNavigateToTransactionsFiltered?.("approval");
                                   } else {
-                                    onNavigateToTransactionsFiltered?.(exc.severity as "critical" | "high" | "medium" | "processed");
+                                    onNavigateToTransactionsFiltered?.("all");
                                   }
                                 }}
                               >
@@ -375,7 +389,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                         <div className="flex items-center gap-3 flex-shrink-0">
                           {isReady ? (
                             <button
-                              onClick={() => onNavigateToTransactionsFiltered?.("processed")}
+                              onClick={() => onNavigateToTransactionsFiltered?.("all")}
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] transition-all hover:opacity-90 shadow-sm"
                               style={{ background: "linear-gradient(135deg, #16A34A, #15803D)", color: "#FFFFFF", fontWeight: 600 }}
                             >
@@ -384,7 +398,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                             </button>
                           ) : (
                             <button
-                              onClick={() => onNavigateToTransactionsFiltered?.("critical")}
+                              onClick={() => onNavigateToTransactionsFiltered?.("missing_info")}
                               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] transition-all hover:opacity-90"
                               style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", color: "#B45309", fontWeight: 600 }}
                             >
@@ -417,7 +431,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                       {/* Not close-ready — only when pct < 86 */}
                       {pct < 86 && (
                         <button
-                          onClick={() => onNavigateToTransactionsFiltered?.("critical")}
+                          onClick={() => onNavigateToTransactionsFiltered?.("missing_info")}
                           className="flex items-center gap-1 hover:underline"
                           style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
                         >

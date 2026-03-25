@@ -614,7 +614,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col justify-end items-center min-w-0">
-                    <div className="relative w-full flex items-end justify-center">
+                    <div className="relative flex items-end justify-center h-full" style={{ aspectRatio: "110/62", maxWidth: "100%" }}>
                       {(() => {
                         const r = 42;
                         const cx = 55;

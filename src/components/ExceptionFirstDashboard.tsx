@@ -22,16 +22,17 @@ import { DrillDownPanel } from "./DrillDownPanel";
 import { MigrationReportModal } from "./MigrationReportModal";
 import { FinancialGoalsViewModal } from "./FinancialGoalsViewModal";
 import { motion } from "motion/react";
+import { TrustAssignCTA } from "./accounting/TrustAssign";
 
 export const JENNIFER_EXCEPTIONS: Exception[] = [
   {
     id: "sys-bank-disconnect",
     agentId: "matching",
-    severity: "critical",
-    title: "Chase ··4892 lost connection",
-    description: "12 transactions waiting — re-authenticate to resume syncing.",
-    impact: "~$8,420 in transactions cannot sync until reconnected.",
-    suggestedAction: "Reconnect bank feed",
+    severity: "high",
+    title: "Chase ··4892 connection expires in 5 days",
+    description: "Re-authenticate now to avoid interruption to your bank feed.",
+    impact: "If the connection expires, new transactions will stop syncing automatically.",
+    suggestedAction: "Re-authenticate",
     createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
   },
   {
@@ -41,8 +42,18 @@ export const JENNIFER_EXCEPTIONS: Exception[] = [
     title: "Jane Doe's trust will drop below the $1,000 floor",
     description: "A $1,250 filing fee will leave only $592 in the account.",
     impact: "Trust balance will fall to $592 — $408 below the required $1,000 floor for this matter.",
-    suggestedAction: "Allocate top-up",
+    suggestedAction: "Assign request",
     createdAt: new Date(Date.now() - 2 * 60 * 1000)
+  },
+  {
+    id: "sys-feb-recon-blocker",
+    agentId: "matching",
+    severity: "high",
+    title: "February operating account not fully reconciled",
+    description: "We downloaded your bank statement and matched 311 of 312 transactions. 1 unmatched $2,858.19 charge needs your review.",
+    impact: "Trust account reconciled successfully. Operating cannot close until this is resolved.",
+    suggestedAction: "Review blocker",
+    createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000)
   },
   {
     id: "m1",
@@ -113,7 +124,7 @@ interface ExceptionFirstDashboardProps {
   onAskTeammate?: (message: string) => void;
   onOpenRail?: () => void;
   onNavigateToTransactions?: () => void;
-  onNavigateToTransactionsFiltered?: (filter: "all" | "critical" | "high" | "medium" | "low") => void;
+  onNavigateToTransactionsFiltered?: (filter: "all" | "critical" | "high" | "medium" | "processed", month?: string) => void;
   onNavigateToConnections?: () => void;
 }
 
@@ -315,11 +326,13 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                       "cash-flow": Waves,
                     };
                     const ICON_OVERRIDES: Record<string, React.ComponentType<{ className?: string }>> = {
-                      "sys-bank-disconnect": WifiOff,
+                      "sys-bank-disconnect": AlertTriangle,
                       "sys-trust-balance": AlertTriangle,
+                      "sys-feb-recon-blocker": AlertTriangle,
                     };
                     const COLOR_OVERRIDES: Record<string, string> = {
-                      "sys-bank-disconnect": "from-red-500 to-red-600",
+                      "sys-bank-disconnect": "from-amber-500 to-orange-500",
+                      "sys-feb-recon-blocker": "from-amber-500 to-orange-500",
                       "sys-trust-balance": "from-amber-500 to-orange-500",
                     };
                     const AgentIcon = ICON_OVERRIDES[exception.id] ?? AGENT_ICONS[exception.agentId] ?? Sparkles;
@@ -359,7 +372,9 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                               </div>
                             )}
                             <div className="flex items-center gap-2">
-                              {exception.suggestedAction && (
+                              {exception.id === "sys-trust-balance" ? (
+                                <TrustAssignCTA compact />
+                              ) : exception.suggestedAction && (
                                 <Button
                                   size="sm"
                                   className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer"
@@ -367,8 +382,10 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                                     e.stopPropagation();
                                     if (exception.id === "sys-bank-disconnect") {
                                       onNavigateToConnections?.();
+                                    } else if (exception.id === "sys-feb-recon-blocker") {
+                                      onNavigateToTransactionsFiltered?.("high", "feb");
                                     } else {
-                                      onNavigateToTransactionsFiltered?.(exception.severity as "critical" | "high" | "medium" | "low");
+                                      onNavigateToTransactionsFiltered?.(exception.severity as "critical" | "high" | "medium" | "processed");
                                     }
                                   }}
                                 >
@@ -512,61 +529,65 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
               </div>
 
               {/* 2x2 metric cards */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-2 gap-3 mb-4" style={{ gridAutoRows: "200px" }}>
                 {/* Operating Cash */}
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("operating")}>
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-gray-500">Operating Cash</p>
-                    <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Healthy</span>
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => setSelectedMetric("operating")}>
+                  <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Healthy</span>
+                  <div className="flex-shrink-0">
+                    <p className="text-xs font-medium text-gray-500 mb-1">Operating Cash</p>
+                    <p className="text-xs text-gray-400 mb-2">March 2026</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-1">$142,847</p>
+                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 rounded text-xs font-medium text-emerald-700">
+                      <TrendingUp className="w-3 h-3" />+8% MoM
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-400 mb-2">March 2026</p>
-                  <p className="text-2xl font-bold text-gray-900 mb-1">$142,847</p>
-                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 rounded text-xs font-medium text-emerald-700 mb-2">
-                    <TrendingUp className="w-3 h-3" />+8% MoM
+                  <div className="flex-1 flex items-end min-w-0">
+                    <svg className="w-full h-24" viewBox="0 0 200 60" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="areaGradient2" x1="0" x2="0" y1="0" y2="1">
+                          <stop offset="0%" stopColor="#6EE7B7" stopOpacity="0.3"/>
+                          <stop offset="100%" stopColor="#6EE7B7" stopOpacity="0.05"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10 L200,60 L0,60 Z" fill="url(#areaGradient2)" />
+                      <path d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10" fill="none" stroke="#6EE7B7" strokeWidth="2" />
+                    </svg>
                   </div>
-                  <svg className="w-full h-10" viewBox="0 0 200 60">
-                    <defs>
-                      <linearGradient id="areaGradient2" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stopColor="#6EE7B7" stopOpacity="0.3"/>
-                        <stop offset="100%" stopColor="#6EE7B7" stopOpacity="0.05"/>
-                      </linearGradient>
-                    </defs>
-                    <path d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10 L200,60 L0,60 Z" fill="url(#areaGradient2)" />
-                    <path d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10" fill="none" stroke="#6EE7B7" strokeWidth="2" />
-                  </svg>
                 </div>
 
                 {/* Revenue */}
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("revenue")}>
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-gray-500">Revenue</p>
-                    <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">On Track</span>
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => setSelectedMetric("revenue")}>
+                  <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">On Track</span>
+                  <div className="flex-shrink-0">
+                    <p className="text-xs font-medium text-gray-500 mb-1">Revenue</p>
+                    <p className="text-xs text-gray-400 mb-2">March 2026 MTD</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-1">$284,500</p>
+                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 rounded text-xs font-medium text-emerald-700">
+                      <TrendingUp className="w-3 h-3" />+12% MoM
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-400 mb-2">March 2026 MTD</p>
-                  <p className="text-2xl font-bold text-gray-900 mb-1">$284,500</p>
-                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 rounded text-xs font-medium text-emerald-700 mb-2">
-                    <TrendingUp className="w-3 h-3" />+12% MoM
-                  </div>
-                  <div className="flex items-end h-10 gap-0.5">
-                    {[25,15,65,70,68,72,60,20,18,75,78,80,76,70,22,16,82].map((h, i) => (
-                      <div key={i} className={`flex-1 rounded-t ${i === 16 ? 'bg-blue-500' : h < 30 ? 'bg-gray-200' : 'bg-emerald-400'}`} style={{ height: `${h}%` }} />
-                    ))}
+                  <div className="flex-1 flex flex-col justify-end min-w-0">
+                    <div className="flex items-end gap-0.5 h-24">
+                      {[25,15,65,70,68,72,60,20,18,75,78,80,76,70,22,16,82].map((h, i) => (
+                        <div key={i} className={`flex-1 rounded-t ${i === 16 ? 'bg-blue-500' : h < 30 ? 'bg-gray-200' : 'bg-emerald-400'}`} style={{ height: `${h}%` }} />
+                      ))}
+                    </div>
                   </div>
                 </div>
 
                 {/* AR at Risk */}
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("collections")}>
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-gray-500">AR at Risk</p>
-                    <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded uppercase">Behind Goal</span>
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => setSelectedMetric("collections")}>
+                  <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded uppercase">Behind Goal</span>
+                  <div className="flex-shrink-0">
+                    <p className="text-xs font-medium text-gray-500 mb-1">AR at Risk</p>
+                    <p className="text-xs text-gray-400 mb-2">60+ Days Overdue</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-1">$73,700</p>
+                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 rounded text-xs font-medium text-orange-700">
+                      <AlertTriangle className="w-3 h-3" />3 invoices
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-400 mb-2">60+ Days Overdue</p>
-                  <p className="text-2xl font-bold text-gray-900 mb-1">$73,700</p>
-                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 rounded text-xs font-medium text-orange-700 mb-2">
-                    <AlertTriangle className="w-3 h-3" />3 invoices
-                  </div>
-                  <div>
-                    <div className="flex items-end gap-1 h-10">
+                  <div className="flex-1 flex flex-col justify-end min-w-0">
+                    <div className="flex items-end gap-1 h-24">
                       {[{h:45,c:'bg-emerald-200'},{h:60,c:'bg-blue-200'},{h:35,c:'bg-yellow-200'},{h:50,c:'bg-orange-300'},{h:75,c:'bg-red-400'}].map((b,i) => (
                         <div key={i} className="flex-1 flex flex-col justify-end h-full">
                           <div className={`w-full rounded-t ${b.c}`} style={{ height: `${b.h}%` }} />
@@ -582,22 +603,43 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                 </div>
 
                 {/* Cash Runway */}
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("cash-runway")}>
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-gray-500">Runway</p>
-                    <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded uppercase">Behind Goal</span>
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => setSelectedMetric("cash-runway")}>
+                  <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded uppercase">Behind Goal</span>
+                  <div className="flex-shrink-0">
+                    <p className="text-xs font-medium text-gray-500 mb-1">Runway</p>
+                    <p className="text-xs text-gray-400 mb-2">vs 90-day target</p>
+                    <p className="text-2xl font-bold text-gray-900 mb-1">74 Days</p>
+                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-yellow-100 rounded text-xs font-medium text-yellow-700">
+                      <Info className="w-3 h-3" />-16 days from goal
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-400 mb-2">vs 90-day target</p>
-                  <p className="text-2xl font-bold text-gray-900 mb-1">74 Days</p>
-                  <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-yellow-100 rounded text-xs font-medium text-yellow-700 mb-2">
-                    <Info className="w-3 h-3" />-16 days from goal
-                  </div>
-                  <div className="relative h-14 flex items-end justify-center pb-1">
-                    <svg className="w-24 h-14" viewBox="0 0 120 65" preserveAspectRatio="xMidYMid meet">
-                      <path d="M 10,50 A 50,50 0 0,1 110,50" fill="none" stroke="#E5E7EB" strokeWidth="8" strokeLinecap="round" />
-                      <path d="M 10,50 A 50,50 0 0,1 102,23" fill="none" stroke="#FCD34D" strokeWidth="8" strokeLinecap="round" />
-                    </svg>
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 text-sm font-semibold text-gray-700">82%</div>
+                  <div className="flex-1 flex flex-col justify-end items-center min-w-0">
+                    <div className="relative w-full flex items-end justify-center">
+                      {(() => {
+                        const r = 42;
+                        const cx = 55;
+                        const cy = 56;
+                        const halfCirc = Math.PI * r;
+                        const pct = 0.82;
+                        return (
+                          <svg className="w-full" viewBox="0 0 110 62" fill="none" preserveAspectRatio="xMidYMax meet">
+                            <path
+                              d={`M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`}
+                              stroke="#E5E7EB" strokeWidth="8" strokeLinecap="round"
+                              fill="none"
+                            />
+                            <path
+                              d={`M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`}
+                              stroke="#FCD34D" strokeWidth="8" strokeLinecap="round"
+                              fill="none"
+                              strokeDasharray={`${halfCirc}`}
+                              strokeDashoffset={`${halfCirc * (1 - pct)}`}
+                            />
+                          </svg>
+                        );
+                      })()}
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xl font-bold text-gray-700">82%</div>
+                    </div>
                   </div>
                 </div>
               </div>

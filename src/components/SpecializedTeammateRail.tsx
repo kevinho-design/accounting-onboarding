@@ -1,9 +1,10 @@
 import * as React from "react";
-import { Send, Sparkles, X, AlertCircle, Zap, Calendar, MessageSquare, ChevronDown, ChevronUp, Shield, GitMerge, TrendingUp, BarChart3, DollarSign, Waves, WifiOff, AlertTriangle } from "lucide-react";
+import { Send, Sparkles, X, AlertCircle, Zap, Calendar, MessageSquare, ChevronDown, ChevronUp, ChevronRight, Shield, GitMerge, TrendingUp, BarChart3, DollarSign, Waves, AlertTriangle } from "lucide-react";
 import { Button } from "./ui/button";
 import { motion, AnimatePresence } from "motion/react";
 import { AGENTS, AgentAction, Exception } from "./agents/AgentTypes";
 import { ExplainableAction } from "./agents/ExplainableAction";
+import { TrustAssignCTA } from "./accounting/TrustAssign";
 
 interface ChatMessage {
   id: string;
@@ -231,11 +232,11 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
     "cash-flow": Waves,
   };
   const ICON_OVERRIDES: Record<string, React.ComponentType<{ className?: string }>> = {
-    "sys-bank-disconnect": WifiOff,
+    "sys-bank-disconnect": AlertTriangle,
     "sys-trust-balance": AlertTriangle,
   };
   const COLOR_OVERRIDES: Record<string, string> = {
-    "sys-bank-disconnect": "from-red-500 to-red-600",
+    "sys-bank-disconnect": "from-amber-500 to-orange-500",
     "sys-trust-balance": "from-amber-500 to-orange-500",
   };
 
@@ -295,19 +296,40 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
                         className="overflow-hidden"
                       >
                         <div className="px-4 pb-4 pt-1 border-t border-gray-100">
-                          <p className="text-xs text-gray-600 mb-3">{exception.description}</p>
+                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{exception.description}</p>
                           {exception.impact && (
                             <div className="flex items-start gap-1.5 p-2 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
                               <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
                               <span>{exception.impact}</span>
                             </div>
                           )}
-                          {exception.suggestedAction && (
-                            <Button size="sm" className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs cursor-pointer">
-                              <Sparkles className="w-3 h-3 mr-1" />
-                              {exception.suggestedAction}
+                          <div className="flex items-center gap-2">
+                            {exception.id === "sys-trust-balance" ? (
+                              <TrustAssignCTA
+                                compact
+                                buttonClassName="flex-1 flex items-center justify-center gap-1.5 px-3 py-1 rounded-lg text-[12px] bg-blue-600 hover:bg-blue-700 text-white transition-all font-medium"
+                                buttonStyle={{}}
+                              />
+                            ) : exception.suggestedAction && (
+                              <Button size="sm" className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer">
+                                {exception.suggestedAction}
+                                <ChevronRight className="w-3 h-3 ml-1" />
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs cursor-pointer flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveTab("chat");
+                                sendMessage(`Help me with: "${exception.title}"`);
+                              }}
+                            >
+                              <Sparkles className="w-3 h-3 mr-1 text-blue-500" />
+                              Ask Teammate
                             </Button>
-                          )}
+                          </div>
                         </div>
                       </motion.div>
                     )}

@@ -1,6 +1,7 @@
 import * as React from "react";
 import {
   CheckCircle,
+  CircleAlert,
   Sparkles,
   ChevronRight,
   ChevronDown,
@@ -21,6 +22,8 @@ import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { motion } from "motion/react";
 import { Exception, AgentAction, AGENTS } from "./agents/AgentTypes";
 import { Button } from "./ui/button";
+import { TrustAssignCTA } from "./accounting/TrustAssign";
+import { AI_PROCESSED, INITIAL_FLAGGED_COUNT } from "./accounting/UnifiedTransactionInbox";
 
 interface BookkeeperDashboardProps {
   onAskTeammate?: (message: string) => void;
@@ -28,7 +31,7 @@ interface BookkeeperDashboardProps {
   onExceptionsChange?: (exceptions: Exception[]) => void;
   onRecentActionsChange?: (actions: AgentAction[]) => void;
   onNavigateToTransactions?: () => void;
-  onNavigateToTransactionsFiltered?: (filter: "all" | "critical" | "high" | "medium" | "low") => void;
+  onNavigateToTransactionsFiltered?: (filter: "all" | "critical" | "high" | "medium" | "processed", month?: string) => void;
   onNavigateToConnections?: () => void;
 }
 
@@ -38,11 +41,11 @@ export const SARAH_EXCEPTIONS: Exception[] = [
   {
     id: "sys-bank-disconnect",
     agentId: "matching",
-    severity: "critical",
-    title: "Chase ··4892 lost connection",
-    description: "12 transactions waiting — re-authenticate to resume syncing.",
-    impact: "~$8,420 in transactions cannot sync until reconnected.",
-    suggestedAction: "Reconnect bank feed",
+    severity: "high",
+    title: "Chase ··4892 connection expires in 5 days",
+    description: "Re-authenticate now to avoid interruption to your bank feed.",
+    impact: "If the connection expires, new transactions will stop syncing automatically.",
+    suggestedAction: "Re-authenticate",
     createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
   },
   {
@@ -52,8 +55,18 @@ export const SARAH_EXCEPTIONS: Exception[] = [
     title: "Jane Doe's trust will drop below the $1,000 floor",
     description: "A $1,250 filing fee will leave only $592 in the account.",
     impact: "Trust balance will fall to $592 — $408 below the required $1,000 floor for this matter.",
-    suggestedAction: "Allocate top-up",
+    suggestedAction: "Assign request",
     createdAt: new Date(Date.now() - 2 * 60 * 1000)
+  },
+  {
+    id: "sys-feb-recon-blocker",
+    agentId: "matching",
+    severity: "high",
+    title: "February operating account not fully reconciled",
+    description: "We downloaded your bank statement and matched 311 of 312 transactions. 1 unmatched $2,858.19 charge needs your review.",
+    impact: "Trust account reconciled successfully. Operating cannot close until this is resolved.",
+    suggestedAction: "Review blocker",
+    createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000)
   },
   {
     id: "s1", agentId: "matching", severity: "high",
@@ -200,11 +213,13 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                     "cash-flow": Waves,
                   };
                   const ICON_OVERRIDES: Record<string, React.ComponentType<{ className?: string }>> = {
-                    "sys-bank-disconnect": WifiOff,
+                    "sys-bank-disconnect": AlertTriangle,
                     "sys-trust-balance": AlertTriangle,
+                    "sys-feb-recon-blocker": AlertTriangle,
                   };
                   const COLOR_OVERRIDES: Record<string, string> = {
-                    "sys-bank-disconnect": "from-red-500 to-red-600",
+                    "sys-bank-disconnect": "from-amber-500 to-orange-500",
+                    "sys-feb-recon-blocker": "from-amber-500 to-orange-500",
                     "sys-trust-balance": "from-amber-500 to-orange-500",
                   };
                   const AgentIcon = ICON_OVERRIDES[exc.id] ?? AGENT_ICONS[exc.agentId] ?? Sparkles;
@@ -256,6 +271,9 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                             </div>
                           ) : (
                             <div className="flex items-center gap-2">
+                              {exc.id === "sys-trust-balance" ? (
+                                <TrustAssignCTA compact />
+                              ) : (
                               <Button
                                 size="sm"
                                 className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer"
@@ -263,14 +281,17 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                                   e.stopPropagation();
                                   if (exc.id === "sys-bank-disconnect") {
                                     onNavigateToConnections?.();
+                                  } else if (exc.id === "sys-feb-recon-blocker") {
+                                    onNavigateToTransactionsFiltered?.("high", "feb");
                                   } else {
-                                    onNavigateToTransactionsFiltered?.(exc.severity as "critical" | "high" | "medium" | "low");
+                                    onNavigateToTransactionsFiltered?.(exc.severity as "critical" | "high" | "medium" | "processed");
                                   }
                                 }}
                               >
                                 {exc.suggestedAction}
                                 <ChevronRight className="w-3 h-3 ml-1" />
                               </Button>
+                              )}
                               {onAskTeammate && (
                                 <Button
                                   size="sm"
@@ -336,70 +357,85 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
 
             {/* RIGHT COLUMN — System of Record */}
             <div className="col-span-7">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-blue-500 flex items-center justify-center shadow-sm">
-                    <Receipt className="w-3.5 h-3.5 text-white" />
-                  </div>
-                  <h2 className="text-base font-semibold text-gray-900">Recent Transactions</h2>
-                </div>
-                <button className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-                  View all transactions <ChevronRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                {/* Table header */}
-                <div className="grid grid-cols-12 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
-                  <span className="col-span-2 text-xs font-medium text-gray-500">Date</span>
-                  <span className="col-span-4 text-xs font-medium text-gray-500">Vendor / Description</span>
-                  <span className="col-span-3 text-xs font-medium text-gray-500 text-right">Amount</span>
-                  <span className="col-span-3 text-xs font-medium text-gray-500 text-right">Account</span>
-                </div>
-
-                <div className="divide-y divide-gray-50">
-                  {RECENT_TRANSACTIONS.map((tx, i) => (
-                    <div
-                      key={i}
-                      className={`grid grid-cols-12 items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${tx.flagged ? 'bg-amber-50/40' : ''}`}
-                    >
-                      <span className="col-span-2 text-xs text-gray-500">{tx.date}</span>
-                      <div className="col-span-4 flex items-center gap-2 min-w-0">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                          tx.type === 'credit' ? 'bg-emerald-100' : 'bg-gray-100'
-                        }`}>
-                          {tx.type === 'credit'
-                            ? <ArrowDownLeft className="w-3 h-3 text-emerald-600" />
-                            : <ArrowUpRight className="w-3 h-3 text-gray-500" />
-                          }
+              {/* Reconciliation status card */}
+              {(() => {
+                const trustAtRisk = 2;
+                const ioltaMatters = 12;
+                const pct = Math.round(((AI_PROCESSED - INITIAL_FLAGGED_COUNT) / AI_PROCESSED) * 100);
+                const isReady = INITIAL_FLAGGED_COUNT === 0;
+                return (
+                  <div className="mt-3 bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    <div className="p-4">
+                      {/* Top row: heading | CTA + large % */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-0.5">March 2026</p>
+                          <p className="text-sm font-bold text-gray-900">Reconciliation Status</p>
                         </div>
-                        <span className="text-xs text-gray-800 font-medium truncate">{tx.vendor}</span>
-                        {tx.flagged && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" title="Flagged" />
-                        )}
+                        <div className="flex items-center gap-3 flex-shrink-0">
+                          {isReady ? (
+                            <button
+                              onClick={() => onNavigateToTransactionsFiltered?.("processed")}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] transition-all hover:opacity-90 shadow-sm"
+                              style={{ background: "linear-gradient(135deg, #16A34A, #15803D)", color: "#FFFFFF", fontWeight: 600 }}
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                              Close March
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => onNavigateToTransactionsFiltered?.("critical")}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] transition-all hover:opacity-90"
+                              style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", color: "#B45309", fontWeight: 600 }}
+                            >
+                              Review flagged
+                            </button>
+                          )}
+                          <div className="text-right">
+                            <p className="text-2xl font-bold leading-none" style={{ color: isReady ? "#16A34A" : "#0F172A" }}>{pct}%</p>
+                            <p className="text-[10px] text-gray-400 mt-0.5">readiness</p>
+                          </div>
+                        </div>
                       </div>
-                      <span className={`col-span-3 text-xs font-medium text-right tabular-nums ${
-                        tx.type === 'credit' ? 'text-emerald-700' : 'text-gray-800'
-                      }`}>
-                        {tx.type === 'credit' ? '+' : ''}
-                        {tx.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                      </span>
-                      <span className="col-span-3 text-xs text-gray-400 text-right truncate">{tx.account}</span>
+                      {/* Stat row */}
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#10B981" }} />
+                          <span className="text-[11px] text-gray-600"><span className="font-semibold text-gray-900">{AI_PROCESSED.toLocaleString()}</span> auto-processed</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: INITIAL_FLAGGED_COUNT > 0 ? "#F59E0B" : "#10B981" }} />
+                          <span className="text-[11px] text-gray-600"><span className="font-semibold text-gray-900">{INITIAL_FLAGGED_COUNT}</span> need review</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: trustAtRisk > 0 ? "#EF4444" : "#14B8A6" }} />
+                          <span className="text-[11px] text-gray-600">
+                            <span className="font-semibold text-gray-900">{trustAtRisk > 0 ? `${trustAtRisk} at risk` : `${ioltaMatters} compliant`}</span> IOLTA
+                          </span>
+                        </div>
+                      </div>
+                      {/* Not close-ready — only when pct < 86 */}
+                      {pct < 86 && (
+                        <button
+                          onClick={() => onNavigateToTransactionsFiltered?.("critical")}
+                          className="flex items-center gap-1 hover:underline"
+                          style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                        >
+                          <CircleAlert className="w-3 h-3 flex-shrink-0 text-amber-500" />
+                          <span className="text-[11px] font-semibold text-amber-600">Not close-ready</span>
+                        </button>
+                      )}
                     </div>
-                  ))}
-                </div>
-
-                {/* Footer */}
-                <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                  <span className="text-xs text-gray-400">Showing last 10 of 141 transactions this month</span>
-                  <button className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-                    View all <ChevronRight className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
+                    {/* Progress bar pinned to bottom */}
+                    <div className="h-1.5 w-full bg-gray-100">
+                      <div className="h-1.5 bg-emerald-500 transition-all duration-700" style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Bank feed status */}
-              <div className="mt-3 grid grid-cols-3 gap-3">
+              <div className="mt-3 grid grid-cols-2 gap-3">
                 <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
                   <p className="text-xs text-gray-500 mb-1">Bank Feed</p>
                   <div className="flex items-center gap-1.5">
@@ -408,16 +444,70 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                   </div>
                 </div>
                 <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs text-gray-500 mb-1">March Recon</p>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-gray-800">78%</span>
-                    <span className="text-xs text-yellow-600">3 blockers</span>
-                  </div>
-                </div>
-                <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
                   <p className="text-xs text-gray-500 mb-1">Auto-coded today</p>
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs font-medium text-gray-800">89 transactions</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recent Transactions */}
+              <div className="mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-blue-500 flex items-center justify-center shadow-sm">
+                    <Receipt className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <h2 className="text-base font-semibold text-gray-900">Recent Transactions</h2>
+                </div>
+
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="grid grid-cols-12 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
+                    <span className="col-span-2 text-xs font-medium text-gray-500">Date</span>
+                    <span className="col-span-4 text-xs font-medium text-gray-500">Vendor / Description</span>
+                    <span className="col-span-3 text-xs font-medium text-gray-500 text-right">Amount</span>
+                    <span className="col-span-3 text-xs font-medium text-gray-500 text-right">Account</span>
+                  </div>
+
+                  <div className="divide-y divide-gray-50">
+                    {RECENT_TRANSACTIONS.map((tx, i) => (
+                      <div
+                        key={i}
+                        className={`grid grid-cols-12 items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${tx.flagged ? 'bg-amber-50/40' : ''}`}
+                      >
+                        <span className="col-span-2 text-xs text-gray-500">{tx.date}</span>
+                        <div className="col-span-4 flex items-center gap-2 min-w-0">
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            tx.type === 'credit' ? 'bg-emerald-100' : 'bg-gray-100'
+                          }`}>
+                            {tx.type === 'credit'
+                              ? <ArrowDownLeft className="w-3 h-3 text-emerald-600" />
+                              : <ArrowUpRight className="w-3 h-3 text-gray-500" />
+                            }
+                          </div>
+                          <span className="text-xs text-gray-800 font-medium truncate">{tx.vendor}</span>
+                          {tx.flagged && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" title="Flagged" />
+                          )}
+                        </div>
+                        <span className={`col-span-3 text-xs font-medium text-right tabular-nums ${
+                          tx.type === 'credit' ? 'text-emerald-700' : 'text-gray-800'
+                        }`}>
+                          {tx.type === 'credit' ? '+' : ''}
+                          {tx.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                        </span>
+                        <span className="col-span-3 text-xs text-gray-400 text-right truncate">{tx.account}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                    <span className="text-xs text-gray-400">Showing last 10 of 141 transactions this month</span>
+                    <button
+                      onClick={() => onNavigateToTransactions?.()}
+                      className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                    >
+                      View all <ChevronRight className="w-3 h-3" />
+                    </button>
                   </div>
                 </div>
               </div>

@@ -64,6 +64,7 @@ import { Screen10_FinancialGoals } from "./components/migration/Screen10_Financi
 import { Toaster } from "./components/ui/sonner";
 import { FloatingChatBar } from "./components/FloatingChatBar";
 import { AgentAction, Exception } from "./components/agents/AgentTypes";
+import { AccountingVisionPortal } from "./components/AccountingVisionPortal";
 
 export default function App() {
   const [unlocked, setUnlocked] = React.useState(
@@ -84,7 +85,9 @@ export default function App() {
   const teammateNotificationCount = railSeen ? 0 : exceptions.length;
   const [initialChatMessage, setInitialChatMessage] = React.useState<string | undefined>();
   const [isChatBarVisible, setIsChatBarVisible] = React.useState(true);
-  const [activeUser, setActiveUser] = React.useState<"jennifer" | "sarah">("jennifer");
+  const [activeUser, setActiveUser] = React.useState<"jennifer" | "sarah" | "ryan">("jennifer");
+  const [showPortal, setShowPortal] = React.useState(true);
+  const [initialPage, setInitialPage] = React.useState<string>("Dashboard");
 
   const handleMigrationComplete = () => {
     setInMigrationFlow(false);
@@ -105,7 +108,24 @@ export default function App() {
 
   const handleBackToClio = () => {
     setInAccountingApp(false);
-    setCurrentPage("Dashboard");
+    setInMigrationFlow(false);
+    setInBookkeeperFlow(false);
+    setActiveUser("jennifer");
+    setInitialPage("Dashboard");
+    setShowPortal(true);
+  };
+
+  const startSarahFlow = React.useCallback(() => {
+    setExceptions([]);
+    setRecentAgentActions([]);
+    setRailSeen(false);
+    setCurrentPage("Accounting");
+    setShowValueProp(false);
+    setShowPortal(false);
+    setInBookkeeperFlow(true);
+  }, []);
+
+  const showSarahInviteToast = React.useCallback(() => {
     setTimeout(() => {
       toast.custom((id) => (
         <div className="flex items-stretch bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden w-[380px]">
@@ -142,21 +162,42 @@ export default function App() {
         </div>
       ), { duration: Infinity, position: "bottom-right" });
     }, 600);
-  };
-
-  const startSarahFlow = React.useCallback(() => {
-    // Clear any stale data from Jennifer's session
-    setExceptions([]);
-    setRecentAgentActions([]);
-    setRailSeen(false);
-    setCurrentPage("Accounting");
-    setShowValueProp(false);
-    setInBookkeeperFlow(true);
-  }, []);
+  }, [startSarahFlow]);
 
 
   if (!unlocked) {
     return <PasswordGate onUnlock={() => setUnlocked(true)} />;
+  }
+
+  if (showPortal) {
+    return (
+      <>
+        <div className="h-screen w-screen overflow-auto">
+          <AccountingVisionPortal
+            onPillar1={() => {
+              setShowPortal(false);
+              setActiveUser("jennifer");
+              setCurrentPage("Accounting");
+              setShowValueProp(true);
+            }}
+            onPillar2={() => {
+              setShowPortal(false);
+              setCurrentPage("Dashboard");
+              showSarahInviteToast();
+            }}
+            onPillar3={() => {
+              setShowPortal(false);
+              setActiveUser("ryan");
+              setCurrentPage("Accounting");
+              setInitialPage("Finances");
+              setInAccountingApp(true);
+              setRailSeen(false);
+            }}
+          />
+        </div>
+        <Toaster />
+      </>
+    );
   }
 
   return (
@@ -200,6 +241,7 @@ export default function App() {
               onRecentActionsChange={setRecentAgentActions}
               onExceptionsChange={setExceptions}
               activeUser={activeUser}
+              initialPage={initialPage}
               onAskTeammate={(msg) => {
                 setInitialChatMessage(msg);
                 setIsTeammateRailOpen(true);

@@ -30,7 +30,7 @@ import {
   Building2,
   CheckCheck,
   Flag,
-  WifiOff,
+
   Landmark,
   Mail,
   Users,
@@ -40,6 +40,8 @@ import { cn } from "../ui/utils";
 import { motion, AnimatePresence } from "motion/react";
 import type { ActionCardData } from "./ActionQueueTypes";
 import { mockActionCards, priorityConfig, cardTypeConfig } from "./ActionQueueTypes";
+import { MemberAvatar, TrustAssignCTA } from "./TrustAssign";
+import { ReconciliationReviewModal } from "./ReconciliationReviewModal";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TYPES
@@ -267,6 +269,71 @@ const ledgerData: LedgerRow[] = [
   { id: "ml2", date: "Mar 10", payee: "Morton's Steakhouse",category: "Meals & Entertainment", matter: "Nelson Litigation",   client: "Nelson & Sons",  amount: -185.00, type: "debit", status: "auto",   method: "Card", agentRationale: "Client lunch — Nelson & Sons. 3 attendees. Matter inferred from calendar.", confidence: 85, bankAccount: "amex-1247", source: "bank_feed", billable: true },
   { id: "ml3", date: "Mar 14", payee: "Nobu Restaurant",   category: "Meals & Entertainment", matter: "Kim v. Pacific Rim",  client: "Kim Industries", amount: -420.00, type: "debit", status: "manual", method: "Card", agentRationale: "Flagged: $420 exceeds $300 per-meal policy limit. Receipt required.", confidence: 82, bankAccount: "amex-1247", source: "bank_feed" },
 
+  // === MORE CLIENT PAYMENTS ===
+  { id: "cp16", date: "Mar 1",  payee: "Foster & Associates",   category: "Client Payment", matter: "Foster IP Dispute",      client: "Foster & Assoc.",   amount:   9800.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Invoice #2026-0055. IP dispute representation.",                              confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp17", date: "Mar 2",  payee: "Lawson Realty Group",   category: "Client Payment", matter: "Lawson Zoning Appeal",   client: "Lawson Realty",     amount:   5200.00, type: "credit", status: "auto",   method: "ACH",   agentRationale: "Matched to Invoice #2026-0057. Zoning appeal services.",                                  confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp18", date: "Mar 3",  payee: "Premier Health Inc",    category: "Client Payment", matter: "Premier Health Reg.",    client: "Premier Health",    amount:  14500.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Invoice #2026-0059. Healthcare regulatory compliance services.",               confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp19", date: "Mar 4",  payee: "Reyes Construction",    category: "Client Payment", matter: "Reyes Contract Dispute", client: "Reyes Constr.",     amount:   3400.00, type: "credit", status: "auto",   method: "Check", agentRationale: "Matched to Invoice #2026-0060. Construction contract dispute.",                           confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp20", date: "Mar 5",  payee: "Brennan Logistics",     category: "Client Payment", matter: "Brennan Employment",     client: "Brennan Logistics", amount:   6750.00, type: "credit", status: "auto",   method: "ACH",   agentRationale: "Matched to Invoice #2026-0062. Employment law advisory.",                                 confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp21", date: "Mar 6",  payee: "Tanaka Medical Grp",    category: "Client Payment", matter: "Tanaka Malpractice",     client: "Tanaka Medical",    amount:  22000.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Invoice #2026-0025. Medical malpractice defense — milestone billing.",         confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp22", date: "Mar 7",  payee: "Nguyen Family Trust",   category: "Client Payment", matter: "Nguyen Estate Plan.",    client: "Nguyen Family",     amount:   4100.00, type: "credit", status: "auto",   method: "Check", agentRationale: "Matched to Invoice #2026-0063. Estate planning consultation.",                           confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp23", date: "Mar 8",  payee: "Solano Capital LLC",    category: "Client Payment", matter: "Solano M&A",            client: "Solano Capital",    amount:  31500.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Invoice #2026-0022. M&A due diligence — transaction close billing.",           confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp24", date: "Mar 10", payee: "Bloom Ventures",        category: "Client Payment", matter: "Bloom Startup Fund.",    client: "Bloom Ventures",    amount:   8200.00, type: "credit", status: "auto",   method: "ACH",   agentRationale: "Matched to Invoice #2026-0064. Startup fundraising legal services.",                     confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp25", date: "Mar 11", payee: "Oaks Education Fndn",   category: "Client Payment", matter: "Oaks Tax Exemption",     client: "Oaks Education",    amount:   2750.00, type: "credit", status: "auto",   method: "Check", agentRationale: "Matched to Invoice #2026-0065. Nonprofit tax exemption filing.",                         confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp26", date: "Mar 12", payee: "Pearson Industries",    category: "Client Payment", matter: "Pearson Antitrust",      client: "Pearson Indust.",   amount:  17800.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Invoice #2026-0026. Antitrust advisory — monthly retainer draw.",             confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp27", date: "Mar 13", payee: "Stone & Webb LLC",      category: "Client Payment", matter: "Stone IP Licensing",     client: "Stone & Webb",      amount:   5600.00, type: "credit", status: "auto",   method: "ACH",   agentRationale: "Matched to Invoice #2026-0066. IP licensing negotiation.",                               confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp28", date: "Mar 14", payee: "Ortega & Partners",     category: "Client Payment", matter: "Ortega Real Estate",     client: "Ortega Partners",   amount:  10400.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Invoice #2026-0030. Commercial real estate transaction.",                     confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp29", date: "Mar 15", payee: "Caldwell Group",        category: "Client Payment", matter: "Caldwell Securities",    client: "Caldwell Group",    amount:  12600.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Invoice #2026-0027. Securities compliance advisory.",                         confidence: 100, bankAccount: "chase-4892", source: "manage" },
+  { id: "cp30", date: "Mar 16", payee: "Summit Healthcare",     category: "Client Payment", matter: "Summit HIPAA Audit",     client: "Summit Health",     amount:   7300.00, type: "credit", status: "auto",   method: "ACH",   agentRationale: "Matched to Invoice #2026-0067. HIPAA compliance audit support.",                         confidence: 100, bankAccount: "chase-4892", source: "manage" },
+
+  // === MORE TRUST / RETAINER DEPOSITS ===
+  { id: "tr10", date: "Mar 1",  payee: "Tanaka Medical Grp",    category: "Retainer Deposit", matter: "Tanaka Malpractice",     client: "Tanaka Medical",    amount: 10000.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Retainer Request #210. IOLTA trust sub-ledger.",  confidence: 100, bankAccount: "boa-7721", source: "manage" },
+  { id: "tr11", date: "Mar 3",  payee: "Solano Capital LLC",    category: "Retainer Deposit", matter: "Solano M&A",            client: "Solano Capital",    amount: 15000.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Retainer Request #211. M&A deal retainer deposited.", confidence: 100, bankAccount: "boa-7721", source: "manage" },
+  { id: "tr12", date: "Mar 5",  payee: "Foster & Associates",   category: "Retainer Deposit", matter: "Foster IP Dispute",      client: "Foster & Assoc.",   amount:  4500.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Retainer Request #212. IOLTA trust sub-ledger.",  confidence: 100, bankAccount: "boa-7721", source: "manage" },
+  { id: "tr13", date: "Mar 7",  payee: "Pearson Industries",    category: "Retainer Deposit", matter: "Pearson Antitrust",      client: "Pearson Indust.",   amount:  8000.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Retainer Request #213. IOLTA trust sub-ledger.",  confidence: 100, bankAccount: "boa-7721", source: "manage" },
+  { id: "tr14", date: "Mar 9",  payee: "Caldwell Group",        category: "Retainer Deposit", matter: "Caldwell Securities",    client: "Caldwell Group",    amount:  6000.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Retainer Request #214. Securities retainer deposited.", confidence: 100, bankAccount: "boa-7721", source: "manage" },
+  { id: "tr15", date: "Mar 12", payee: "Bloom Ventures",        category: "Retainer Deposit", matter: "Bloom Startup Fund.",    client: "Bloom Ventures",    amount:  3000.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Retainer Request #215. IOLTA trust sub-ledger.",  confidence: 100, bankAccount: "boa-7721", source: "manage" },
+  { id: "tr16", date: "Mar 14", payee: "Ortega & Partners",     category: "Retainer Deposit", matter: "Ortega Real Estate",     client: "Ortega Partners",   amount:  5500.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Retainer Request #216. IOLTA trust sub-ledger.",  confidence: 100, bankAccount: "boa-7721", source: "manage" },
+  { id: "tr17", date: "Mar 16", payee: "Nguyen Family Trust",   category: "Trust Deposit",    matter: "Nguyen Estate Plan.",    client: "Nguyen Family",     amount:  2500.00, type: "credit", status: "auto",   method: "Wire",  agentRationale: "Matched to Trust Deposit #T-2026-052. IOLTA trust sub-ledger.", confidence: 100, bankAccount: "boa-7721", source: "manage" },
+
+  // === MORE OVERHEAD / VENDOR EXPENSES ===
+  { id: "oh13", date: "Mar 1",  payee: "AT&T Business",          category: "Utilities",                matter: "Overhead", client: "—", amount:  -98.00,   type: "debit", status: "auto", method: "ACH",  agentRationale: "Monthly cell plan for 3 business lines. Recurring ACH matched.",                       confidence: 99,  bankAccount: "chase-4892", source: "bank_feed" },
+  { id: "oh14", date: "Mar 2",  payee: "Thomson Reuters",        category: "Research Subscriptions",   matter: "Overhead", client: "—", amount: -225.00,   type: "debit", status: "auto", method: "ACH",  agentRationale: "Monthly Practical Law subscription. Recurring charge matched.",                      confidence: 100, bankAccount: "chase-4892", source: "bank_feed" },
+  { id: "oh15", date: "Mar 4",  payee: "Dropbox Business",       category: "Software & Subscriptions", matter: "Overhead", client: "—", amount:  -75.00,   type: "debit", status: "auto", method: "Card", agentRationale: "Monthly Dropbox Business plan. Recurring charge matched.",                          confidence: 100, bankAccount: "amex-1247",  source: "bank_feed" },
+  { id: "oh16", date: "Mar 5",  payee: "Slack Technologies",     category: "Software & Subscriptions", matter: "Overhead", client: "—", amount: -140.00,   type: "debit", status: "auto", method: "Card", agentRationale: "Monthly Slack Business+ plan — 35 seats. Recurring charge matched.",              confidence: 100, bankAccount: "amex-1247",  source: "bank_feed" },
+  { id: "oh17", date: "Mar 6",  payee: "Cintas Corporation",     category: "Office Supplies",          matter: "Overhead", client: "—", amount: -195.00,   type: "debit", status: "auto", method: "ACH",  agentRationale: "Monthly uniform & cleaning supply service. Recurring ACH matched.",                  confidence: 98,  bankAccount: "chase-4892", source: "bank_feed" },
+  { id: "oh18", date: "Mar 7",  payee: "Xerox Corporation",      category: "Equipment Lease",          matter: "Overhead", client: "—", amount: -360.00,   type: "debit", status: "auto", method: "ACH",  agentRationale: "Monthly Xerox printer lease. Recurring ACH matched.",                              confidence: 100, bankAccount: "chase-4892", source: "bank_feed" },
+  { id: "oh19", date: "Mar 9",  payee: "ADT Security",           category: "Utilities",                matter: "Overhead", client: "—", amount: -115.00,   type: "debit", status: "auto", method: "ACH",  agentRationale: "Monthly office security monitoring. Recurring ACH matched.",                       confidence: 100, bankAccount: "chase-4892", source: "bank_feed" },
+  { id: "oh20", date: "Mar 10", payee: "Intuit — QuickBooks",    category: "Software & Subscriptions", matter: "Overhead", client: "—", amount:  -85.00,   type: "debit", status: "auto", method: "Card", agentRationale: "Monthly QuickBooks Online Plus. Recurring charge matched.",                        confidence: 100, bankAccount: "amex-1247",  source: "bank_feed" },
+  { id: "oh21", date: "Mar 11", payee: "Shred-it",               category: "Records Management",       matter: "Overhead", client: "—", amount:  -95.00,   type: "debit", status: "auto", method: "ACH",  agentRationale: "Monthly document shredding service. Recurring ACH matched.",                       confidence: 99,  bankAccount: "chase-4892", source: "bank_feed" },
+  { id: "oh22", date: "Mar 13", payee: "Verizon Business",       category: "Utilities",                matter: "Overhead", client: "—", amount: -320.00,   type: "debit", status: "auto", method: "ACH",  agentRationale: "Monthly business data plan — 18 devices. Recurring ACH matched.",                  confidence: 98,  bankAccount: "chase-4892", source: "bank_feed" },
+  { id: "oh23", date: "Mar 14", payee: "Nespresso Business",     category: "Office Supplies",          matter: "Overhead", client: "—", amount:  -68.00,   type: "debit", status: "auto", method: "Card", agentRationale: "Monthly coffee supplies for office. Recurring charge matched.",                   confidence: 96,  bankAccount: "amex-1247",  source: "bank_feed" },
+  { id: "oh24", date: "Mar 15", payee: "WeWork — Conference Rm", category: "Rent",                     matter: "Overhead", client: "—", amount: -450.00,   type: "debit", status: "auto", method: "ACH",  agentRationale: "Monthly conference room reservation. Recurring charge matched.",                   confidence: 97,  bankAccount: "chase-4892", source: "bank_feed" },
+  { id: "oh25", date: "Mar 17", payee: "Canva for Teams",        category: "Software & Subscriptions", matter: "Overhead", client: "—", amount:  -55.00,   type: "debit", status: "auto", method: "Card", agentRationale: "Monthly Canva for Teams plan. Recurring charge matched.",                         confidence: 100, bankAccount: "amex-1247",  source: "bank_feed" },
+
+  // === MORE TRAVEL ===
+  { id: "tv5",  date: "Mar 3",  payee: "Lyft",                   category: "Travel & Transport", matter: "Tanaka Malpractice",    client: "Tanaka Medical",   amount:  -38.50, type: "debit", status: "auto", method: "Card", agentRationale: "Courthouse ride. Calendar event: 'Tanaka deposition 3/3'.",          confidence: 89, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+  { id: "tv6",  date: "Mar 5",  payee: "United Airlines",        category: "Travel & Transport", matter: "Pearson Antitrust",     client: "Pearson Indust.",  amount: -412.00, type: "debit", status: "auto", method: "Card", agentRationale: "Flight to D.C. for antitrust hearing. Pre-approved travel #TP-2026-044.", confidence: 92, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+  { id: "tv7",  date: "Mar 6",  payee: "Hyatt Hotels",           category: "Travel & Transport", matter: "Pearson Antitrust",     client: "Pearson Indust.",  amount: -289.00, type: "debit", status: "auto", method: "Card", agentRationale: "Hotel stay for D.C. antitrust hearing. 1 night. Pre-approved.",       confidence: 90, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+  { id: "tv8",  date: "Mar 10", payee: "Amtrak",                 category: "Travel & Transport", matter: "Solano M&A",            client: "Solano Capital",   amount: -195.00, type: "debit", status: "auto", method: "Card", agentRationale: "Train to NYC for M&A closing. Pre-approved travel #TP-2026-048.",     confidence: 91, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+  { id: "tv9",  date: "Mar 12", payee: "Avis Car Rental",        category: "Travel & Transport", matter: "Caldwell Securities",   client: "Caldwell Group",   amount: -142.00, type: "debit", status: "auto", method: "Card", agentRationale: "Car rental for client site visit. Pre-approved.",                     confidence: 88, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+  { id: "tv10", date: "Mar 15", payee: "American Airlines",      category: "Travel & Transport", matter: "Ortega Real Estate",    client: "Ortega Partners",  amount: -388.00, type: "debit", status: "auto", method: "Card", agentRationale: "Flight to Miami for real estate closing. Pre-approved travel #TP-2026-052.", confidence: 93, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+
+  // === MORE MEALS ===
+  { id: "ml4",  date: "Mar 3",  payee: "The Palm Restaurant",    category: "Meals & Entertainment", matter: "Solano M&A",           client: "Solano Capital",   amount: -285.00, type: "debit", status: "auto", method: "Card", agentRationale: "Client dinner — Solano Capital. 3 attendees. Matter inferred from calendar.", confidence: 86, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+  { id: "ml5",  date: "Mar 7",  payee: "Mastro's Steakhouse",    category: "Meals & Entertainment", matter: "Tanaka Malpractice",   client: "Tanaka Medical",   amount: -220.00, type: "debit", status: "auto", method: "Card", agentRationale: "Client lunch — Tanaka Medical. 4 attendees. Matter inferred from calendar.", confidence: 84, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+  { id: "ml6",  date: "Mar 11", payee: "STK Steakhouse",         category: "Meals & Entertainment", matter: "Pearson Antitrust",   client: "Pearson Indust.",  amount: -175.00, type: "debit", status: "auto", method: "Card", agentRationale: "Working dinner — Pearson antitrust team. 2 attendees. Receipts attached.", confidence: 88, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+  { id: "ml7",  date: "Mar 15", payee: "Truluck's Seafood",      category: "Meals & Entertainment", matter: "Caldwell Securities",  client: "Caldwell Group",   amount: -190.00, type: "debit", status: "auto", method: "Card", agentRationale: "Client dinner — Caldwell Group. 3 attendees. Matter inferred from calendar.", confidence: 85, bankAccount: "amex-1247", source: "bank_feed", billable: true },
+  { id: "ml8",  date: "Mar 16", payee: "True Food Kitchen",      category: "Meals & Entertainment", matter: "Overhead",            client: "—",                amount:  -95.00, type: "debit", status: "auto", method: "Card", agentRationale: "Team working lunch. 5 attendees. Below $100 per-person threshold.",          confidence: 91, bankAccount: "amex-1247", source: "bank_feed" },
+
+  // === MORE FILING FEES (auto-matched) ===
+  { id: "ff7",  date: "Mar 3",  payee: "Court Clerk — Superior", category: "Filing Fees", matter: "Tanaka Malpractice",    client: "Tanaka Medical",   amount: -435.00, type: "debit", status: "auto",   method: "Card", agentRationale: "Superior court filing fee. Matched to Tanaka matter from calendar event.",    confidence: 95, bankAccount: "amex-1247", source: "manage", billable: true },
+  { id: "ff8",  date: "Mar 6",  payee: "USPTO — Maintenance",    category: "Filing Fees", matter: "Foster IP Dispute",     client: "Foster & Assoc.",  amount: -1600.00, type: "debit", status: "auto",   method: "Card", agentRationale: "USPTO patent maintenance fee. Matched to Foster IP matter.",                  confidence: 97, bankAccount: "amex-1247", source: "manage", billable: true },
+  { id: "ff9",  date: "Mar 8",  payee: "Court Clerk — Family",   category: "Filing Fees", matter: "Cooper Divorce Proc.",  client: "Cooper Family",    amount: -185.00, type: "debit", status: "auto",   method: "Card", agentRationale: "Family court filing fee. Matched to Cooper matter from case schedule.",       confidence: 92, bankAccount: "amex-1247", source: "manage", billable: true },
+  { id: "ff10", date: "Mar 12", payee: "SOS — Corp Filing",      category: "Filing Fees", matter: "Bloom Startup Fund.",   client: "Bloom Ventures",   amount: -100.00, type: "debit", status: "auto",   method: "Card", agentRationale: "Secretary of State corporate formation filing. Matched to Bloom matter.",    confidence: 96, bankAccount: "amex-1247", source: "manage", billable: true },
+  { id: "ff11", date: "Mar 14", payee: "TTAB — Trademark",       category: "Filing Fees", matter: "Williams IP Filing",    client: "D. Williams",      amount: -350.00, type: "debit", status: "auto",   method: "Card", agentRationale: "Trademark Trial & Appeal Board filing. Matched to Williams IP matter.",      confidence: 94, bankAccount: "amex-1247", source: "manage", billable: true },
+  { id: "ff12", date: "Mar 16", payee: "USCIS — N-400",          category: "Filing Fees", matter: "Santos Immigration",    client: "Maria Santos",     amount: -760.00, type: "debit", status: "auto",   method: "Card", agentRationale: "USCIS naturalization application fee. Matched to Santos Immigration matter.", confidence: 96, bankAccount: "amex-1247", source: "manage", billable: true },
+
   // === TRUST DISBURSEMENTS (handled via flagged pending rows below) ===
 ];
 
@@ -295,9 +362,67 @@ ledgerData.push(
   // Medium — receipt & first-time vendor
   { id: "pf-united",        date: "Mar 17", payee: "United Airlines",          category: "Travel & Transport", matter: "Williams IP Filing",    client: "D. Williams",     amount:   -145.20, type: "debit",  status: "pending", method: "Card",  agentRationale: "Sarah Kim Amex ··3847, over $100 receipt threshold. Receipt not yet attached.", confidence: 78, bankAccount: "amex-1247",  source: "bank_feed", flag: _actionCardById["m4"] },
   { id: "pf-pacific-court", date: "Mar 16", payee: "Pacific Court Reporters",  category: "Uncategorized",      matter: "Overhead",              client: "—",               amount:   -350.00, type: "debit",  status: "pending", method: "ACH",   agentRationale: "First-ever payment to this vendor. No category assigned. Looks like court reporting.", confidence: 55, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["m7"] },
+  // Feb reconciliation blocker
+  { id: "feb-blocker", date: "Feb 14", payee: "Unknown vendor", category: "Uncategorized", matter: "Overhead", client: "—", amount: -2858.19, type: "debit", status: "pending", method: "Card", agentRationale: "We downloaded your Chase ··4892 February statement and cross-referenced all 312 transactions. 311 matched. This $2,858.19 charge has no corresponding entry in your books. We recommend adding it as a miscellaneous expense to complete February reconciliation.", confidence: 0, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["recon-imbalance-1"] },
 );
 
-const INITIAL_FLAGGED_COUNT = ledgerData.filter(r => r.flag).length;
+// Generate 311 auto-matched Feb transactions to match the reconciliation bar numbers
+const FEB_VENDORS: [string, string, string, string, number, "credit" | "debit", string, string][] = [
+  ["Wilson & Associates",     "Client Payment",       "Wilson v. Metro",       "Tom Wilson",       4200.00, "credit", "ACH",  "manage"],
+  ["Westlaw",                 "Software & Subscriptions","Overhead",            "—",                 -389.00, "debit",  "Card", "bank_feed"],
+  ["Robert Chen",             "Client Payment",       "Chen v. StateFarm",     "Robert Chen",      3500.00, "credit", "ACH",  "manage"],
+  ["Office Depot",            "Office Supplies",      "Overhead",              "—",                  -87.43, "debit",  "Card", "bank_feed"],
+  ["Jane Doe",                "Retainer Deposit",     "Doe v. Metroplex",      "Jane Doe",         5000.00, "credit", "Wire", "manage"],
+  ["ADP Payroll",             "Payroll",              "Overhead",              "—",               -12450.00, "debit",  "ACH",  "bank_feed"],
+  ["Pacific Legal Consulting","Expert Witnesses",     "Doe v. Metroplex",      "Jane Doe",        -1500.00, "debit",  "ACH",  "bank_feed"],
+  ["Clio Manage",             "Software & Subscriptions","Overhead",            "—",                -320.00, "debit",  "Card", "bank_feed"],
+  ["Santos Immigration",      "Client Payment",       "Santos Immigration",    "M. Santos",        2800.00, "credit", "Wire", "manage"],
+  ["Court Clerk — Circuit",   "Filing Fees",          "Wilson v. Metro",       "Tom Wilson",        -195.00, "debit",  "Card", "bank_feed"],
+  ["Green Family",            "Trust Deposit",        "Green Estate Admin.",    "Green Family",     3000.00, "credit", "Wire", "manage"],
+  ["Staples",                 "Office Supplies",      "Overhead",              "—",                 -124.50, "debit",  "Card", "bank_feed"],
+  ["Martinez Family",         "Client Payment",       "Martinez Estate Admin.","Martinez Family",   6200.00, "credit", "ACH",  "manage"],
+  ["ABC Depositions Inc.",    "Hard Cost",            "Chen v. StateFarm",     "Robert Chen",      -1250.00, "debit",  "ACH",  "bank_feed"],
+  ["United Airlines",         "Travel & Transport",   "Williams IP Filing",    "D. Williams",       -278.90, "debit",  "Card", "bank_feed"],
+  ["AT&T",                    "Telecommunications",   "Overhead",              "—",                 -189.99, "debit",  "ACH",  "bank_feed"],
+  ["D. Williams",             "Client Payment",       "Williams IP Filing",    "D. Williams",      1800.00, "credit", "ACH",  "manage"],
+  ["Morrison Contractors",    "Maintenance",          "Overhead",              "—",                -2400.00, "debit",  "ACH",  "bank_feed"],
+  ["FedEx",                   "Postage & Shipping",   "Overhead",              "—",                  -42.15, "debit",  "Card", "bank_feed"],
+  ["Thomson Legal Services",  "Legal Consulting",     "Overhead",              "—",                -2100.00, "debit",  "ACH",  "bank_feed"],
+  ["John Smith",              "Client Payment",       "Smith Estate",          "John Smith",       4500.00, "credit", "ACH",  "manage"],
+  ["Verizon",                 "Telecommunications",   "Overhead",              "—",                 -156.78, "debit",  "ACH",  "bank_feed"],
+  ["King County Court",       "Filing Fees",          "Doe v. Metroplex",      "Jane Doe",          -350.00, "debit",  "Card", "bank_feed"],
+  ["Amazon Business",         "Office Supplies",      "Overhead",              "—",                 -234.67, "debit",  "Card", "bank_feed"],
+  ["Laura Bennett",           "Partner Draw",         "Overhead",              "—",               -8000.00, "debit",  "ACH",  "bank_feed"],
+  ["Ryan Chen",               "Partner Draw",         "Overhead",              "—",               -8000.00, "debit",  "ACH",  "bank_feed"],
+  ["Henderson & Associates",  "Consulting Fees",      "Overhead",              "—",                -2400.00, "debit",  "ACH",  "bank_feed"],
+  ["Comcast Business",        "Telecommunications",   "Overhead",              "—",                 -299.00, "debit",  "ACH",  "bank_feed"],
+  ["Priya Sharma",            "Client Payment",       "Sharma v. DataCorp",    "Priya Sharma",     7500.00, "credit", "Wire", "manage"],
+  ["Metro Court Reporters",   "Court Reporting",      "Wilson v. Metro",       "Tom Wilson",        -680.00, "debit",  "ACH",  "bank_feed"],
+];
+const FEB_BANKS: string[] = ["chase-4892", "chase-4892", "chase-4892", "amex-1247", "boa-7721"];
+for (let i = 0; i < 311; i++) {
+  const v = FEB_VENDORS[i % FEB_VENDORS.length];
+  const day = (i % 28) + 1;
+  ledgerData.push({
+    id: `feb-${i}`,
+    date: `Feb ${day}`,
+    payee: v[0],
+    category: v[1],
+    matter: v[2],
+    client: v[3],
+    amount: v[4] * (1 + (i % 7) * 0.03),
+    type: v[5],
+    status: "auto" as const,
+    method: v[6],
+    agentRationale: "Auto-matched from February bank statement. Transaction verified against books.",
+    confidence: 95,
+    bankAccount: FEB_BANKS[i % FEB_BANKS.length],
+    source: v[7] as LedgerRow["source"],
+  });
+}
+
+export const INITIAL_FLAGGED_COUNT = ledgerData.filter(r => r.flag && r.date.startsWith("Mar")).length;
+export const AI_PROCESSED = ledgerData.filter(r => !r.flag && r.date.startsWith("Mar")).length;
 
 const severityConfig: Record<Severity, { bg: string; text: string; icon: React.ComponentType<{ className?: string }>; label: string; dot: string }> = {
   critical: { bg: "bg-red-50", text: "text-red-600", icon: AlertTriangle, label: "Critical", dot: "#EF4444" },
@@ -308,8 +433,6 @@ const severityConfig: Record<Severity, { bg: string; text: string; icon: React.C
 /* ═══════════════════════════════════════════════════════════════════════════
    HEADER BAR — Narrative Tab Navigation + Live Sync
    ═══════════════════════════════════════════════════════════════════════════ */
-
-const AI_PROCESSED = 1847;
 
 function MiniDonut({ pct, color, size = 24, strokeWidth = 3 }: { pct: number; color: string; size?: number; strokeWidth?: number }) {
   const r = (size - strokeWidth) / 2;
@@ -616,41 +739,57 @@ function CategoryDropdown({ value, onChange }: { value: string; onChange: (v: st
   );
 }
 
-function EvidenceTooltip({ rationale, confidence }: { rationale: string; confidence: number }) {
-  const [show, setShow] = React.useState(false);
+
+function EvidenceTooltip({ rationale, confidence, children }: { rationale: string; confidence: number; children: React.ReactNode }) {
+  const [pos, setPos] = React.useState<{ top: number; left: number } | null>(null);
+  const triggerRef = React.useRef<HTMLDivElement>(null);
+
+  const show = () => {
+    if (!triggerRef.current) return;
+    const r = triggerRef.current.getBoundingClientRect();
+    setPos({ top: r.top - 8, left: r.left });
+  };
+  const hide = () => setPos(null);
+
+  const tooltip = pos ? ReactDOM.createPortal(
+    <div
+      style={{
+        position: "fixed",
+        top: pos.top,
+        left: pos.left,
+        transform: "translateY(-100%)",
+        width: 280,
+        zIndex: 9999,
+        backgroundColor: "#0F172A",
+        borderRadius: 12,
+        padding: "10px 12px",
+        boxShadow: "0 20px 25px -5px rgba(0,0,0,0.25), 0 8px 10px -6px rgba(0,0,0,0.15)",
+        pointerEvents: "none",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <Sparkles style={{ width: 11, height: 11, color: "#60A5FA", flexShrink: 0 }} />
+        <span style={{ fontSize: 9, fontWeight: 600, color: "#60A5FA" }}>AI rationale</span>
+        {confidence > 0 && (
+          <span style={{ marginLeft: "auto", fontSize: 10, color: "#64748B", fontVariantNumeric: "tabular-nums" }}>
+            {confidence}% confidence
+          </span>
+        )}
+      </div>
+      <p style={{ fontSize: 11, color: "#CBD5E1", lineHeight: 1.6, margin: 0 }}>{rationale}</p>
+    </div>,
+    document.body
+  ) : null;
 
   return (
-    <div className="relative inline-flex items-center justify-center">
-      <button
-        onMouseEnter={() => setShow(true)}
-        onMouseLeave={() => setShow(false)}
-        className="transition-colors hover:text-blue-500"
-        style={{ color: "#CBD5E1" }}
-      >
-        <Shield className="w-3.5 h-3.5" />
-      </button>
-      <AnimatePresence>
-        {show && (
-          <motion.div
-            initial={{ opacity: 0, y: 4, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 4, scale: 0.97 }}
-            transition={{ duration: 0.15 }}
-            className="absolute bottom-full right-0 mb-2 w-[280px] p-3 rounded-xl z-50"
-            style={{ backgroundColor: "#0F172A", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)" }}
-          >
-            <div className="flex items-center gap-2 mb-1.5">
-              <Sparkles className="w-3 h-3 text-blue-400" />
-              <span className="text-[9px] text-blue-400" style={{ fontWeight: 600 }}>Why this was matched</span>
-              {confidence > 0 && (
-                <span className="ml-auto text-[10px] text-gray-500" style={{ fontFeatureSettings: "'tnum'" }}>{confidence}%</span>
-              )}
-            </div>
-            <p className="text-[11px] text-gray-300 leading-relaxed">{rationale}</p>
-            <div className="absolute bottom-0 right-4 translate-y-1/2 rotate-45 w-2 h-2" style={{ backgroundColor: "#0F172A" }} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+    <div
+      ref={triggerRef}
+      className="inline-flex items-center"
+      onMouseEnter={show}
+      onMouseLeave={hide}
+    >
+      {children}
+      {tooltip}
     </div>
   );
 }
@@ -664,7 +803,7 @@ const RECON_MONTH_DATA = [
   { key: "nov", label: "November 2025",  reconciled: true  },
   { key: "dec", label: "December 2025",  reconciled: true  },
   { key: "jan", label: "January 2026",   reconciled: true  },
-  { key: "feb", label: "February 2026",  reconciled: true  },
+  { key: "feb", label: "February 2026",  reconciled: false, trustReconciled: true, operatingBlockers: 1 },
   { key: "mar", label: "March 2026",     reconciled: false },
 ];
 
@@ -676,6 +815,7 @@ function ReconciliationReadinessBar({
   onCloseMonth,
   selectedMonth,
   onScrollToFlagged,
+  febReconciled = false,
 }: {
   autoProcessed: number;
   initialFlaggedCount: number;
@@ -685,15 +825,28 @@ function ReconciliationReadinessBar({
   onCloseMonth: () => void;
   selectedMonth: string;
   onScrollToFlagged?: () => void;
+  febReconciled?: boolean;
 }) {
   const monthMeta = RECON_MONTH_DATA.find(m => m.key === selectedMonth) ?? RECON_MONTH_DATA[RECON_MONTH_DATA.length - 1];
-  const isPastReconciled = monthMeta.reconciled;
+  const isPastReconciled = monthMeta.reconciled || (selectedMonth === "feb" && febReconciled);
+  const isFebPartial = selectedMonth === "feb" && !febReconciled && "trustReconciled" in monthMeta;
 
-  const readyCount = isPastReconciled ? autoProcessed : autoProcessed - currentFlaggedCount;
-  const pct = isPastReconciled ? 100 : Math.round((readyCount / autoProcessed) * 100);
-  const displayFlagged = isPastReconciled ? 0 : currentFlaggedCount;
-  const displayTrustAtRisk = isPastReconciled ? 0 : trustAtRisk;
+  const readyCount = isPastReconciled ? autoProcessed : isFebPartial ? 311 : autoProcessed - currentFlaggedCount;
+  const pct = isPastReconciled ? 100 : isFebPartial ? 99 : Math.round((readyCount / autoProcessed) * 100);
+  const displayFlagged = isPastReconciled ? 0 : isFebPartial ? 1 : currentFlaggedCount;
+  const displayTrustAtRisk = isPastReconciled ? 0 : isFebPartial ? 0 : trustAtRisk;
   const isReady = displayFlagged === 0;
+
+  const prevPctRef = React.useRef(pct);
+  const [celebrating, setCelebrating] = React.useState(false);
+  React.useEffect(() => {
+    if (pct === 100 && prevPctRef.current < 100) {
+      setCelebrating(true);
+      const t = setTimeout(() => setCelebrating(false), 2500);
+      return () => clearTimeout(t);
+    }
+    prevPctRef.current = pct;
+  }, [pct]);
 
   return (
     <div className="px-6 py-3 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: "#F9FAFB" }}>
@@ -701,94 +854,162 @@ function ReconciliationReadinessBar({
         className="rounded-xl"
         style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", backgroundColor: "#FFFFFF", overflow: "hidden" }}
       >
-        <div className="px-5 py-3 flex items-center justify-between gap-6">
-          {/* Left: heading + stat pills */}
-          <div className="flex items-center gap-4 flex-1">
-            <div className="flex-shrink-0">
+        <div className="px-5 py-4">
+          {/* Top row: heading | CTA + large % */}
+          <div className="flex items-start justify-between mb-3">
+            <div>
               <p className="text-[11px] uppercase tracking-widest" style={{ color: "#94A3B8", fontWeight: 600 }}>{monthMeta.label}</p>
-              <p className="text-[12px] mt-0.5" style={{ color: "#64748B" }}>Reconciliation Status</p>
+              <p className="text-[13px] font-bold mt-0.5" style={{ color: "#0F172A" }}>Reconciliation Status</p>
             </div>
-
-            <div className="flex items-center gap-2.5">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#F0FDF4", border: "1px solid #BBF7D0" }}>
-                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#16A34A" }} />
-                <div>
-                  <p className="text-[12px]" style={{ fontWeight: 600, color: "#15803D" }}>{autoProcessed.toLocaleString()}</p>
-                  <p className="text-[10px]" style={{ color: "#4ADE80" }}>Auto-processed</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{
-                backgroundColor: displayFlagged > 0 ? "#FFFBEB" : "#F0FDF4",
-                border: `1px solid ${displayFlagged > 0 ? "#FDE68A" : "#BBF7D0"}`,
-              }}>
-                {displayFlagged > 0
-                  ? <Flag className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#D97706" }} />
-                  : <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#16A34A" }} />}
-                <div>
-                  <p className="text-[12px]" style={{ fontWeight: 600, color: displayFlagged > 0 ? "#B45309" : "#15803D" }}>
-                    {displayFlagged > 0 ? displayFlagged : "All clear"}
-                  </p>
-                  <p className="text-[10px]" style={{ color: displayFlagged > 0 ? "#F59E0B" : "#4ADE80" }}>
-                    {displayFlagged > 0 ? "Need attention" : "Items resolved"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{
-                backgroundColor: displayTrustAtRisk > 0 ? "#FEF2F2" : "#F0FDFA",
-                border: `1px solid ${displayTrustAtRisk > 0 ? "#FECACA" : "#99F6E4"}`,
-              }}>
-                <Shield className="w-3.5 h-3.5 flex-shrink-0" style={{ color: displayTrustAtRisk > 0 ? "#DC2626" : "#0D9488" }} />
-                <div>
-                  <p className="text-[12px]" style={{ fontWeight: 600, color: displayTrustAtRisk > 0 ? "#B91C1C" : "#0F766E" }}>
-                    {displayTrustAtRisk > 0 ? `${displayTrustAtRisk} at risk` : `${ioltaMatters} compliant`}
-                  </p>
-                  <p className="text-[10px]" style={{ color: displayTrustAtRisk > 0 ? "#EF4444" : "#14B8A6" }}>IOLTA matters</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: percentage + CTA */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <span className="text-[28px] leading-none tabular-nums" style={{ fontWeight: 700, color: isReady ? "#16A34A" : "#0F172A" }}>
-              {pct}%
-            </span>
-            {isPastReconciled ? (
-              <button
-                onClick={onCloseMonth}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90 shadow-sm"
-                style={{ background: "linear-gradient(135deg, #16A34A, #15803D)", color: "#FFFFFF", fontWeight: 600 }}
-              >
-                <FileText className="w-3.5 h-3.5" />
-                View Report
-              </button>
-            ) : isReady ? (
-              <button
-                onClick={onCloseMonth}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90 shadow-sm"
-                style={{ background: "linear-gradient(135deg, #16A34A, #15803D)", color: "#FFFFFF", fontWeight: 600 }}
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Close {monthMeta.label.split(" ")[0]}
-              </button>
-            ) : (
-              <div className="text-right">
-                <div className="flex items-center justify-end gap-1.5">
-                  <CircleAlert className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#D97706" }} />
-                  <span className="text-[12px]" style={{ fontWeight: 600, color: "#D97706" }}>Not close-ready</span>
-                </div>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              {isPastReconciled ? (
+                <button
+                  onClick={onCloseMonth}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90 shadow-sm"
+                  style={{ background: "linear-gradient(135deg, #16A34A, #15803D)", color: "#FFFFFF", fontWeight: 600 }}
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  View reconciliation
+                </button>
+              ) : isReady ? (
+                <button
+                  onClick={onCloseMonth}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90 shadow-sm"
+                  style={{ background: "linear-gradient(135deg, #16A34A, #15803D)", color: "#FFFFFF", fontWeight: 600 }}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Close {monthMeta.label.split(" ")[0]}
+                </button>
+              ) : isFebPartial ? (
+                <>
+                  <button
+                    onClick={onCloseMonth}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90"
+                    style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", color: "#475569", fontWeight: 500 }}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    View reconciliation
+                  </button>
+                  <button
+                    onClick={onScrollToFlagged}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90"
+                    style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", color: "#B45309", fontWeight: 600 }}
+                  >
+                    <Flag className="w-3.5 h-3.5" />
+                    Review blocker
+                  </button>
+                </>
+              ) : (
                 <button
                   onClick={onScrollToFlagged}
-                  className="text-[11px] mt-0.5 hover:underline"
-                  style={{ color: "#94A3B8", background: "none", border: "none", padding: 0, cursor: onScrollToFlagged ? "pointer" : "default" }}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90"
+                  style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", color: "#B45309", fontWeight: 600 }}
                 >
-                  {displayFlagged} items need attention
+                  <Flag className="w-3.5 h-3.5" />
+                  Review flagged
                 </button>
+              )}
+              <div className="text-right relative">
+                <AnimatePresence>
+                  {celebrating && (
+                    <>
+                      {/* Rainbow glow rings expanding outward */}
+                      {["#EC4899", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6"].map((color, i) => (
+                        <motion.div
+                          key={`ring-${i}`}
+                          className="absolute rounded-full"
+                          style={{ top: "20%", left: "50%", translateX: "-50%", translateY: "-50%", pointerEvents: "none", border: `2px solid ${color}` }}
+                          initial={{ width: 0, height: 0, opacity: 0.7 }}
+                          animate={{ width: 80 + i * 16, height: 80 + i * 16, opacity: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ duration: 1.0, delay: i * 0.1, ease: "easeOut" }}
+                        />
+                      ))}
+                      {/* Sparkle particles */}
+                      {[...Array(8)].map((_, i) => {
+                        const angle = (i / 8) * Math.PI * 2;
+                        const colors = ["#EC4899", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6", "#EF4444", "#06B6D4", "#F97316"];
+                        return (
+                          <motion.div
+                            key={`spark-${i}`}
+                            className="absolute"
+                            style={{ top: "20%", left: "50%", pointerEvents: "none" }}
+                            initial={{ opacity: 1, x: 0, y: 0, scale: 0 }}
+                            animate={{ opacity: 0, x: Math.cos(angle) * 50, y: Math.sin(angle) * 50, scale: [0, 1.2, 0] }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.9, delay: 0.15 + i * 0.04, ease: "easeOut" }}
+                          >
+                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: colors[i] }} />
+                          </motion.div>
+                        );
+                      })}
+                    </>
+                  )}
+                </AnimatePresence>
+                <motion.p
+                  className="text-[28px] leading-none tabular-nums relative"
+                  style={{ fontWeight: 700, color: isReady ? "#16A34A" : "#0F172A", zIndex: 1 }}
+                  animate={celebrating ? {
+                    scale: [1, 1.5, 1.15, 1.3, 1.15],
+                    textShadow: [
+                      "0 0 0 transparent",
+                      "0 0 12px rgba(16,185,129,0.6), 0 0 24px rgba(236,72,153,0.3)",
+                      "0 0 8px rgba(59,130,246,0.4), 0 0 16px rgba(245,158,11,0.3)",
+                      "0 0 12px rgba(139,92,246,0.5), 0 0 20px rgba(16,185,129,0.3)",
+                      "0 0 0 transparent",
+                    ],
+                  } : {}}
+                  transition={{ duration: 1.4, ease: "easeOut" }}
+                >
+                  {pct}%
+                </motion.p>
+                <p className="text-[10px] mt-0.5" style={{ color: "#94A3B8" }}>readiness</p>
               </div>
-            )}
+            </div>
           </div>
+
+          {/* Stat row */}
+          <div className="flex items-center gap-5 mb-3">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#10B981" }} />
+              <span className="text-[11px]" style={{ color: "#475569" }}>
+                <span style={{ fontWeight: 600, color: "#0F172A" }}>{isFebPartial ? "311" : autoProcessed.toLocaleString()}</span> {isFebPartial ? "auto-matched" : "auto-processed"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: displayFlagged > 0 ? "#F59E0B" : "#10B981" }} />
+              <span className="text-[11px]" style={{ color: "#475569" }}>
+                <span style={{ fontWeight: 600, color: "#0F172A" }}>{displayFlagged > 0 ? displayFlagged : "0"}</span>{" "}
+                {displayFlagged > 0 ? "needs review" : "all reviewed"}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: isFebPartial ? "#10B981" : displayTrustAtRisk > 0 ? "#EF4444" : "#14B8A6" }} />
+              <span className="text-[11px]" style={{ color: "#475569" }}>
+                {isFebPartial ? (
+                  <span style={{ fontWeight: 600, color: "#15803D" }}>Trust: reconciled</span>
+                ) : (
+                  <><span style={{ fontWeight: 600, color: "#0F172A" }}>
+                    {displayTrustAtRisk > 0 ? `${displayTrustAtRisk} at risk` : `${ioltaMatters} compliant`}
+                  </span>{" "}IOLTA</>
+                )}
+              </span>
+            </div>
+          </div>
+
+          {/* Not close-ready */}
+          {!isPastReconciled && (isFebPartial || pct < 86) && (
+            <button
+              onClick={onScrollToFlagged}
+              className="flex items-center gap-1 hover:underline"
+              style={{ background: "none", border: "none", padding: 0, cursor: onScrollToFlagged ? "pointer" : "default" }}
+            >
+              <CircleAlert className="w-3 h-3 flex-shrink-0" style={{ color: "#D97706" }} />
+              <span className="text-[11px]" style={{ fontWeight: 600, color: "#D97706" }}>
+                {isFebPartial ? "Operating: 1 unmatched transaction blocking close" : "Not close-ready"}
+              </span>
+            </button>
+          )}
         </div>
 
         {/* Full-width progress bar pinned to card bottom */}
@@ -822,67 +1043,139 @@ function SystemAlertBanner({
   onAction: () => void;
   onDismiss: () => void;
 }) {
-  const isBank = type === "bank_disconnect";
-  const accent  = isBank ? "#DC2626" : "#D97706";
-  const iconBg  = isBank ? "#FEE2E2" : "#FEF3C7";
-  const textPrimary   = isBank ? "#991B1B" : "#92400E";
-  const textSecondary = isBank ? "#B91C1C" : "#B45309";
-  const ctaBg   = isBank ? "#FEF2F2" : "#FFFBEB";
-  const ctaBorder = isBank ? "#FECACA" : "#FDE68A";
-
   return (
     <div
-      className="flex items-start gap-4 p-4 rounded-xl"
-      style={{
-        backgroundColor: "#FFFFFF",
-        border: `1px solid ${isBank ? "#FECACA" : "#FDE68A"}`,
-        borderLeft: `4px solid ${accent}`,
-        boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
-      }}
+      className="flex items-start gap-3 p-4 rounded-xl bg-white"
+      style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
     >
-      {/* Icon */}
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-        style={{ backgroundColor: iconBg }}
-      >
-        {isBank
-          ? <WifiOff className="w-4 h-4" style={{ color: accent }} />
-          : <AlertTriangle className="w-4 h-4" style={{ color: accent }} />
-        }
+      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+        <AlertTriangle className="w-4 h-4" style={{ color: "#64748B" }} />
       </div>
-
-      {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="text-[13px]" style={{ fontWeight: 700, color: textPrimary }}>{title}</p>
-        <p className="text-[12px] mt-0.5" style={{ color: textSecondary }}>{subtitle}</p>
+        <p className="text-[13px] font-semibold text-gray-900">{title}</p>
+        <p className="text-[12px] mt-0.5 text-gray-500">{subtitle}</p>
       </div>
-
-      {/* Actions */}
       <div className="flex items-center gap-2 flex-shrink-0">
         <button
           onClick={onAction}
-          className="px-3.5 py-1.5 rounded-lg text-[12px] transition-all hover:opacity-90"
-          style={{
-            fontWeight: 600,
-            backgroundColor: accent,
-            color: "#FFFFFF",
-          }}
+          className="px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:opacity-90 bg-gray-900 text-white"
         >
           {cta}
         </button>
         <button
           onClick={onDismiss}
-          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-          style={{ backgroundColor: ctaBg, border: `1px solid ${ctaBorder}` }}
+          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-gray-100"
+          style={{ border: "1px solid #E2E8F0" }}
         >
-          <X className="w-3.5 h-3.5" style={{ color: accent }} />
+          <X className="w-3.5 h-3.5 text-gray-400" />
         </button>
       </div>
     </div>
   );
 }
 
-function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, onCategoryEdit, highlightRowId, initialFlaggedCount, onFlagResolved, flaggedCount = 0, onBannerAction, onCloseMonth, initialFilter = "all" }: {
+type AlertItem = {
+  type: "bank_disconnect" | "trust_balance";
+  title: string;
+  subtitle: string;
+  cta: string;
+  onAction: () => void;
+  onDismiss: () => void;
+};
+
+
+function CombinedAlertBanner({ alerts }: { alerts: AlertItem[] }) {
+  if (alerts.length === 0) return null;
+
+  // Single trust alert — render inline (not SystemAlertBanner) to get assign CTA
+  if (alerts.length === 1 && alerts[0].type === "trust_balance") {
+    const a = alerts[0];
+    return (
+      <div
+        className="flex items-start gap-3 p-4 rounded-xl bg-white"
+        style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+      >
+        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+          <AlertTriangle className="w-4 h-4" style={{ color: "#64748B" }} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-semibold text-gray-900">{a.title}</p>
+          <p className="text-[12px] mt-0.5 text-gray-500">{a.subtitle}</p>
+        </div>
+        <TrustAssignCTA onDismiss={a.onDismiss} />
+      </div>
+    );
+  }
+
+  // Single bank alert — delegate to existing banner
+  if (alerts.length === 1) {
+    const a = alerts[0];
+    return <SystemAlertBanner type={a.type} title={a.title} subtitle={a.subtitle} cta={a.cta} onAction={a.onAction} onDismiss={a.onDismiss} />;
+  }
+
+  // Multiple alerts — combined card
+  return (
+    <div
+      className="rounded-xl overflow-hidden bg-white"
+      style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid #F1F5F9" }}>
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="w-3.5 h-3.5 text-gray-500" />
+          <span className="text-[13px] font-semibold text-gray-900">
+            {alerts.length} issues need attention
+          </span>
+        </div>
+        <button
+          onClick={() => alerts.forEach(a => a.onDismiss())}
+          className="text-[11px] px-2 py-0.5 rounded transition-colors hover:bg-gray-100 text-gray-500 font-medium"
+        >
+          Dismiss all
+        </button>
+      </div>
+
+      {/* Alert rows */}
+      <div className="divide-y divide-gray-100">
+        {alerts.map((a) => {
+          const isBank = a.type === "bank_disconnect";
+          return (
+            <div key={a.type} className="flex items-center gap-3 px-4 py-2.5">
+              <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-3.5 h-3.5 text-gray-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-semibold text-gray-900 truncate">{a.title}</p>
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {isBank ? (
+                  <>
+                    <button
+                      onClick={a.onAction}
+                      className="px-3 py-1 rounded-lg text-[11px] font-semibold transition-all hover:opacity-90 bg-gray-900 text-white"
+                    >
+                      {a.cta}
+                    </button>
+                    <button
+                      onClick={a.onDismiss}
+                      className="w-6 h-6 rounded-lg flex items-center justify-center transition-colors hover:bg-gray-100"
+                    >
+                      <X className="w-3 h-3 text-gray-400" />
+                    </button>
+                  </>
+                ) : (
+                  <TrustAssignCTA onDismiss={a.onDismiss} />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, onCategoryEdit, highlightRowId, initialFlaggedCount, onFlagResolved, flaggedCount = 0, onBannerAction, onCloseMonth, initialFilter = "all", febReconciled = false, initialMonth }: {
   ledger: LedgerRow[];
   updateField: (id: string, field: "payee" | "category" | "matter", value: string) => void;
   showReconcile?: boolean;
@@ -894,7 +1187,9 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   flaggedCount?: number;
   onBannerAction?: (type: "bank_disconnect" | "trust_balance") => void;
   onCloseMonth?: () => void;
-  initialFilter?: "all" | "critical" | "high" | "medium" | "low";
+  initialFilter?: "all" | "critical" | "high" | "medium" | "processed";
+  febReconciled?: boolean;
+  initialMonth?: string;
 }) {
   const [visibleCount, setVisibleCount] = React.useState(20);
   const sentinelRef = React.useRef<HTMLDivElement>(null);
@@ -902,10 +1197,11 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   const [viewingRowId, setViewingRowId] = React.useState<string | null>(null);
   const [pulsingRowId, setPulsingRowId] = React.useState<string | null>(null);
   const [accountFilter, setAccountFilter] = React.useState("all");
-  const [priorityFilter, setPriorityFilter] = React.useState<"all" | "critical" | "high" | "medium" | "low">(initialFilter);
+  const [priorityFilter, setPriorityFilter] = React.useState<"all" | "critical" | "high" | "medium" | "processed">(initialFilter);
   const [showBankAlert, setShowBankAlert] = React.useState(true);
   const [showTrustAlert, setShowTrustAlert] = React.useState(true);
-  const [selectedMonth, setSelectedMonth] = React.useState("mar");
+  const [selectedMonth, setSelectedMonth] = React.useState(initialMonth ?? "mar");
+  const [reconModalOpen, setReconModalOpen] = React.useState(false);
   const [confirmedBillable, setConfirmedBillable] = React.useState<Set<string>>(new Set());
   const viewingRow = viewingRowId ? ledger.find((r) => r.id === viewingRowId) || null : null;
   const handleDrawerClose = () => {
@@ -914,32 +1210,43 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   };
 
   const handleFlagResolved = (rowId: string) => {
+    if (rowId === "feb-blocker") {
+      setPriorityFilter("all");
+    }
     onFlagResolved?.(rowId);
   };
 
   const accountFiltered = accountFilter === "all" ? ledger : ledger.filter((r) => r.bankAccount === accountFilter);
+  const MONTH_KEY_TO_PREFIX: Record<string, string> = { oct: "Oct", nov: "Nov", dec: "Dec", jan: "Jan", feb: "Feb", mar: "Mar" };
+  const monthPrefix = MONTH_KEY_TO_PREFIX[selectedMonth] ?? "Mar";
+  const monthFiltered = accountFiltered.filter((r) => r.date.startsWith(monthPrefix));
+
   const filteredLedger = React.useMemo(() => {
     const base = priorityFilter === "all"
-      ? accountFiltered
-      : accountFiltered.filter((r) => r.flag?.priority === priorityFilter);
-    // Parse "Mar 17" → sortable number (month * 100 + day), newest first
+      ? monthFiltered
+      : priorityFilter === "processed"
+        ? monthFiltered.filter((r) => !r.flag)
+        : monthFiltered.filter((r) => r.flag?.priority === priorityFilter);
     const MONTHS: Record<string, number> = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, May: 5, Jun: 6, Jul: 7, Aug: 8, Sep: 9, Oct: 10, Nov: 11, Dec: 12 };
     return [...base].sort((a, b) => {
       const [aM, aD] = a.date.split(" ");
       const [bM, bD] = b.date.split(" ");
       const aVal = (MONTHS[aM] ?? 0) * 100 + parseInt(aD ?? "0", 10);
       const bVal = (MONTHS[bM] ?? 0) * 100 + parseInt(bD ?? "0", 10);
-      return bVal - aVal; // newest first
+      return bVal - aVal;
     });
-  }, [accountFiltered, priorityFilter]);
+  }, [monthFiltered, priorityFilter]);
   const visibleLedger = filteredLedger.slice(0, visibleCount);
   const hasMore = visibleCount < filteredLedger.length;
 
   const priorityCounts = React.useMemo(() => {
-    const counts: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0 };
-    accountFiltered.forEach((r) => { if (r.flag) counts[r.flag.priority] = (counts[r.flag.priority] || 0) + 1; });
+    const counts: Record<string, number> = { critical: 0, high: 0, medium: 0, low: 0, processed: 0 };
+    monthFiltered.forEach((r) => {
+      if (r.flag) counts[r.flag.priority] = (counts[r.flag.priority] || 0) + 1;
+      else counts.processed = (counts.processed || 0) + 1;
+    });
     return counts;
-  }, [accountFiltered]);
+  }, [monthFiltered]);
 
   React.useEffect(() => { setVisibleCount(20); }, [accountFilter, priorityFilter]);
 
@@ -961,29 +1268,27 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   return (
     <div className="flex flex-col h-full overflow-hidden relative" style={{ backgroundColor: "#F9FAFB" }}>
 
-      {/* System Alert Banners */}
+      {/* System Alert Banners — combined when both active */}
       {(showBankAlert || showTrustAlert) && (
-        <div className="px-6 pt-4 pb-2 flex flex-col gap-3 flex-shrink-0">
-          {showBankAlert && (
-            <SystemAlertBanner
-              type="bank_disconnect"
-              title={mockActionCards.find(c => c.id === "c2")?.title ?? "Chase ··4892 lost connection — 12 transactions waiting"}
-              subtitle={mockActionCards.find(c => c.id === "c2")?.subtitle ?? "Re-authenticate to resume syncing"}
-              cta="Reconnect"
-              onAction={() => { onBannerAction?.("bank_disconnect"); setShowBankAlert(false); }}
-              onDismiss={() => setShowBankAlert(false)}
-            />
-          )}
-          {showTrustAlert && (
-            <SystemAlertBanner
-              type="trust_balance"
-              title={mockActionCards.find(c => c.id === "c1")?.title ?? "Jane Doe's trust will drop below the $1,000 floor"}
-              subtitle={mockActionCards.find(c => c.id === "c1")?.subtitle ?? "A $1,250 filing fee will leave only $592 in the account"}
-              cta="Allocate top-up"
-              onAction={() => { onBannerAction?.("trust_balance"); setShowTrustAlert(false); }}
-              onDismiss={() => setShowTrustAlert(false)}
-            />
-          )}
+        <div className="px-6 pt-4 pb-2 flex-shrink-0">
+          <CombinedAlertBanner alerts={[
+            ...(showBankAlert ? [{
+              type: "bank_disconnect" as const,
+              title: mockActionCards.find(c => c.id === "c2")?.title ?? "Chase ··4892 connection expires in 5 days",
+              subtitle: mockActionCards.find(c => c.id === "c2")?.subtitle ?? "Re-authenticate now to avoid interruption to your bank feed",
+              cta: "Re-authenticate",
+              onAction: () => { onBannerAction?.("bank_disconnect"); setShowBankAlert(false); },
+              onDismiss: () => setShowBankAlert(false),
+            }] : []),
+            ...(showTrustAlert ? [{
+              type: "trust_balance" as const,
+              title: mockActionCards.find(c => c.id === "c1")?.title ?? "Jane Doe's trust will drop below the $1,000 floor",
+              subtitle: mockActionCards.find(c => c.id === "c1")?.subtitle ?? "A $1,250 filing fee will leave only $592 in the account",
+              cta: "Allocate top-up",
+              onAction: () => { onBannerAction?.("trust_balance"); setShowTrustAlert(false); },
+              onDismiss: () => setShowTrustAlert(false),
+            }] : []),
+          ]} />
         </div>
       )}
 
@@ -997,9 +1302,16 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
             currentFlaggedCount={flaggedCount}
             trustAtRisk={trustAtRisk}
             ioltaMatters={12}
-            onCloseMonth={onCloseMonth ?? (() => {})}
+            onCloseMonth={() => setReconModalOpen(true)}
             selectedMonth={selectedMonth}
-            onScrollToFlagged={() => setPriorityFilter("critical")}
+            febReconciled={febReconciled}
+            onScrollToFlagged={() => {
+              if (selectedMonth === "feb") {
+                setPriorityFilter("high");
+              } else {
+                setPriorityFilter("critical");
+              }
+            }}
           />
         );
       })()}
@@ -1007,10 +1319,11 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
       {/* Priority Filter Bar */}
       <div className="flex items-center justify-between px-6 py-2 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: "#FFFFFF" }}>
         <div className="flex items-center gap-2">
-        {(["all", "critical", "high", "medium", "low"] as const).map((p) => {
+        {(["all", "critical", "high", "medium", "processed"] as const).map((p) => {
           const isActive = priorityFilter === p;
           const count = p === "all" ? Object.values(priorityCounts).reduce((a, b) => a + b, 0) : priorityCounts[p] || 0;
-          const cfg = p !== "all" ? priorityConfig[p] : null;
+          const cfg = (p !== "all" && p !== "processed") ? priorityConfig[p] : null;
+          const isProcessed = p === "processed";
           return (
             <button
               key={p}
@@ -1018,24 +1331,26 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
               className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] transition-all"
               style={{
                 fontWeight: isActive ? 600 : 400,
-                color: isActive ? (cfg ? cfg.badgeText : "#0F172A") : "#64748B",
-                backgroundColor: isActive ? (cfg ? cfg.badgeBg : "#F1F5F9") : "transparent",
-                border: isActive ? `1px solid ${cfg ? cfg.accentColor + "40" : "#CBD5E1"}` : "1px solid transparent",
+                color: isActive ? (isProcessed ? "#166534" : cfg ? cfg.badgeText : "#0F172A") : "#64748B",
+                backgroundColor: isActive ? (isProcessed ? "#DCFCE7" : cfg ? cfg.badgeBg : "#F1F5F9") : "transparent",
+                border: isActive ? `1px solid ${isProcessed ? "#86EFAC" : cfg ? cfg.accentColor + "40" : "#CBD5E1"}` : "1px solid transparent",
               }}
             >
-              {cfg && (
+              {isProcessed ? (
+                <CheckCircle2 className="w-[9px] h-[9px] flex-shrink-0" style={{ color: isActive ? "#16A34A" : "#94A3B8" }} />
+              ) : cfg ? (
                 <span
                   className="w-[7px] h-[7px] rounded-full flex-shrink-0"
                   style={{ backgroundColor: cfg.accentColor }}
                 />
-              )}
-              {p === "all" ? "All" : cfg!.label}
+              ) : null}
+              {p === "all" ? "All" : isProcessed ? "Processed" : cfg!.label}
               {count > 0 && (
                 <span
                   className="text-[11px] px-1.5 py-0.5 rounded-full ml-0.5"
                   style={{
-                    backgroundColor: isActive ? (cfg ? cfg.accentColor + "20" : "#E2E8F0") : "#F1F5F9",
-                    color: isActive ? (cfg ? cfg.badgeText : "#475569") : "#94A3B8",
+                    backgroundColor: isActive ? (isProcessed ? "#86EFAC40" : cfg ? cfg.accentColor + "20" : "#E2E8F0") : "#F1F5F9",
+                    color: isActive ? (isProcessed ? "#166534" : cfg ? cfg.badgeText : "#475569") : "#94A3B8",
                     fontWeight: 600,
                   }}
                 >
@@ -1130,26 +1445,6 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                   BadgeIcon = Sparkles;
                 }
 
-                const evidenceText = isHumanEdited
-                  ? "Category manually corrected by bookkeeper."
-                  : isMatched
-                    ? row.confidence === 100
-                      ? "Matched via exact invoice reference"
-                      : "Matched via recurring pattern"
-                    : "Applied Firm Rule: " + row.category;
-
-                const flagBg: Record<string, string> = {
-                  critical: "rgba(254,226,226,0.45)", // red-100/45
-                  high:     "rgba(254,243,199,0.45)", // amber-100/45
-                  medium:   "rgba(219,234,254,0.35)", // blue-100/35
-                  low:      "rgba(243,244,246,0.5)",  // gray-100/50
-                };
-                const flagHoverBg: Record<string, string> = {
-                  critical: "rgba(254,226,226,0.7)",
-                  high:     "rgba(254,243,199,0.7)",
-                  medium:   "rgba(219,234,254,0.6)",
-                  low:      "rgba(243,244,246,0.8)",
-                };
 
                 return (
                   <React.Fragment key={row.id}>
@@ -1160,12 +1455,9 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                       borderBottom: "1px solid #F8FAFC",
                       ...(row.flag ? {
                         borderLeft: `3px solid ${priorityConfig[row.flag.priority].accentColor}`,
-                        backgroundColor: flagBg[row.flag.priority],
                       } : {}),
                       ...(isPulsing ? { animation: "tealPulse 1.2s ease-out forwards" } : {}),
                     }}
-                    onMouseEnter={row.flag ? (e) => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = flagHoverBg[row.flag!.priority]; } : undefined}
-                    onMouseLeave={row.flag ? (e) => { (e.currentTarget as HTMLTableRowElement).style.backgroundColor = flagBg[row.flag!.priority]; } : undefined}
                   >
                     <td className="px-3 py-2.5 text-[14px]" style={{ color: "#64748B", fontFeatureSettings: "'tnum'" }}>{row.date}</td>
 
@@ -1234,14 +1526,16 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                     {/* Status — badges/chips */}
                     <td className="px-3 py-2.5">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        {/* Status badge */}
-                        <span
-                          className="inline-flex items-center gap-1 text-[12px] px-2 py-[2px] rounded-full whitespace-nowrap flex-shrink-0"
-                          style={{ color: badgeColor, backgroundColor: badgeBg, fontWeight: 500 }}
-                        >
-                          <BadgeIcon className="w-[12px] h-[12px]" />
-                          {intelligenceLabel}
-                        </span>
+                        {/* Status badge — hover reveals AI rationale */}
+                        <EvidenceTooltip rationale={row.agentRationale} confidence={row.confidence}>
+                          <span
+                            className="inline-flex items-center gap-1 text-[12px] px-2 py-[2px] rounded-full whitespace-nowrap flex-shrink-0 cursor-default"
+                            style={{ color: badgeColor, backgroundColor: badgeBg, fontWeight: 500 }}
+                          >
+                            <BadgeIcon className="w-[12px] h-[12px]" />
+                            {intelligenceLabel}
+                          </span>
+                        </EvidenceTooltip>
 
                         {/* IOLTA chip for trust categories */}
                         {(row.category === "Trust Deposit" || row.category === "Retainer Deposit" || row.category === "Trust Disbursement") && (
@@ -1282,8 +1576,6 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                           </span>
                         )}
 
-                        {/* Evidence shield */}
-                        <EvidenceTooltip rationale={evidenceText} confidence={row.confidence} />
                       </div>
                     </td>
                   </tr>
@@ -1312,6 +1604,33 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
 
       {/* Transaction Detail Drawer */}
       <TransactionDetailDrawer row={viewingRow} onClose={handleDrawerClose} onFlagResolved={onFlagResolved} confirmedBillable={confirmedBillable} onConfirmBillable={(id) => setConfirmedBillable(prev => new Set(prev).add(id))} />
+
+      {/* Reconciliation Review Modal */}
+      {(() => {
+        const monthMeta = RECON_MONTH_DATA.find(m => m.key === selectedMonth) ?? RECON_MONTH_DATA[RECON_MONTH_DATA.length - 1];
+        const isRec = monthMeta.reconciled || (selectedMonth === "feb" && febReconciled);
+        const isFebP = selectedMonth === "feb" && !febReconciled && "trustReconciled" in monthMeta;
+        return (
+          <ReconciliationReviewModal
+            open={reconModalOpen}
+            onClose={() => setReconModalOpen(false)}
+            month={selectedMonth}
+            monthLabel={monthMeta.label}
+            isReconciled={isRec}
+            isFebPartial={isFebP}
+            onConfirmClose={() => {
+              setReconModalOpen(false);
+              onCloseMonth?.();
+            }}
+            onResolveBlocker={() => {
+              setReconModalOpen(false);
+              setSelectedMonth("feb");
+              setPriorityFilter("high");
+              setViewingRowId("feb-blocker");
+            }}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -1335,17 +1654,35 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
   const [chatMessages, setChatMessages] = React.useState<{ role: "user" | "ai"; text: string }[]>([]);
   const [assignee, setAssignee] = React.useState<string | null>(null);
   const [assignOpen, setAssignOpen] = React.useState(false);
+  const [assignSearch, setAssignSearch] = React.useState("");
   const assignRef = React.useRef<HTMLDivElement>(null);
+  const assignSearchRef = React.useRef<HTMLInputElement>(null);
   const isOpen = row !== null;
 
-  const TEAM_MEMBERS = [
-    { id: "sarah", name: "Sarah Martinez", role: "Bookkeeper", initials: "SM" },
-    { id: "david", name: "David Thompson", role: "Senior Accountant", initials: "DT" },
-    { id: "jennifer", name: "Jennifer Hart", role: "CFO", initials: "JH" },
+  const FIRM_MEMBERS = [
+    // Finance
+    { id: "sarah",    name: "Sarah Martinez", role: "Bookkeeper",       dept: "Finance",    initials: "SM", color: "#6366F1" },
+    { id: "david",    name: "David Thompson", role: "Sr. Accountant",   dept: "Finance",    initials: "DT", color: "#8B5CF6" },
+    { id: "jennifer", name: "Jennifer Hart",  role: "CFO",              dept: "Finance",    initials: "JH", color: "#EC4899" },
+    // Partners
+    { id: "ryan",     name: "Ryan Chen",      role: "Managing Partner", dept: "Partners",   initials: "RC", color: "#0EA5E9" },
+    { id: "laura",    name: "Laura Bennett",  role: "Equity Partner",   dept: "Partners",   initials: "LB", color: "#14B8A6" },
+    { id: "marcus",   name: "Marcus Webb",    role: "Equity Partner",   dept: "Partners",   initials: "MW", color: "#F59E0B" },
+    // Associates
+    { id: "priya",    name: "Priya Sharma",   role: "Senior Associate", dept: "Associates", initials: "PS", color: "#10B981" },
+    { id: "tom",      name: "Tom Reeves",     role: "Associate",        dept: "Associates", initials: "TR", color: "#3B82F6" },
+    { id: "ana",      name: "Ana Flores",     role: "Associate",        dept: "Associates", initials: "AF", color: "#F97316" },
+    { id: "michael",  name: "Michael Torres", role: "Associate",        dept: "Associates", initials: "MT", color: "#06B6D4" },
+    { id: "sophia",   name: "Sophia Nguyen",  role: "Junior Associate", dept: "Associates", initials: "SN", color: "#A855F7" },
+    // Admin
+    { id: "karen",    name: "Karen Mills",    role: "Office Manager",   dept: "Admin",      initials: "KM", color: "#64748B" },
+    { id: "james",    name: "James Park",     role: "Paralegal",        dept: "Admin",      initials: "JP", color: "#84CC16" },
+    { id: "linda",    name: "Linda Castro",   role: "Legal Secretary",  dept: "Admin",      initials: "LC", color: "#F43F5E" },
   ];
 
   React.useEffect(() => {
-    if (!assignOpen) return;
+    if (!assignOpen) { setAssignSearch(""); return; }
+    setTimeout(() => assignSearchRef.current?.focus(), 50);
     const handler = (e: MouseEvent) => {
       if (assignRef.current && !assignRef.current.contains(e.target as Node)) setAssignOpen(false);
     };
@@ -1453,13 +1790,13 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                     <div
                       className="rounded-xl p-4 space-y-3"
                       style={{
-                        backgroundColor: priorityConfig[row.flag.priority].badgeBg,
-                        border: `1px solid ${priorityConfig[row.flag.priority].accentColor}40`,
-                        borderLeft: `4px solid ${priorityConfig[row.flag.priority].accentColor}`,
+                        backgroundColor: "#F8FAFC",
+                        border: "1px solid #E2E8F0",
+                        borderLeft: "4px solid #94A3B8",
                       }}
                     >
                       <div className="flex items-start gap-2">
-                        <CircleAlert className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: priorityConfig[row.flag.priority].accentColor }} />
+                        <CircleAlert className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#64748B" }} />
                         <div className="flex-1 min-w-0">
                           <p className="text-[13px] font-semibold" style={{ color: "#0F172A" }}>{row.flag.title}</p>
                           <p className="text-[13px] mt-1 leading-relaxed" style={{ color: "#475569" }}>{row.flag.evidenceRationale}</p>
@@ -1489,46 +1826,80 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                           </button>
                         )}
                         {/* Assign dropdown */}
-                        <div className="relative ml-auto" ref={assignRef}>
-                          <button
-                            onClick={() => setAssignOpen(o => !o)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] transition hover:bg-white"
-                            style={{ border: "1px solid #E2E8F0", color: assignee ? "#0F172A" : "#64748B", backgroundColor: "#FFFFFF" }}
-                          >
-                            <Users className="w-3.5 h-3.5" />
-                            {assignee ? TEAM_MEMBERS.find(m => m.id === assignee)?.name.split(" ")[0] : "Assign"}
-                            <ChevronDown className="w-3 h-3" style={{ color: "#94A3B8" }} />
-                          </button>
-                          <AnimatePresence>
-                            {assignOpen && (
-                              <motion.div
-                                initial={{ opacity: 0, scale: 0.95, y: -4 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.95, y: -4 }}
-                                className="absolute right-0 top-full mt-1 rounded-xl bg-white py-1 z-50"
-                                style={{ border: "1px solid #E2E8F0", boxShadow: "0 4px 16px rgba(0,0,0,0.1)", minWidth: 200 }}
+                        {(() => {
+                          const selectedMember = FIRM_MEMBERS.find(m => m.id === assignee);
+                          const filteredMembers = FIRM_MEMBERS.filter(m =>
+                            assignSearch === "" ||
+                            m.name.toLowerCase().includes(assignSearch.toLowerCase()) ||
+                            m.role.toLowerCase().includes(assignSearch.toLowerCase()) ||
+                            m.dept.toLowerCase().includes(assignSearch.toLowerCase())
+                          );
+                          return (
+                            <div className="relative ml-auto" ref={assignRef}>
+                              <button
+                                onClick={() => setAssignOpen(o => !o)}
+                                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] transition hover:bg-slate-50"
+                                style={{ border: "1px solid #E2E8F0", color: selectedMember ? "#0F172A" : "#64748B", backgroundColor: "#FFFFFF" }}
                               >
-                                <p className="px-3 pt-2 pb-1 text-[11px] uppercase tracking-wider" style={{ color: "#94A3B8", fontWeight: 600 }}>Assign to</p>
-                                {TEAM_MEMBERS.map(m => (
-                                  <button
-                                    key={m.id}
-                                    onClick={() => { setAssignee(m.id); setAssignOpen(false); }}
-                                    className="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors flex items-center gap-2.5"
+                                {selectedMember ? (
+                                  <MemberAvatar member={selectedMember} size={20} />
+                                ) : (
+                                  <Users className="w-3.5 h-3.5" />
+                                )}
+                                {selectedMember ? selectedMember.name.split(" ")[0] : "Assign"}
+                                <ChevronDown className="w-3 h-3 flex-shrink-0" style={{ color: "#94A3B8" }} />
+                              </button>
+                              <AnimatePresence>
+                                {assignOpen && (
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                    className="absolute right-0 top-full mt-1 rounded-xl bg-white z-50 overflow-hidden"
+                                    style={{ border: "1px solid #E2E8F0", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", width: 248 }}
                                   >
-                                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] flex-shrink-0" style={{ backgroundColor: assignee === m.id ? "#DBEAFE" : "#F1F5F9", color: assignee === m.id ? "#2563EB" : "#64748B", fontWeight: 600 }}>
-                                      {m.initials}
+                                    {/* Search input */}
+                                    <div className="px-2.5 pt-2.5 pb-2" style={{ borderBottom: "1px solid #F1F5F9" }}>
+                                      <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}>
+                                        <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#94A3B8" }} />
+                                        <input
+                                          ref={assignSearchRef}
+                                          value={assignSearch}
+                                          onChange={e => setAssignSearch(e.target.value)}
+                                          placeholder="Search people…"
+                                          className="flex-1 bg-transparent outline-none text-[13px]"
+                                          style={{ color: "#0F172A" }}
+                                        />
+                                      </div>
                                     </div>
-                                    <div>
-                                      <p className="text-[12px]" style={{ fontWeight: assignee === m.id ? 600 : 500, color: "#0F172A" }}>{m.name}</p>
-                                      <p className="text-[10px]" style={{ color: "#94A3B8" }}>{m.role}</p>
+                                    {/* Member list */}
+                                    <div style={{ maxHeight: 272, overflowY: "auto" }}>
+                                      {filteredMembers.length === 0 ? (
+                                        <p className="px-3 py-4 text-center text-[12px]" style={{ color: "#94A3B8" }}>No results</p>
+                                      ) : filteredMembers.map(m => (
+                                        <button
+                                          key={m.id}
+                                          onClick={() => { setAssignee(m.id); setAssignOpen(false); }}
+                                          className="w-full text-left px-3 py-2 flex items-center gap-2.5 transition-colors"
+                                          style={{ backgroundColor: assignee === m.id ? "#EFF6FF" : "transparent" }}
+                                          onMouseEnter={e => { if (assignee !== m.id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#F8FAFC"; }}
+                                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = assignee === m.id ? "#EFF6FF" : "transparent"; }}
+                                        >
+                                          <MemberAvatar member={m} size={32} />
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-[13px] truncate" style={{ fontWeight: assignee === m.id ? 600 : 500, color: "#0F172A" }}>{m.name}</p>
+                                            <p className="text-[11px] truncate" style={{ color: "#94A3B8" }}>{m.role} · {m.dept}</p>
+                                          </div>
+                                          {assignee === m.id && <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#3B82F6" }} />}
+                                        </button>
+                                      ))}
                                     </div>
-                                    {assignee === m.id && <CheckCircle2 className="w-3.5 h-3.5 ml-auto" style={{ color: "#3B82F6" }} />}
-                                  </button>
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          );
+                        })()}
                         <button
                           onClick={() => { onFlagResolved?.(row.id); onClose(); }}
                           className="px-3 py-1.5 rounded-lg text-[13px] transition"
@@ -2210,11 +2581,12 @@ interface Toast {
   duration?: number;
 }
 
-export function UnifiedTransactionInbox({ onOpenRail, initialFilter = "all", onNavigateToConnections }: { onOpenRail?: () => void; initialFilter?: "all" | "critical" | "high" | "medium" | "low"; onNavigateToConnections?: () => void }) {
+export function UnifiedTransactionInbox({ onOpenRail, initialFilter = "all", initialMonth, onNavigateToConnections }: { onOpenRail?: () => void; initialFilter?: "all" | "critical" | "high" | "medium" | "processed"; initialMonth?: string; onNavigateToConnections?: () => void }) {
   const [ledger, setLedger] = React.useState(ledgerData);
   const [editedCategories, setEditedCategories] = React.useState<Set<string>>(new Set());
   const [toasts, setToasts] = React.useState<Toast[]>([]);
   const [newRowId, setNewRowId] = React.useState<string | null>(null);
+  const [febReconciled, setFebReconciled] = React.useState(false);
 
   const flaggedCount = React.useMemo(() => ledger.filter(r => r.flag).length, [ledger]);
 
@@ -2228,12 +2600,26 @@ export function UnifiedTransactionInbox({ onOpenRail, initialFilter = "all", onN
   const handleFlagResolved = (rowId: string) => {
     const row = ledger.find(r => r.id === rowId);
     setLedger((prev) => prev.map((r) => r.id === rowId ? { ...r, flag: undefined } : r));
-    addToast({
-      id: `toast-${Date.now()}`,
-      message: "Flag resolved",
-      payee: row?.payee || "Transaction",
-      amount: row ? `$${Math.abs(row.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "",
-    });
+
+    if (rowId === "feb-blocker") {
+      setFebReconciled(true);
+      addToast({
+        id: `toast-recon-feb-${Date.now()}`,
+        message: "February 2026 closed",
+        payee: "Operating & Trust accounts reconciled",
+        amount: "",
+        variant: "reconciled",
+        subtext: "Bank statement matched — all 312 transactions reconciled automatically.",
+        duration: 8000,
+      });
+    } else {
+      addToast({
+        id: `toast-${Date.now()}`,
+        message: "Flag resolved",
+        payee: row?.payee || "Transaction",
+        amount: row ? `$${Math.abs(row.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}` : "",
+      });
+    }
   };
 
   const updateLedgerField = (id: string, field: "payee" | "category" | "matter", value: string) => {
@@ -2261,6 +2647,8 @@ export function UnifiedTransactionInbox({ onOpenRail, initialFilter = "all", onN
             onFlagResolved={handleFlagResolved}
             flaggedCount={flaggedCount}
             initialFilter={initialFilter}
+            febReconciled={febReconciled}
+            initialMonth={initialMonth}
             onBannerAction={(type) => {
               if (type === "bank_disconnect" && onNavigateToConnections) {
                 onNavigateToConnections();

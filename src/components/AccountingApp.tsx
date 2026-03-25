@@ -17,15 +17,18 @@ interface AccountingAppProps {
   onExceptionsChange?: (exceptions: Exception[]) => void;
   onAskTeammate?: (message: string) => void;
   onOpenRail?: () => void;
-  activeUser?: "jennifer" | "sarah";
+  activeUser?: "jennifer" | "sarah" | "ryan";
+  initialPage?: string;
 }
 
-export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onOpenRail, activeUser = "jennifer" }: AccountingAppProps) {
-  const [currentPage, setCurrentPage] = React.useState("Dashboard");
-  const [transactionFilter, setTransactionFilter] = React.useState<"all" | "critical" | "high" | "medium" | "low">("all");
+export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onOpenRail, activeUser = "jennifer", initialPage = "Dashboard" }: AccountingAppProps) {
+  const [currentPage, setCurrentPage] = React.useState(initialPage);
+  const [transactionFilter, setTransactionFilter] = React.useState<"all" | "critical" | "high" | "medium" | "processed">("all");
+  const [transactionMonth, setTransactionMonth] = React.useState<string | undefined>();
 
-  const navigateToTransactions = (filter: "all" | "critical" | "high" | "medium" | "low" = "all") => {
+  const navigateToTransactions = (filter: "all" | "critical" | "high" | "medium" | "processed" = "all", month?: string) => {
     setTransactionFilter(filter);
+    setTransactionMonth(month);
     setCurrentPage("Transactions");
   };
 
@@ -57,7 +60,7 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
           />
         );
       case "Transactions":
-        return <UnifiedTransactionInbox onOpenRail={onOpenRail} initialFilter={transactionFilter} onNavigateToConnections={navigateToConnections} />;
+        return <UnifiedTransactionInbox onOpenRail={onOpenRail} initialFilter={transactionFilter} initialMonth={transactionMonth} onNavigateToConnections={navigateToConnections} />;
       case "Connections":
         return (
           <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#FAFBFF' }}>

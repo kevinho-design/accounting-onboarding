@@ -569,7 +569,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   <div className="flex-1 flex flex-col justify-end min-w-0">
                     <div className="flex items-end gap-0.5 h-24">
                       {[25,15,65,70,68,72,60,20,18,75,78,80,76,70,22,16,82].map((h, i) => (
-                        <div key={i} className={`flex-1 rounded-t ${i === 16 ? 'bg-blue-500' : h < 30 ? 'bg-gray-200' : 'bg-emerald-400'}`} style={{ height: `${h}%` }} />
+                        <div key={i} className={`flex-1 rounded-t ${i === 16 ? 'bg-blue-500' : h < 30 ? 'bg-blue-200' : 'bg-emerald-400'}`} style={{ height: `${h}%` }} />
                       ))}
                     </div>
                   </div>
@@ -588,7 +588,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   </div>
                   <div className="flex-1 flex flex-col justify-end min-w-0">
                     <div className="flex items-end gap-1 h-24">
-                      {[{h:45,c:'bg-emerald-200'},{h:60,c:'bg-blue-200'},{h:35,c:'bg-yellow-200'},{h:50,c:'bg-orange-300'},{h:75,c:'bg-red-400'}].map((b,i) => (
+                      {[{h:45,c:'bg-emerald-300'},{h:60,c:'bg-emerald-200'},{h:35,c:'bg-blue-200'},{h:50,c:'bg-blue-300'},{h:75,c:'bg-blue-500'}].map((b,i) => (
                         <div key={i} className="flex-1 flex flex-col justify-end h-full">
                           <div className={`w-full rounded-t ${b.c}`} style={{ height: `${b.h}%` }} />
                         </div>
@@ -596,7 +596,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                     </div>
                     <div className="flex gap-1 mt-1">
                       {['Current','1-30','31-60','61-90','90+'].map((l,i) => (
-                        <div key={i} className={`flex-1 text-center text-[9px] ${i === 4 ? 'text-red-500 font-medium' : 'text-gray-400'}`}>{l}</div>
+                        <div key={i} className={`flex-1 text-center text-[9px] ${i === 4 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>{l}</div>
                       ))}
                     </div>
                   </div>
@@ -630,7 +630,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                             />
                             <path
                               d={`M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`}
-                              stroke="#FCD34D" strokeWidth="8" strokeLinecap="round"
+                              stroke="#60A5FA" strokeWidth="8" strokeLinecap="round"
                               fill="none"
                               strokeDasharray={`${halfCirc}`}
                               strokeDashoffset={`${halfCirc * (1 - pct)}`}
@@ -646,16 +646,10 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
 
               {/* Trust + Unbilled */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer" onClick={() => setSelectedMetric("trust")}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="text-xs font-medium text-gray-500">IOLTA Trust</p>
-                        <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Compliant</span>
-                      </div>
-                      <p className="text-xs text-gray-400">March 2026</p>
-                    </div>
-                  </div>
+                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer relative" onClick={() => setSelectedMetric("trust")}>
+                  <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Compliant</span>
+                  <p className="text-xs font-medium text-gray-500 mb-0.5">IOLTA Trust</p>
+                  <p className="text-xs text-gray-400 mb-3">March 2026</p>
                   <div className="flex items-baseline gap-3 mb-3">
                     <div>
                       <p className="text-xl font-bold text-gray-900">$89,234.67</p>

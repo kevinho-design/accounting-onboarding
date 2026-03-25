@@ -1122,8 +1122,8 @@ function CombinedAlertBanner({ alerts }: { alerts: AlertItem[] }) {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-2.5" style={{ borderBottom: "1px solid #F1F5F9" }}>
         <div className="flex items-center gap-2">
-          <AlertTriangle className="w-3.5 h-3.5 text-gray-500" />
-          <span className="text-[13px] font-semibold text-gray-900">
+          <AlertTriangle className="w-3.5 h-3.5" style={{ color: "#D97706" }} />
+          <span className="text-[13px] font-semibold" style={{ color: "#92400E" }}>
             {alerts.length} issues need attention
           </span>
         </div>

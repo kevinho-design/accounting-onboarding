@@ -140,6 +140,7 @@ export const CONSOLIDATION_ELIGIBLE: Set<CardType> = new Set([
   "first_time_vendor",
   "user_config_trigger",
   "stale_check",
+  "approval_required",
 ]);
 
 export const consolidatedTitles: Partial<Record<CardType, (n: number) => string>> = {
@@ -148,6 +149,7 @@ export const consolidatedTitles: Partial<Record<CardType, (n: number) => string>
   stale_check: (n) => `${n} Stale Outstanding Checks`,
   first_time_vendor: (n) => `${n} New Vendors`,
   user_config_trigger: (n) => `${n} Custom Rule Alerts`,
+  approval_required: (n) => `${n} Pending Approvals`,
 };
 
 export const consolidatedSubtitles: Partial<Record<CardType, string>> = {
@@ -243,6 +245,32 @@ export const mockActionCards: ActionCardData[] = [
     subtitle: "Over your $5,000 approval threshold — route to a partner",
     evidenceRationale: "Firm rule: Expenses over $5,000 require partner approval before posting. This $7,500 payment for Office Renovation triggered the rule. Category: Capital Expenditures.",
     txnContext: { payee: "Morrison Contractors", category: "Capital Expenditures", date: "Mar 17, 2026", source: "Chase ··4892", sourceIcon: "ach" },
+  },
+  {
+    id: "h3b",
+    type: "approval_required",
+    priority: "high",
+    timestamp: "2 hrs ago",
+    account: "operating",
+    amount: "$8,200.00",
+    status: "new",
+    title: "$8,200 to Thomson Legal Services",
+    subtitle: "Over your $5,000 approval threshold — route to a partner",
+    evidenceRationale: "Firm rule: Expenses over $5,000 require partner approval before posting. This $8,200 payment for Legal Consulting triggered the rule. Category: Legal Consulting.",
+    txnContext: { payee: "Thomson Legal Services", category: "Legal Consulting", date: "Mar 16, 2026", source: "Chase ··4892", sourceIcon: "ach" },
+  },
+  {
+    id: "h3c",
+    type: "approval_required",
+    priority: "high",
+    timestamp: "3 hrs ago",
+    account: "operating",
+    amount: "$6,100.00",
+    status: "new",
+    title: "$6,100 to Pacific Legal Consulting",
+    subtitle: "Over your $5,000 approval threshold — route to a partner",
+    evidenceRationale: "Firm rule: Expenses over $5,000 require partner approval before posting. This $6,100 payment for Expert Witnesses triggered the rule. Category: Expert Witnesses.",
+    txnContext: { payee: "Pacific Legal Consulting", category: "Expert Witnesses", date: "Mar 15, 2026", source: "Chase ··4892", sourceIcon: "ach" },
   },
   {
     id: "h4",

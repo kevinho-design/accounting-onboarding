@@ -176,7 +176,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
       <PulsatingCloudBackground />
 
       <div className="h-full overflow-y-auto relative z-10">
-        <div className="px-8 py-10">
+        <div className="px-8 py-10 pb-24">
 
           {/* Header */}
           <div className="mb-8">

@@ -132,7 +132,7 @@ export function ChartOfAccountsPage() {
 
   return (
     <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#FAFBFF' }}>
-      <div className="max-w-[1400px] mx-auto px-8 py-8">
+      <div className="max-w-[1400px] mx-auto px-8 py-8 pb-24">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">

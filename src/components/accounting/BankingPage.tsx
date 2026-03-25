@@ -20,7 +20,7 @@ export function BankingPage() {
 
   return (
     <div className="flex-1 overflow-y-auto bg-gray-50">
-      <div className="max-w-7xl mx-auto p-8">
+      <div className="max-w-7xl mx-auto p-8 pb-24">
         {/* Header with Goal Context */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Banking</h1>

@@ -76,9 +76,9 @@ export function Screen12_Complete({ onComplete }: Screen12Props) {
         <div className="max-w-4xl mx-auto px-20 py-16 text-center">
           
           {/* AI Icon with Glow */}
-          <div className="inline-flex items-center justify-center w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 mb-8 shadow-2xl pulse-glow relative">
-            <Sparkles className="w-16 h-16 text-white" />
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 blur-xl opacity-50" />
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-blue-600 mb-8 shadow-xl relative">
+            <Sparkles className="w-10 h-10 text-white" />
+            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 blur-lg opacity-50" />
           </div>
 
           {/* Hero Message */}

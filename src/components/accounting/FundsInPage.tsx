@@ -160,29 +160,28 @@ export function FundsInPage() {
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto" style={{ backgroundColor: "#FAFBFF" }}>
-      <div className="max-w-6xl mx-auto px-8 py-8">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-1">Funds In</h1>
-            <p className="text-sm text-gray-500">Billing, client payments, and trust deposits</p>
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-sm">
-            <Plus className="w-4 h-4" />
-            Create Invoice
-          </button>
+    <div className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: "#FAFBFF" }}>
+      {/* Header */}
+      <div className="flex items-center justify-between px-8 pt-8 pb-6 flex-shrink-0" style={{ backgroundColor: "#F9FAFB" }}>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Funds In</h1>
+          <p className="text-gray-600 mt-1">Billing, client payments, and trust deposits</p>
         </div>
+        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-sm">
+          <Plus className="w-4 h-4" />
+            Create Bill
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-8 pb-24">
 
         {/* PLG Activation Banner */}
         <div className="rounded-xl p-5 mb-6 flex items-center justify-between" style={{ background: "linear-gradient(135deg, #EFF6FF, #F5F3FF)", border: "1px solid #DBEAFE" }}>
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(135deg, #3B82F6, #6366F1)" }}>
-              <Zap className="w-5 h-5 text-white" />
-            </div>
+            <img src="/clio-logo.png" alt="Clio" className="h-8 flex-shrink-0 object-contain" />
             <div>
-              <p className="text-[14px] font-semibold text-gray-900">Automate bill generation and accept online payments</p>
-              <p className="text-[13px] text-gray-500 mt-0.5">Create invoices from time entries, send them to clients, and collect payments — all from Clio Manage.</p>
+              <p className="text-[14px] font-semibold text-gray-900">Unlock the complete billing suite</p>
+              <p className="text-[13px] text-gray-500 mt-0.5">Professional bill templates, a dedicated client payment portal, and flexible options like payment plans and online payments. Available with Clio Manage.</p>
             </div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
@@ -295,16 +294,16 @@ export function FundsInPage() {
                 Create bill drafts, route them for partner approval, and send directly to clients — available in Clio Manage.
               </p>
               <div className="flex items-center justify-center gap-3">
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm">
-                  Start free trial
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </button>
                 <button
                   onClick={() => setCompareOpen(true)}
                   className="px-4 py-2.5 rounded-xl text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-all"
                   style={{ border: "1px solid #E2E8F0" }}
                 >
                   Compare features
+                </button>
+                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm">
+                  Start free trial
+                  <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>

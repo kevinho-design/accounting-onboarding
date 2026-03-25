@@ -24,6 +24,7 @@ interface NavigationItem {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   onClick: () => void;
+  children?: { label: string; onClick: () => void }[];
 }
 
 export function AccountingSidebar({ onPageChange, currentPage, onBackToClio }: AccountingSidebarProps) {
@@ -41,7 +42,12 @@ export function AccountingSidebar({ onPageChange, currentPage, onBackToClio }: A
     { 
       icon: ArrowDownToLine, 
       label: "Funds In", 
-      onClick: () => onPageChange("Funds In") 
+      onClick: () => onPageChange("Funds In"),
+      children: [
+        { label: "Billing", onClick: () => onPageChange("Funds In") },
+        { label: "Payments", onClick: () => onPageChange("Funds In") },
+        { label: "Trust", onClick: () => onPageChange("Funds In") },
+      ],
     },
     { 
       icon: ArrowUpFromLine, 
@@ -93,19 +99,36 @@ export function AccountingSidebar({ onPageChange, currentPage, onBackToClio }: A
             const isActive = currentPage === item.label;
             
             return (
-              <button
-                key={item.label}
-                onClick={item.onClick}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
-                  isActive
-                    ? "bg-gray-100 text-gray-900"
-                    : "text-gray-700 hover:bg-gray-50"
+              <React.Fragment key={item.label}>
+                <button
+                  onClick={item.onClick}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                    isActive
+                      ? "bg-gray-100 text-gray-900"
+                      : "text-gray-700 hover:bg-gray-50"
+                  )}
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <span>{item.label}</span>
+                </button>
+                {isActive && item.children && (
+                  <div className="ml-8 space-y-0.5 mt-0.5">
+                    {item.children.map((child, i) => (
+                      <button
+                        key={child.label}
+                        onClick={child.onClick}
+                        className={cn(
+                          "w-full text-left px-3 py-1.5 rounded-md text-[13px] transition-all",
+                          i === 0 ? "text-gray-900 font-medium bg-gray-50" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                        )}
+                      >
+                        {child.label}
+                      </button>
+                    ))}
+                  </div>
                 )}
-              >
-                <Icon className="w-5 h-5 flex-shrink-0" />
-                <span>{item.label}</span>
-              </button>
+              </React.Fragment>
             );
           })}
         </nav>

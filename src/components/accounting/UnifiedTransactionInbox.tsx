@@ -354,6 +354,9 @@ ledgerData.push(
   { id: "pf-morrison",      date: "Mar 17", payee: "Morrison Contractors",     category: "Capital Expenditures",matter: "Overhead",             client: "—",               amount: -7500.00,  type: "debit", status: "pending", method: "ACH",  agentRationale: "Exceeds $5,000 partner approval threshold. No approval on file yet.", confidence: 50, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["h3"] },
   { id: "pf-pacific-legal", date: "Mar 17", payee: "Pacific Legal Consulting", category: "Expert Witnesses",   matter: "Doe v. Metroplex",      client: "Jane Doe",        amount:  -4800.00, type: "debit", status: "pending", method: "ACH",  agentRationale: "3.2× historical average. No purchase order on file.", confidence: 42, bankAccount: "chase-4892",  source: "bank_feed", flag: _actionCardById["h4"] },
   { id: "pf-henderson",     date: "Mar 16", payee: "Henderson & Associates",   category: "Consulting Fees",    matter: "Overhead",              client: "—",               amount:  -7200.00, type: "debit", status: "pending", method: "ACH",  agentRationale: "2.8× historical average of $2,560. Last payment was $2,400.", confidence: 38, bankAccount: "chase-4892",  source: "bank_feed", flag: _actionCardById["h5"] },
+  // Approval-required items
+  { id: "pf-approval-thomson", date: "Mar 16", payee: "Thomson Legal Services", category: "Legal Consulting", matter: "Overhead", client: "—", amount: -8200.00, type: "debit", status: "pending", method: "ACH", agentRationale: "Exceeds $5,000 partner approval threshold. No approval on file yet.", confidence: 50, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["h3b"] },
+  { id: "pf-approval-pacific", date: "Mar 15", payee: "Pacific Legal Consulting", category: "Expert Witnesses", matter: "Doe v. Metroplex", client: "Jane Doe", amount: -6100.00, type: "debit", status: "pending", method: "ACH", agentRationale: "Exceeds $5,000 partner approval threshold. No approval on file yet.", confidence: 50, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["h3c"] },
   // Existing pending rows
   { id: "p-h1",  date: "Mar 17", payee: "Thomson Legal Services", category: "Legal Consulting", matter: "Overhead",   client: "—",         amount:  -9200.00, type: "debit",  status: "pending", method: "ACH",   agentRationale: "4.4x historical average. No matching invoice on file.", confidence: 35, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["h1"] },
   { id: "p-h2",  date: "Mar 17", payee: "John Smith",             category: "Client Payment",   matter: "Unknown",    client: "John Smith", amount:   4500.00, type: "credit", status: "pending", method: "ACH",   agentRationale: "Possible duplicate of same-day $4,500 deposit. 78% confidence.", confidence: 40, bankAccount: "chase-4892", source: "bank_feed", flag: _actionCardById["h2"] },
@@ -1386,7 +1389,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
       </div>
 
       {/* Table */}
-      <div className="flex-1 overflow-y-auto px-6 pb-2">
+      <div className="flex-1 overflow-y-auto px-6 pb-20">
         <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
           <table className="w-full table-fixed min-w-[1000px]">
             <thead>

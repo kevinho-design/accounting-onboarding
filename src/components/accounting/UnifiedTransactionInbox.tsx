@@ -96,7 +96,7 @@ interface LedgerRow {
 }
 
 const SOURCE_CONFIG: Record<TransactionSource, { label: string; Icon: React.ComponentType<{ className?: string }>; color: string; bg: string }> = {
-  bank_feed: { label: "Bank feed", Icon: Landmark, color: "#1D4ED8", bg: "#EFF6FF" },
+  bank_feed: { label: "Bank feed", Icon: Landmark, color: "#0070E0", bg: "color-mix(in srgb, #A3DCFF 28%, #ffffff)" },
   manage:    { label: "Manage",    Icon: Briefcase, color: "#6D28D9", bg: "#F5F3FF" },
   adp:       { label: "ADP",       Icon: Users,     color: "#065F46", bg: "#ECFDF5" },
   email:     { label: "Email",     Icon: Mail,      color: "#9A3412", bg: "#FFF7ED" },
@@ -429,7 +429,7 @@ export const AI_PROCESSED = ledgerData.filter(r => !r.flag && r.date.startsWith(
 
 const severityConfig: Record<Severity, { bg: string; text: string; icon: React.ComponentType<{ className?: string }>; label: string; dot: string }> = {
   critical: { bg: "bg-red-50", text: "text-red-600", icon: AlertTriangle, label: "Critical", dot: "#EF4444" },
-  bulk: { bg: "bg-gray-100", text: "text-gray-600", icon: Layers, label: "Bulk Admin", dot: "#9CA3AF" },
+  bulk: { bg: "bg-muted", text: "text-muted-foreground", icon: Layers, label: "Bulk Admin", dot: "#9CA3AF" },
   ambiguity: { bg: "bg-amber-50", text: "text-amber-600", icon: HelpCircle, label: "Ambiguity", dot: "#F59E0B" },
 };
 
@@ -470,11 +470,11 @@ function HeaderBar({ flaggedCount = 0, onOpenTeammate }: {
   return (
     <div
       className="flex items-center justify-between px-8 pt-8 pb-6 flex-shrink-0"
-      style={{ backgroundColor: "#F9FAFB" }}
+      style={{ backgroundColor: "#F7F5F5" }}
     >
       <div className="flex flex-col">
-        <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-        <p className="text-gray-600 mt-1">Track, review, and reconcile your firm's financial activity</p>
+        <h1 className="text-3xl font-bold text-foreground">Transactions</h1>
+        <p className="text-muted-foreground mt-1">Track, review, and reconcile your firm's financial activity</p>
       </div>
     </div>
   );
@@ -487,12 +487,12 @@ function MetricPill({ icon, label, value, accent, warn }: {
     <div className="flex items-center gap-2">
       <div className={cn(
         "w-6 h-6 rounded-md flex items-center justify-center",
-        accent ? "text-blue-600" : warn ? "text-amber-500" : "text-gray-400"
-      )} style={{ backgroundColor: accent ? "#EFF6FF" : warn ? "#FFFBEB" : "#F8FAFC" }}>
+        accent ? "text-[#0070E0]" : warn ? "text-amber-500" : "text-muted-foreground/60"
+      )} style={{ backgroundColor: accent ? "color-mix(in srgb, #A3DCFF 28%, #ffffff)" : warn ? "#FFFBEB" : "#F7F5F5" }}>
         {icon}
       </div>
       <div className="flex items-baseline gap-1.5">
-        <span className="text-[13px]" style={{ fontWeight: 600, color: "#0F172A", fontFeatureSettings: "'tnum'" }}>{value}</span>
+        <span className="text-[13px]" style={{ fontWeight: 600, color: "#17181C", fontFeatureSettings: "'tnum'" }}>{value}</span>
         <span className="text-[10px]" style={{ color: "#94A3B8", fontWeight: 500 }}>{label}</span>
       </div>
     </div>
@@ -516,7 +516,7 @@ function ActionQueue({ items, selectedId, onSelect }: {
       {/* Queue Header */}
       <div className="px-5 pt-5 pb-3 flex-shrink-0">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-[13px]" style={{ fontWeight: 600, color: "#0F172A" }}>Action Queue</h2>
+          <h2 className="text-[13px]" style={{ fontWeight: 600, color: "#17181C" }}>Action Queue</h2>
           <span
             className="text-[10px] px-2 py-0.5 rounded-full"
             style={{ backgroundColor: "#F1F5F9", color: "#64748B", fontWeight: 500, fontFeatureSettings: "'tnum'" }}
@@ -568,13 +568,13 @@ function ActionQueue({ items, selectedId, onSelect }: {
                     <span className="text-[9px]" style={{ color: "#CBD5E1" }}>·</span>
                     <span className="text-[9px]" style={{ color: "#CBD5E1" }}>{item.timestamp}</span>
                   </div>
-                  <p className="text-[12px] truncate" style={{ fontWeight: 500, color: "#0F172A" }}>{item.title}</p>
+                  <p className="text-[12px] truncate" style={{ fontWeight: 500, color: "#17181C" }}>{item.title}</p>
                   <p className="text-[11px] mt-0.5 line-clamp-1" style={{ color: "#94A3B8" }}>{item.subtitle}</p>
 
                   {/* Amount + Bulk CTA */}
                   <div className="flex items-center gap-2 mt-2">
                     {item.amount && (
-                      <span className="text-[12px]" style={{ fontWeight: 600, color: "#0F172A", fontFeatureSettings: "'tnum'" }}>{item.amount}</span>
+                      <span className="text-[12px]" style={{ fontWeight: 600, color: "#17181C", fontFeatureSettings: "'tnum'" }}>{item.amount}</span>
                     )}
                     {item.severity === "bulk" && (
                       <button
@@ -626,7 +626,7 @@ function EditableCell({ value, onChange }: { value: string; onChange: (v: string
         onBlur={commit}
         onKeyDown={(e) => { if (e.key === "Enter") commit(); if (e.key === "Escape") { setLocalVal(value); setEditing(false); } }}
         className="w-full rounded px-1.5 py-0.5 text-[14px] outline-none transition-all"
-        style={{ backgroundColor: "#EFF6FF", border: "1px solid #BFDBFE", color: "#0F172A" }}
+        style={{ backgroundColor: "color-mix(in srgb, #A3DCFF 28%, #ffffff)", border: "1px solid #BFDBFE", color: "#17181C" }}
       />
     );
   }
@@ -634,7 +634,7 @@ function EditableCell({ value, onChange }: { value: string; onChange: (v: string
   return (
     <span
       onClick={() => setEditing(true)}
-      className="cursor-pointer px-1.5 py-0.5 rounded transition-all inline-block hover:bg-gray-50 truncate max-w-full"
+      className="cursor-pointer px-1.5 py-0.5 rounded transition-all inline-block hover:bg-background truncate max-w-full"
       style={pulsing ? { animation: "tealPulse 1.1s ease-out forwards" } : undefined}
       title={value}
     >
@@ -714,11 +714,11 @@ function CategoryDropdown({ value, onChange }: { value: string; onChange: (v: st
               }
               setOpen(false);
             }}
-            className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-gray-50 transition-colors flex items-center gap-2"
-            style={{ color: isSelected ? "#0F172A" : "#64748B", fontWeight: isSelected ? 600 : 500 }}
+            className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-background transition-colors flex items-center gap-2"
+            style={{ color: isSelected ? "#17181C" : "#64748B", fontWeight: isSelected ? 600 : 500 }}
           >
             {cat}
-            {isSelected && <CheckCircle2 className="w-3 h-3 ml-auto" style={{ color: "#3B82F6" }} />}
+            {isSelected && <CheckCircle2 className="w-3 h-3 ml-auto" style={{ color: "#0070E0" }} />}
           </button>
         );
       })}
@@ -731,10 +731,10 @@ function CategoryDropdown({ value, onChange }: { value: string; onChange: (v: st
       <span
         ref={triggerRef}
         onClick={openMenu}
-        className="cursor-pointer px-1.5 py-0.5 rounded transition-all inline-flex items-center whitespace-nowrap hover:bg-gray-50"
+        className="cursor-pointer px-1.5 py-0.5 rounded transition-all inline-flex items-center whitespace-nowrap hover:bg-background"
         style={pulsing ? { animation: "tealPulse 1.1s ease-out forwards" } : undefined}
       >
-        <span className="text-[14px]" style={{ color: "#0F172A" }}>{value}</span>
+        <span className="text-[14px]" style={{ color: "#17181C" }}>{value}</span>
         <ChevronDown className="w-3 h-3 ml-0.5 flex-shrink-0" style={{ color: "#94A3B8" }} />
       </span>
       {menu}
@@ -763,7 +763,7 @@ function EvidenceTooltip({ rationale, confidence, children }: { rationale: strin
         transform: "translateY(-100%)",
         width: 280,
         zIndex: 9999,
-        backgroundColor: "#0F172A",
+        backgroundColor: "#17181C",
         borderRadius: 12,
         padding: "10px 12px",
         boxShadow: "0 20px 25px -5px rgba(0,0,0,0.25), 0 8px 10px -6px rgba(0,0,0,0.15)",
@@ -852,7 +852,7 @@ function ReconciliationReadinessBar({
   }, [pct]);
 
   return (
-    <div className="px-6 py-3 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: "#F9FAFB" }}>
+    <div className="px-6 py-3 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: "#F7F5F5" }}>
       <div
         className="rounded-xl"
         style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", backgroundColor: "#FFFFFF", overflow: "hidden" }}
@@ -862,7 +862,7 @@ function ReconciliationReadinessBar({
           <div className="flex items-start justify-between mb-3">
             <div>
               <p className="text-[11px] uppercase tracking-widest" style={{ color: "#94A3B8", fontWeight: 600 }}>{monthMeta.label}</p>
-              <p className="text-[13px] font-bold mt-0.5" style={{ color: "#0F172A" }}>Reconciliation Status</p>
+              <p className="text-[13px] font-bold mt-0.5" style={{ color: "#17181C" }}>Reconciliation Status</p>
             </div>
             <div className="flex items-center gap-3 flex-shrink-0">
               {isPastReconciled ? (
@@ -888,7 +888,7 @@ function ReconciliationReadinessBar({
                   <button
                     onClick={onCloseMonth}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90"
-                    style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", color: "#475569", fontWeight: 500 }}
+                    style={{ backgroundColor: "#F7F5F5", border: "1px solid #E2E8F0", color: "#475569", fontWeight: 500 }}
                   >
                     <FileText className="w-3.5 h-3.5" />
                     View reconciliation
@@ -917,7 +917,7 @@ function ReconciliationReadinessBar({
                   {celebrating && (
                     <>
                       {/* Rainbow glow rings expanding outward */}
-                      {["#EC4899", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6"].map((color, i) => (
+                      {["#EC4899", "#F59E0B", "#10B981", "#0070E0", "#8B5CF6"].map((color, i) => (
                         <motion.div
                           key={`ring-${i}`}
                           className="absolute rounded-full"
@@ -931,7 +931,7 @@ function ReconciliationReadinessBar({
                       {/* Sparkle particles */}
                       {[...Array(8)].map((_, i) => {
                         const angle = (i / 8) * Math.PI * 2;
-                        const colors = ["#EC4899", "#F59E0B", "#10B981", "#3B82F6", "#8B5CF6", "#EF4444", "#06B6D4", "#F97316"];
+                        const colors = ["#EC4899", "#F59E0B", "#10B981", "#0070E0", "#8B5CF6", "#EF4444", "#06B6D4", "#F97316"];
                         return (
                           <motion.div
                             key={`spark-${i}`}
@@ -951,7 +951,7 @@ function ReconciliationReadinessBar({
                 </AnimatePresence>
                 <motion.p
                   className="text-[28px] leading-none tabular-nums relative"
-                  style={{ fontWeight: 700, color: isReady ? "#16A34A" : "#0F172A", zIndex: 1 }}
+                  style={{ fontWeight: 700, color: isReady ? "#16A34A" : "#17181C", zIndex: 1 }}
                   animate={celebrating ? {
                     scale: [1, 1.5, 1.15, 1.3, 1.15],
                     textShadow: [
@@ -976,13 +976,13 @@ function ReconciliationReadinessBar({
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#10B981" }} />
               <span className="text-[11px]" style={{ color: "#475569" }}>
-                <span style={{ fontWeight: 600, color: "#0F172A" }}>{isFebPartial ? "311" : autoProcessed.toLocaleString()}</span> {isFebPartial ? "auto-matched" : "auto-processed"}
+                <span style={{ fontWeight: 600, color: "#17181C" }}>{isFebPartial ? "311" : autoProcessed.toLocaleString()}</span> {isFebPartial ? "auto-matched" : "auto-processed"}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: displayFlagged > 0 ? "#F59E0B" : "#10B981" }} />
               <span className="text-[11px]" style={{ color: "#475569" }}>
-                <span style={{ fontWeight: 600, color: "#0F172A" }}>{displayFlagged > 0 ? displayFlagged : "0"}</span>{" "}
+                <span style={{ fontWeight: 600, color: "#17181C" }}>{displayFlagged > 0 ? displayFlagged : "0"}</span>{" "}
                 {displayFlagged > 0 ? "needs review" : "all reviewed"}
               </span>
             </div>
@@ -992,7 +992,7 @@ function ReconciliationReadinessBar({
                 {isFebPartial ? (
                   <span style={{ fontWeight: 600, color: "#15803D" }}>Trust: reconciled</span>
                 ) : (
-                  <><span style={{ fontWeight: 600, color: "#0F172A" }}>
+                  <><span style={{ fontWeight: 600, color: "#17181C" }}>
                     {displayTrustAtRisk > 0 ? `${displayTrustAtRisk} at risk` : `${ioltaMatters} compliant`}
                   </span>{" "}IOLTA</>
                 )}
@@ -1051,26 +1051,26 @@ function SystemAlertBanner({
       className="flex items-start gap-3 p-4 rounded-xl bg-white"
       style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
     >
-      <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
         <AlertTriangle className="w-4 h-4" style={{ color: "#64748B" }} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-gray-900">{title}</p>
-        <p className="text-[12px] mt-0.5 text-gray-500">{subtitle}</p>
+        <p className="text-[13px] font-semibold text-foreground">{title}</p>
+        <p className="text-[12px] mt-0.5 text-muted-foreground">{subtitle}</p>
       </div>
       <div className="flex items-center gap-2 flex-shrink-0">
         <button
           onClick={onAction}
-          className="px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:opacity-90 bg-gray-900 text-white"
+          className="px-3.5 py-1.5 rounded-lg text-[12px] font-semibold transition-all hover:opacity-90 bg-foreground text-background"
         >
           {cta}
         </button>
         <button
           onClick={onDismiss}
-          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-gray-100"
+          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-muted"
           style={{ border: "1px solid #E2E8F0" }}
         >
-          <X className="w-3.5 h-3.5 text-gray-400" />
+          <X className="w-3.5 h-3.5 text-muted-foreground/60" />
         </button>
       </div>
     </div>
@@ -1098,12 +1098,12 @@ function CombinedAlertBanner({ alerts }: { alerts: AlertItem[] }) {
         className="flex items-start gap-3 p-4 rounded-xl bg-white"
         style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
       >
-        <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
           <AlertTriangle className="w-4 h-4" style={{ color: "#64748B" }} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-semibold text-gray-900">{a.title}</p>
-          <p className="text-[12px] mt-0.5 text-gray-500">{a.subtitle}</p>
+          <p className="text-[13px] font-semibold text-foreground">{a.title}</p>
+          <p className="text-[12px] mt-0.5 text-muted-foreground">{a.subtitle}</p>
         </div>
         <TrustAssignCTA onDismiss={a.onDismiss} />
       </div>
@@ -1132,7 +1132,7 @@ function CombinedAlertBanner({ alerts }: { alerts: AlertItem[] }) {
         </div>
         <button
           onClick={() => alerts.forEach(a => a.onDismiss())}
-          className="text-[11px] px-2 py-0.5 rounded transition-colors hover:bg-gray-100 text-gray-500 font-medium"
+          className="text-[11px] px-2 py-0.5 rounded transition-colors hover:bg-muted text-muted-foreground font-medium"
         >
           Dismiss all
         </button>
@@ -1144,26 +1144,26 @@ function CombinedAlertBanner({ alerts }: { alerts: AlertItem[] }) {
           const isBank = a.type === "bank_disconnect";
           return (
             <div key={a.type} className="flex items-center gap-3 px-4 py-2.5">
-              <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-                <AlertTriangle className="w-3.5 h-3.5 text-gray-500" />
+              <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[12px] font-semibold text-gray-900 truncate">{a.title}</p>
+                <p className="text-[12px] font-semibold text-foreground truncate">{a.title}</p>
               </div>
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 {isBank ? (
                   <>
                     <button
                       onClick={a.onAction}
-                      className="px-3 py-1 rounded-lg text-[11px] font-semibold transition-all hover:opacity-90 bg-gray-900 text-white"
+                      className="px-3 py-1 rounded-lg text-[11px] font-semibold transition-all hover:opacity-90 bg-foreground text-background"
                     >
                       {a.cta}
                     </button>
                     <button
                       onClick={a.onDismiss}
-                      className="w-6 h-6 rounded-lg flex items-center justify-center transition-colors hover:bg-gray-100"
+                      className="w-6 h-6 rounded-lg flex items-center justify-center transition-colors hover:bg-muted"
                     >
-                      <X className="w-3 h-3 text-gray-400" />
+                      <X className="w-3 h-3 text-muted-foreground/60" />
                     </button>
                   </>
                 ) : (
@@ -1276,7 +1276,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   }, [filteredLedger.length]);
 
   return (
-    <div className="flex flex-col h-full overflow-hidden relative" style={{ backgroundColor: "#F9FAFB" }}>
+    <div className="flex flex-col h-full overflow-hidden relative" style={{ backgroundColor: "#F7F5F5" }}>
 
       {/* System Alert Banner */}
       {showBankAlert && (
@@ -1338,7 +1338,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
               className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] transition-all"
               style={{
                 fontWeight: isActive ? 600 : 400,
-                color: isActive ? (isProcessed ? "#166534" : "#0F172A") : "#64748B",
+                color: isActive ? (isProcessed ? "#166534" : "#17181C") : "#64748B",
                 backgroundColor: isActive ? (isProcessed ? "#DCFCE7" : "#F1F5F9") : "transparent",
                 border: isActive ? `1px solid ${isProcessed ? "#86EFAC" : "#CBD5E1"}` : "1px solid transparent",
               }}
@@ -1368,7 +1368,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
             value={accountFilter}
             onChange={(e) => setAccountFilter(e.target.value)}
             className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
-            style={{ border: "1px solid #E2E8F0", color: accountFilter === "all" ? "#64748B" : "#0F172A", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+            style={{ border: "1px solid #E2E8F0", color: accountFilter === "all" ? "#64748B" : "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
           >
             {BANK_ACCOUNTS.map((ba) => (
               <option key={ba.key} value={ba.key}>{ba.label}</option>
@@ -1378,7 +1378,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
             className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
-            style={{ border: "1px solid #E2E8F0", color: "#0F172A", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+            style={{ border: "1px solid #E2E8F0", color: "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
           >
             {RECON_MONTH_DATA.map((m) => (
               <option key={m.key} value={m.key}>{m.label}</option>
@@ -1442,8 +1442,8 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                   BadgeIcon = CheckCircle2;
                 } else {
                   intelligenceLabel = "Categorized";
-                  badgeColor = "#1D4ED8";
-                  badgeBg = "#EFF6FF";
+                  badgeColor = "#0070E0";
+                  badgeBg = "color-mix(in srgb, #A3DCFF 28%, #ffffff)";
                   BadgeIcon = Sparkles;
                 }
 
@@ -1454,7 +1454,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                     onClick={() => setViewingRowId(row.id)}
                     className="transition-colors group cursor-pointer"
                     style={{
-                      borderBottom: "1px solid #F8FAFC",
+                      borderBottom: "1px solid #F7F5F5",
                       ...(row.flag ? {
                         borderLeft: "3px solid #F59E0B",
                       } : {}),
@@ -1492,7 +1492,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                       )}
                     </td>
 
-                    <td className="px-3 py-2.5 text-[14px]" style={{ color: "#0F172A", fontWeight: 500 }}>
+                    <td className="px-3 py-2.5 text-[14px]" style={{ color: "#17181C", fontWeight: 500 }}>
                       <div className="flex items-center gap-1.5 min-w-0">
                         <div
                           className="w-[4px] h-[4px] rounded-full flex-shrink-0"
@@ -1510,7 +1510,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                       <EditableCell value={row.matter} onChange={(v) => updateField(row.id, "matter", v)} />
                     </td>
 
-                    <td className="px-3 py-2.5 text-[14px] text-right" style={{ fontWeight: 600, fontFeatureSettings: "'tnum'", color: row.amount >= 0 ? "#16A34A" : "#0F172A" }}>
+                    <td className="px-3 py-2.5 text-[14px] text-right" style={{ fontWeight: 600, fontFeatureSettings: "'tnum'", color: row.amount >= 0 ? "#16A34A" : "#17181C" }}>
                       {row.amount >= 0 ? "+" : ""}${Math.abs(row.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                     </td>
 
@@ -1672,7 +1672,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
     { id: "marcus",   name: "Marcus Webb",    role: "Equity Partner",   dept: "Partners",   initials: "MW", color: "#F59E0B" },
     // Associates
     { id: "priya",    name: "Priya Sharma",   role: "Senior Associate", dept: "Associates", initials: "PS", color: "#10B981" },
-    { id: "tom",      name: "Tom Reeves",     role: "Associate",        dept: "Associates", initials: "TR", color: "#3B82F6" },
+    { id: "tom",      name: "Tom Reeves",     role: "Associate",        dept: "Associates", initials: "TR", color: "#0070E0" },
     { id: "ana",      name: "Ana Flores",     role: "Associate",        dept: "Associates", initials: "AF", color: "#F97316" },
     { id: "michael",  name: "Michael Torres", role: "Associate",        dept: "Associates", initials: "MT", color: "#06B6D4" },
     { id: "sophia",   name: "Sophia Nguyen",  role: "Junior Associate", dept: "Associates", initials: "SN", color: "#A855F7" },
@@ -1714,7 +1714,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
     if (!row) return [];
     return [
       { time: "10:00 AM", event: `Transaction synced from Bank Feed (${row.method})`, agent: "Plaid", icon: RefreshCcw, color: "#64748B" },
-      { time: "10:01 AM", event: `Auto-matched to ${row.category === "Trust Deposit" ? "Trust Request #108" : row.category === "Client Payment" ? "Invoice #2024-0892" : "vendor pattern"} by Agent v3.1`, agent: "Teammate", icon: Sparkles, color: "#3B82F6" },
+      { time: "10:01 AM", event: `Auto-matched to ${row.category === "Trust Deposit" ? "Trust Request #108" : row.category === "Client Payment" ? "Invoice #2024-0892" : "vendor pattern"} by Agent v3.1`, agent: "Teammate", icon: Sparkles, color: "#0070E0" },
       { time: "10:05 AM", event: "Verified by David Thompson (Human)", agent: "Human", icon: CheckCheck, color: "#16A34A" },
     ];
   }, [row]);
@@ -1745,16 +1745,16 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
             <div className="px-6 pt-5 pb-4 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9" }}>
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <p className="text-[24px]" style={{ fontWeight: 700, color: "#0F172A", fontFeatureSettings: "'tnum'", lineHeight: 1.2 }}>
+                  <p className="text-[24px]" style={{ fontWeight: 700, color: "#17181C", fontFeatureSettings: "'tnum'", lineHeight: 1.2 }}>
                     {row.amount >= 0 ? "+" : ""}${Math.abs(row.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </p>
                   <div className="flex items-center gap-3 mt-1.5">
                     <span className="text-[14px]" style={{ color: "#64748B" }}>{row.date}, 2026</span>
                     <span style={{ color: "#E2E8F0" }}>|</span>
-                    <span className="text-[14px]" style={{ color: "#64748B" }}>{row.amount >= 0 ? "From" : "To"}: <span style={{ color: "#0F172A", fontWeight: 500 }}>{row.payee}</span></span>
+                    <span className="text-[14px]" style={{ color: "#64748B" }}>{row.amount >= 0 ? "From" : "To"}: <span style={{ color: "#17181C", fontWeight: 500 }}>{row.payee}</span></span>
                   </div>
                 </div>
-                <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-gray-100 flex-shrink-0">
+                <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors hover:bg-muted flex-shrink-0">
                   <X className="w-4 h-4" style={{ color: "#94A3B8" }} />
                 </button>
               </div>
@@ -1777,7 +1777,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                 {(["details", "audit"] as const).map((tab) => (
                   <button key={tab} onClick={() => setActiveTab(tab)}
                     className={cn("flex-1 py-2 rounded-md text-[14px] transition-all", activeTab === tab ? "bg-white" : "")}
-                    style={{ fontWeight: activeTab === tab ? 600 : 400, color: activeTab === tab ? "#0F172A" : "#94A3B8", ...(activeTab === tab ? { boxShadow: "0 1px 3px rgba(0,0,0,0.06)" } : {}) }}
+                    style={{ fontWeight: activeTab === tab ? 600 : 400, color: activeTab === tab ? "#17181C" : "#94A3B8", ...(activeTab === tab ? { boxShadow: "0 1px 3px rgba(0,0,0,0.06)" } : {}) }}
                   >{tab === "details" ? "Details" : "Audit Log"}</button>
                 ))}
               </div>
@@ -1792,7 +1792,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                     <div
                       className="rounded-xl p-4 space-y-3"
                       style={{
-                        backgroundColor: "#F8FAFC",
+                        backgroundColor: "#F7F5F5",
                         border: "1px solid #E2E8F0",
                         borderLeft: "4px solid #94A3B8",
                       }}
@@ -1800,7 +1800,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                       <div className="flex items-start gap-2">
                         <CircleAlert className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: "#64748B" }} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-[13px] font-semibold" style={{ color: "#0F172A" }}>{row.flag.title}</p>
+                          <p className="text-[13px] font-semibold" style={{ color: "#17181C" }}>{row.flag.title}</p>
                           <p className="text-[13px] mt-1 leading-relaxed" style={{ color: "#475569" }}>{row.flag.evidenceRationale}</p>
                         </div>
                       </div>
@@ -1809,7 +1809,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                           <button
                             onClick={() => { onFlagResolved?.(row.id); onClose(); }}
                             className="px-3 py-1.5 rounded-lg text-[13px] text-white transition hover:opacity-90"
-                            style={{ backgroundColor: "#0F172A" }}
+                            style={{ backgroundColor: "#17181C" }}
                           >
                             {cardTypeConfig[row.flag.type].viewCTA}
                           </button>
@@ -1841,7 +1841,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                               <button
                                 onClick={() => setAssignOpen(o => !o)}
                                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] transition hover:bg-slate-50"
-                                style={{ border: "1px solid #E2E8F0", color: selectedMember ? "#0F172A" : "#64748B", backgroundColor: "#FFFFFF" }}
+                                style={{ border: "1px solid #E2E8F0", color: selectedMember ? "#17181C" : "#64748B", backgroundColor: "#FFFFFF" }}
                               >
                                 {selectedMember ? (
                                   <MemberAvatar member={selectedMember} size={20} />
@@ -1862,7 +1862,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                                   >
                                     {/* Search input */}
                                     <div className="px-2.5 pt-2.5 pb-2" style={{ borderBottom: "1px solid #F1F5F9" }}>
-                                      <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}>
+                                      <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: "#F7F5F5", border: "1px solid #E2E8F0" }}>
                                         <Search className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#94A3B8" }} />
                                         <input
                                           ref={assignSearchRef}
@@ -1870,7 +1870,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                                           onChange={e => setAssignSearch(e.target.value)}
                                           placeholder="Search people…"
                                           className="flex-1 bg-transparent outline-none text-[13px]"
-                                          style={{ color: "#0F172A" }}
+                                          style={{ color: "#17181C" }}
                                         />
                                       </div>
                                     </div>
@@ -1883,16 +1883,16 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                                           key={m.id}
                                           onClick={() => { setAssignee(m.id); setAssignOpen(false); }}
                                           className="w-full text-left px-3 py-2 flex items-center gap-2.5 transition-colors"
-                                          style={{ backgroundColor: assignee === m.id ? "#EFF6FF" : "transparent" }}
-                                          onMouseEnter={e => { if (assignee !== m.id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#F8FAFC"; }}
-                                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = assignee === m.id ? "#EFF6FF" : "transparent"; }}
+                                          style={{ backgroundColor: assignee === m.id ? "color-mix(in srgb, #A3DCFF 28%, #ffffff)" : "transparent" }}
+                                          onMouseEnter={e => { if (assignee !== m.id) (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#F7F5F5"; }}
+                                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = assignee === m.id ? "color-mix(in srgb, #A3DCFF 28%, #ffffff)" : "transparent"; }}
                                         >
                                           <MemberAvatar member={m} size={32} />
                                           <div className="flex-1 min-w-0">
-                                            <p className="text-[13px] truncate" style={{ fontWeight: assignee === m.id ? 600 : 500, color: "#0F172A" }}>{m.name}</p>
+                                            <p className="text-[13px] truncate" style={{ fontWeight: assignee === m.id ? 600 : 500, color: "#17181C" }}>{m.name}</p>
                                             <p className="text-[11px] truncate" style={{ color: "#94A3B8" }}>{m.role} · {m.dept}</p>
                                           </div>
-                                          {assignee === m.id && <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#3B82F6" }} />}
+                                          {assignee === m.id && <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#0070E0" }} />}
                                         </button>
                                       ))}
                                     </div>
@@ -1914,7 +1914,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                   )}
                   <div>
                     <AiFieldLabel>Bank Metadata</AiFieldLabel>
-                    <div className="mt-2 rounded-xl p-4 space-y-3" style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}>
+                    <div className="mt-2 rounded-xl p-4 space-y-3" style={{ backgroundColor: "#F7F5F5", border: "1px solid #F1F5F9" }}>
                       {[
                         { label: "Bank Account", value: bankAccounts[row.method] || "Chase ··4892" },
                         { label: "Bank Description", value: `DEPOSIT ${row.payee.split(" ").pop()?.toUpperCase()} ${row.date.replace("Mar ", "03")}26`, mono: true },
@@ -1922,7 +1922,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                       ].map((item) => (
                         <div key={item.label} className="flex items-center justify-between">
                           <span className="text-[13px]" style={{ color: "#94A3B8", fontWeight: 500 }}>{item.label}</span>
-                          <span className={cn("text-[14px]", item.mono && "font-mono")} style={{ color: item.accent ? "#16A34A" : "#0F172A", fontWeight: 500 }}>
+                          <span className={cn("text-[14px]", item.mono && "font-mono")} style={{ color: item.accent ? "#16A34A" : "#17181C", fontWeight: 500 }}>
                             {item.accent && <span className="inline-block w-[6px] h-[6px] rounded-full mr-1.5" style={{ backgroundColor: "#4ADE80", verticalAlign: "middle" }} />}
                             {item.value}
                           </span>
@@ -1933,7 +1933,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
 
                   <div>
                     <AiFieldLabel>Why this was matched</AiFieldLabel>
-                    <div className="mt-2 rounded-xl p-4" style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}>
+                    <div className="mt-2 rounded-xl p-4" style={{ backgroundColor: "#F7F5F5", border: "1px solid #F1F5F9" }}>
                       <p className="text-[13px] leading-relaxed" style={{ color: "#475569" }}>{row.agentRationale}</p>
                     </div>
                   </div>
@@ -1943,17 +1943,17 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                       <AiFieldLabel>Linked Clio Record</AiFieldLabel>
                       <div className="mt-2 rounded-xl p-4" style={{ border: "1px solid #E2E8F0", backgroundColor: "#FFFFFF", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
                         <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(145deg, #EFF6FF, #DBEAFE)" }}>
-                            <Link2 className="w-4 h-4" style={{ color: "#3B82F6" }} />
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "linear-gradient(145deg, color-mix(in srgb, #A3DCFF 28%, #ffffff), #DBEAFE)" }}>
+                            <Link2 className="w-4 h-4" style={{ color: "#0070E0" }} />
                           </div>
                           <div className="flex-1">
                             <p className="text-[12px]" style={{ color: "#94A3B8", fontWeight: 500 }}>{linkedRecord.type}</p>
-                            <p className="text-[15px] mt-0.5" style={{ color: "#0F172A", fontWeight: 600 }}>{linkedRecord.label}</p>
+                            <p className="text-[15px] mt-0.5" style={{ color: "#17181C", fontWeight: 600 }}>{linkedRecord.label}</p>
                             <p className="text-[14px] mt-0.5" style={{ color: "#64748B", fontFeatureSettings: "'tnum'" }}>{linkedRecord.ref} · ${Math.abs(row.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}</p>
                           </div>
                           <ExternalLink className="w-4 h-4 flex-shrink-0 mt-1" style={{ color: "#CBD5E1" }} />
                         </div>
-                        <button className="mt-3 text-[13px] flex items-center gap-1.5 transition-colors hover:text-blue-700" style={{ color: "#3B82F6", fontWeight: 500 }}>
+                        <button className="mt-3 text-[13px] flex items-center gap-1.5 transition-colors hover:text-blue-700" style={{ color: "#0070E0", fontWeight: 500 }}>
                           <ArrowRightLeft className="w-3.5 h-3.5" /> Change Match
                         </button>
                       </div>
@@ -1969,14 +1969,14 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                             <User className="w-3.5 h-3.5" style={{ color: "#94A3B8" }} />
                             <span className="text-[12px]" style={{ color: "#94A3B8", fontWeight: 500 }}>Client</span>
                           </div>
-                          <p className="text-[14px]" style={{ color: "#0F172A", fontWeight: 500 }}>{row.client}</p>
+                          <p className="text-[14px]" style={{ color: "#17181C", fontWeight: 500 }}>{row.client}</p>
                         </div>
                         <div className="flex-1 p-4">
                           <div className="flex items-center gap-1.5 mb-1">
                             <Briefcase className="w-3.5 h-3.5" style={{ color: "#94A3B8" }} />
                             <span className="text-[12px]" style={{ color: "#94A3B8", fontWeight: 500 }}>Matter</span>
                           </div>
-                          <p className="text-[14px]" style={{ color: "#0F172A", fontWeight: 500 }}>{row.matter}</p>
+                          <p className="text-[14px]" style={{ color: "#17181C", fontWeight: 500 }}>{row.matter}</p>
                         </div>
                       </div>
                     </div>
@@ -1992,7 +1992,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                           style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
                         >
                           {/* PDF toolbar mock */}
-                          <div className="flex items-center gap-2 px-3 py-2" style={{ backgroundColor: "#F8FAFC", borderBottom: "1px solid #F1F5F9" }}>
+                          <div className="flex items-center gap-2 px-3 py-2" style={{ backgroundColor: "#F7F5F5", borderBottom: "1px solid #F1F5F9" }}>
                             <FileText className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#DC2626" }} />
                             <span className="text-[12px] flex-1 truncate" style={{ color: "#64748B", fontWeight: 500 }}>
                               ABC_Depositions_Invoice_{row.date.replace(" ", "_")}_2026.pdf
@@ -2004,7 +2004,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                           <div className="bg-white px-5 py-4 space-y-3" style={{ fontFamily: "serif" }}>
                             <div className="flex items-start justify-between">
                               <div>
-                                <p className="text-[15px]" style={{ fontWeight: 700, color: "#0F172A" }}>ABC Depositions Inc.</p>
+                                <p className="text-[15px]" style={{ fontWeight: 700, color: "#17181C" }}>ABC Depositions Inc.</p>
                                 <p className="text-[11px] mt-0.5" style={{ color: "#64748B" }}>1420 Harbor Blvd, Suite 300 · San Francisco, CA 94107</p>
                                 <p className="text-[11px]" style={{ color: "#64748B" }}>Tel: (415) 555-0182 · tax@abcdepositions.com</p>
                               </div>
@@ -2015,9 +2015,9 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                               </div>
                             </div>
 
-                            <div className="rounded-lg px-3 py-2" style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}>
+                            <div className="rounded-lg px-3 py-2" style={{ backgroundColor: "#F7F5F5", border: "1px solid #F1F5F9" }}>
                               <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: "#94A3B8", fontWeight: 600 }}>Bill To</p>
-                              <p className="text-[12px]" style={{ color: "#0F172A", fontWeight: 600 }}>Morrison & Hart LLP</p>
+                              <p className="text-[12px]" style={{ color: "#17181C", fontWeight: 600 }}>Morrison & Hart LLP</p>
                               <p className="text-[11px]" style={{ color: "#64748B" }}>Re: {row.matter} — {row.client}</p>
                             </div>
 
@@ -2035,18 +2035,18 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                                   { desc: "Transcript & Certified Copy", qty: "1",      unit: "$250.00", total: "$250.00" },
                                   { desc: "Exhibit Handling & Binding",  qty: "1",      unit: "$100.00", total: "$100.00" },
                                 ].map((item, i) => (
-                                  <tr key={i} style={{ borderBottom: "1px solid #F8FAFC" }}>
+                                  <tr key={i} style={{ borderBottom: "1px solid #F7F5F5" }}>
                                     <td className="py-1.5 pr-2" style={{ color: "#475569" }}>{item.desc}</td>
                                     <td className="py-1.5 pr-2" style={{ color: "#64748B" }}>{item.qty}</td>
                                     <td className="py-1.5 pr-2" style={{ color: "#64748B" }}>{item.unit}</td>
-                                    <td className="py-1.5 text-right" style={{ color: "#0F172A", fontWeight: 600 }}>{item.total}</td>
+                                    <td className="py-1.5 text-right" style={{ color: "#17181C", fontWeight: 600 }}>{item.total}</td>
                                   </tr>
                                 ))}
                               </tbody>
                               <tfoot>
                                 <tr style={{ borderTop: "1px solid #E2E8F0" }}>
                                   <td colSpan={3} className="pt-2 text-right pr-2" style={{ color: "#64748B", fontFamily: "sans-serif" }}>Total Due</td>
-                                  <td className="pt-2 text-right" style={{ color: "#0F172A", fontWeight: 700, fontSize: 13 }}>$1,250.00</td>
+                                  <td className="pt-2 text-right" style={{ color: "#17181C", fontWeight: 700, fontSize: 13 }}>$1,250.00</td>
                                 </tr>
                               </tfoot>
                             </table>
@@ -2060,11 +2060,11 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                           /* ── APPROVED STATE (billed rows: hc1–hc4, l19, l20) ── */
                           <div
                             className="mt-2 rounded-xl p-4 space-y-3"
-                            style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}
+                            style={{ backgroundColor: "#F7F5F5", border: "1px solid #E2E8F0" }}
                           >
                             <div className="flex items-center gap-2">
                               <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#16A34A" }} />
-                              <p className="text-[13px]" style={{ fontWeight: 600, color: "#0F172A" }}>Approved by billing manager</p>
+                              <p className="text-[13px]" style={{ fontWeight: 600, color: "#17181C" }}>Approved by billing manager</p>
                             </div>
 
                             <div
@@ -2073,12 +2073,12 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                             >
                               <div
                                 className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] flex-shrink-0"
-                                style={{ background: "linear-gradient(135deg, #3B82F6, #6366F1)", color: "#FFFFFF", fontWeight: 700 }}
+                                style={{ background: "linear-gradient(135deg, #0070E0, #6366F1)", color: "#FFFFFF", fontWeight: 700 }}
                               >
                                 SM
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[13px]" style={{ fontWeight: 600, color: "#0F172A" }}>Sarah Martinez</p>
+                                <p className="text-[13px]" style={{ fontWeight: 600, color: "#17181C" }}>Sarah Martinez</p>
                                 <p className="text-[11px]" style={{ color: "#94A3B8" }}>
                                   Billing Manager · Approved {row.billedDate ?? "Mar 2026"}
                                 </p>
@@ -2104,7 +2104,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
 
                             <p className="text-[12px] leading-relaxed" style={{ color: "#64748B" }}>
                               ${Math.abs(row.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })} has been added to{" "}
-                              <span style={{ fontWeight: 600, color: "#0F172A" }}>{row.client} — {row.matter}</span>{" "}
+                              <span style={{ fontWeight: 600, color: "#17181C" }}>{row.client} — {row.matter}</span>{" "}
                               as a hard cost line item.
                             </p>
                           </div>
@@ -2112,11 +2112,11 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                           /* ── NOTIFIED STATE (l17 after user confirms) ── */
                           <div
                             className="mt-2 rounded-xl p-4 space-y-3"
-                            style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}
+                            style={{ backgroundColor: "#F7F5F5", border: "1px solid #E2E8F0" }}
                           >
                             <div className="flex items-center gap-2">
                               <Zap className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#0D9488" }} />
-                              <p className="text-[13px]" style={{ fontWeight: 600, color: "#0F172A" }}>Billing manager notified</p>
+                              <p className="text-[13px]" style={{ fontWeight: 600, color: "#17181C" }}>Billing manager notified</p>
                             </div>
 
                             <div
@@ -2125,12 +2125,12 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                             >
                               <div
                                 className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] flex-shrink-0"
-                                style={{ background: "linear-gradient(135deg, #3B82F6, #6366F1)", color: "#FFFFFF", fontWeight: 700 }}
+                                style={{ background: "linear-gradient(135deg, #0070E0, #6366F1)", color: "#FFFFFF", fontWeight: 700 }}
                               >
                                 SM
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-[13px]" style={{ fontWeight: 600, color: "#0F172A" }}>Sarah Martinez</p>
+                                <p className="text-[13px]" style={{ fontWeight: 600, color: "#17181C" }}>Sarah Martinez</p>
                                 <p className="text-[11px]" style={{ color: "#94A3B8" }}>Billing Manager · Notified today · Awaiting approval</p>
                               </div>
                               <span
@@ -2144,7 +2144,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
 
                             <p className="text-[12px] leading-relaxed" style={{ color: "#64748B" }}>
                               ${Math.abs(row.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })} will be added to{" "}
-                              <span style={{ fontWeight: 600, color: "#0F172A" }}>{row.client} — {row.matter}</span>{" "}
+                              <span style={{ fontWeight: 600, color: "#17181C" }}>{row.client} — {row.matter}</span>{" "}
                               as a hard cost line item once Sarah approves.
                             </p>
                           </div>
@@ -2152,19 +2152,19 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                           /* ── PENDING STATE (l17 — flagged, awaiting confirmation) ── */
                           <div
                             className="mt-2 rounded-xl p-4 space-y-2.5"
-                            style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}
+                            style={{ backgroundColor: "#F7F5F5", border: "1px solid #E2E8F0" }}
                           >
                             <div className="flex items-center gap-2">
                               <Zap className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#0D9488" }} />
-                              <p className="text-[13px]" style={{ fontWeight: 600, color: "#0F172A" }}>Auto-forwarded on confirmation</p>
+                              <p className="text-[13px]" style={{ fontWeight: 600, color: "#17181C" }}>Auto-forwarded on confirmation</p>
                             </div>
                             <p className="text-[12px] leading-relaxed" style={{ color: "#64748B" }}>
                               Once you confirm this hard cost above, it will be automatically forwarded to{" "}
-                              <span style={{ fontWeight: 600, color: "#0F172A" }}>Sarah Martinez</span> (Billing Manager) for approval.
+                              <span style={{ fontWeight: 600, color: "#17181C" }}>Sarah Martinez</span> (Billing Manager) for approval.
                               The{" "}
-                              <span style={{ fontWeight: 600, color: "#0F172A" }}>${Math.abs(row.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>{" "}
+                              <span style={{ fontWeight: 600, color: "#17181C" }}>${Math.abs(row.amount).toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>{" "}
                               charge will then be added to{" "}
-                              <span style={{ fontWeight: 600, color: "#0F172A" }}>{row.client} — {row.matter}</span>{" "}
+                              <span style={{ fontWeight: 600, color: "#17181C" }}>{row.client} — {row.matter}</span>{" "}
                               as a billable line item. No further action is required from you.
                             </p>
                           </div>
@@ -2175,9 +2175,9 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
 
                   <div>
                     <AiFieldLabel>Accounting Category</AiFieldLabel>
-                    <div className="mt-2 rounded-xl p-4 flex items-center justify-between" style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}>
+                    <div className="mt-2 rounded-xl p-4 flex items-center justify-between" style={{ backgroundColor: "#F7F5F5", border: "1px solid #F1F5F9" }}>
                       <div className="flex items-center gap-2">
-                        <span className="text-[14px]" style={{ color: "#0F172A", fontWeight: 500 }}>{row.category}</span>
+                        <span className="text-[14px]" style={{ color: "#17181C", fontWeight: 500 }}>{row.category}</span>
                         <Sparkles className="w-3 h-3" style={{ color: "#2DD4BF" }} />
                       </div>
                       <div className="relative group">
@@ -2185,9 +2185,9 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                           <Lock className="w-3 h-3" style={{ color: "#94A3B8" }} />
                           <span className="text-[12px]" style={{ color: "#94A3B8", fontWeight: 500 }}>Locked</span>
                         </div>
-                        <div className="absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap" style={{ backgroundColor: "#0F172A", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
-                          <span className="text-[12px] text-gray-300">Locked to source record</span>
-                          <div className="absolute bottom-0 right-4 translate-y-1/2 rotate-45 w-2 h-2" style={{ backgroundColor: "#0F172A" }} />
+                        <div className="absolute bottom-full right-0 mb-2 px-3 py-2 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10 whitespace-nowrap" style={{ backgroundColor: "#17181C", boxShadow: "0 4px 12px rgba(0,0,0,0.15)" }}>
+                          <span className="text-[12px] text-foreground/30">Locked to source record</span>
+                          <div className="absolute bottom-0 right-4 translate-y-1/2 rotate-45 w-2 h-2" style={{ backgroundColor: "#17181C" }} />
                         </div>
                       </div>
                     </div>
@@ -2211,7 +2211,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                                 <span className="text-[13px]" style={{ color: "#94A3B8", fontWeight: 500, fontFeatureSettings: "'tnum'" }}>{entry.time}</span>
                                 <span className="text-[12px] px-2 py-[1px] rounded-md" style={{ backgroundColor: "#F1F5F9", color: "#64748B", fontWeight: 500 }}>{entry.agent}</span>
                               </div>
-                              <p className="text-[14px] leading-relaxed" style={{ color: "#0F172A" }}>{entry.event}</p>
+                              <p className="text-[14px] leading-relaxed" style={{ color: "#17181C" }}>{entry.event}</p>
                             </div>
                           </div>
                         );
@@ -2232,16 +2232,16 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                       <div
                         className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] flex-shrink-0"
                         style={msg.role === "ai"
-                          ? { background: "linear-gradient(135deg, #3B82F6, #8B5CF6)", color: "#FFFFFF" }
-                          : { backgroundColor: "#EFF6FF", color: "#2563EB", fontWeight: 700 }}
+                          ? { background: "linear-gradient(135deg, #0070E0, #8B5CF6)", color: "#FFFFFF" }
+                          : { backgroundColor: "color-mix(in srgb, #A3DCFF 28%, #ffffff)", color: "#0070E0", fontWeight: 700 }}
                       >
                         {msg.role === "ai" ? <Sparkles className="w-3 h-3" /> : "JH"}
                       </div>
                       <div
                         className="rounded-xl px-3 py-2 text-[13px] leading-relaxed max-w-[80%]"
                         style={msg.role === "ai"
-                          ? { backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9", color: "#475569" }
-                          : { background: "linear-gradient(135deg, #3B82F6, #6366F1)", color: "#FFFFFF" }}
+                          ? { backgroundColor: "#F7F5F5", border: "1px solid #F1F5F9", color: "#475569" }
+                          : { background: "linear-gradient(135deg, #0070E0, #6366F1)", color: "#FFFFFF" }}
                       >
                         {msg.text}
                       </div>
@@ -2274,14 +2274,14 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
                   onKeyDown={e => { if (e.key === "Enter") sendChat(); }}
                   placeholder="Ask about this transaction…"
                   className="flex-1 text-[13px] px-3 py-2 rounded-xl outline-none transition-all"
-                  style={{ border: "1px solid #E2E8F0", backgroundColor: "#F8FAFC", color: "#0F172A" }}
+                  style={{ border: "1px solid #E2E8F0", backgroundColor: "#F7F5F5", color: "#17181C" }}
                 />
                 <button
                   onClick={sendChat}
                   disabled={!chatInput.trim()}
                   className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
                   style={{
-                    background: chatInput.trim() ? "linear-gradient(135deg, #3B82F6, #6366F1)" : "#F1F5F9",
+                    background: chatInput.trim() ? "linear-gradient(135deg, #0070E0, #6366F1)" : "#F1F5F9",
                     color: chatInput.trim() ? "#FFFFFF" : "#94A3B8",
                   }}
                 >
@@ -2348,18 +2348,18 @@ function IntelligenceDrawer({ isOpen, onClose, item }: {
               <div className="flex items-center gap-3">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center"
-                  style={{ background: "linear-gradient(145deg, #0F172A, #334155)" }}
+                  style={{ background: "linear-gradient(145deg, #17181C, #334155)" }}
                 >
                   <Sparkles className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div>
-                  <p className="text-[13px]" style={{ fontWeight: 600, color: "#0F172A" }}>Transaction Intelligence</p>
+                  <p className="text-[13px]" style={{ fontWeight: 600, color: "#17181C" }}>Transaction Intelligence</p>
                   <p className="text-[10px]" style={{ color: "#94A3B8" }}>Narrative Matching Engine</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-gray-100"
+                className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors hover:bg-muted"
               >
                 <X className="w-4 h-4" style={{ color: "#94A3B8" }} />
               </button>
@@ -2370,18 +2370,18 @@ function IntelligenceDrawer({ isOpen, onClose, item }: {
               {/* Narrative */}
               <div className="mb-6">
                 <p className="text-[13px] leading-relaxed" style={{ color: "#475569" }}>
-                  I found <span style={{ fontWeight: 600, color: "#0F172A" }}>two matching $500 records</span> between May 1 – June 6. Which one is the correct match for this deposit?
+                  I found <span style={{ fontWeight: 600, color: "#17181C" }}>two matching $500 records</span> between May 1 – June 6. Which one is the correct match for this deposit?
                 </p>
               </div>
 
               {/* Reference Item */}
               <div
                 className="p-3 rounded-lg mb-5 flex items-center justify-between"
-                style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}
+                style={{ backgroundColor: "#F7F5F5", border: "1px solid #F1F5F9" }}
               >
                 <div>
                   <p className="text-[10px]" style={{ color: "#94A3B8", fontWeight: 600 }}>Source transaction</p>
-                  <p className="text-[12px] mt-0.5" style={{ color: "#0F172A", fontWeight: 500 }}>$500.00 Deposit — "Doe"</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: "#17181C", fontWeight: 500 }}>$500.00 Deposit — "Doe"</p>
                   <p className="text-[10px] mt-0.5 font-mono" style={{ color: "#94A3B8" }}>DEPOSIT DOE 050126</p>
                 </div>
                 <span className="text-[10px]" style={{ color: "#CBD5E1" }}>BOA ••7721</span>
@@ -2416,11 +2416,11 @@ function IntelligenceDrawer({ isOpen, onClose, item }: {
                         <div className="flex items-center justify-between mb-1.5">
                           <div className="flex items-center gap-2">
                             {isChosen && (
-                              <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                              <div className="w-4 h-4 rounded-full bg-[#0070E0] flex items-center justify-center">
                                 <Check className="w-2.5 h-2.5 text-white" />
                               </div>
                             )}
-                            <span className="text-[13px]" style={{ fontWeight: 600, color: "#0F172A" }}>{card.label}</span>
+                            <span className="text-[13px]" style={{ fontWeight: 600, color: "#17181C" }}>{card.label}</span>
                           </div>
                           {/* Confidence */}
                           <div className="flex items-center gap-1.5">
@@ -2442,13 +2442,13 @@ function IntelligenceDrawer({ isOpen, onClose, item }: {
                           <span>·</span>
                           <span>{card.date}</span>
                           <span>·</span>
-                          <span style={{ fontWeight: 500, color: "#0F172A" }}>{card.amount}</span>
+                          <span style={{ fontWeight: 500, color: "#17181C" }}>{card.amount}</span>
                         </div>
 
                         {/* View Detail Link */}
                         <span
                           className="mt-2 text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
-                          style={{ color: "#3B82F6", fontWeight: 500 }}
+                          style={{ color: "#0070E0", fontWeight: 500 }}
                           role="button"
                           tabIndex={0}
                           onClick={(e) => {
@@ -2479,7 +2479,7 @@ function IntelligenceDrawer({ isOpen, onClose, item }: {
                           >
                             <div
                               className="mx-1 mt-1 p-3 rounded-lg space-y-2"
-                              style={{ backgroundColor: "#F8FAFC", border: "1px solid #F1F5F9" }}
+                              style={{ backgroundColor: "#F7F5F5", border: "1px solid #F1F5F9" }}
                             >
                               {[
                                 { label: "Bank String", value: card.bankString, mono: true },
@@ -2489,7 +2489,7 @@ function IntelligenceDrawer({ isOpen, onClose, item }: {
                               ].map((row) => (
                                 <div key={row.label} className="flex items-center gap-3">
                                   <span className="text-[10px] w-20 flex-shrink-0" style={{ color: "#94A3B8", fontWeight: 500 }}>{row.label}</span>
-                                  <span className={cn("text-[11px]", row.mono && "font-mono text-[10px]")} style={{ color: "#0F172A" }}>{row.value}</span>
+                                  <span className={cn("text-[11px]", row.mono && "font-mono text-[10px]")} style={{ color: "#17181C" }}>{row.value}</span>
                                 </div>
                               ))}
                             </div>
@@ -2506,7 +2506,7 @@ function IntelligenceDrawer({ isOpen, onClose, item }: {
                             exit={{ opacity: 0, y: -4 }}
                             className="mt-2 ml-1"
                           >
-                            <Button size="sm" className="text-[11px] px-4 h-8" style={{ backgroundColor: "#0F172A", color: "white" }}>
+                            <Button size="sm" className="text-[11px] px-4 h-8" style={{ backgroundColor: "#17181C", color: "white" }}>
                               <Check className="w-3 h-3 mr-1.5" />
                               Confirm Match
                             </Button>
@@ -2523,7 +2523,7 @@ function IntelligenceDrawer({ isOpen, onClose, item }: {
                 <button
                   onClick={() => setShowSearch(!showSearch)}
                   className="text-[11px] flex items-center gap-1.5 transition-colors"
-                  style={{ color: "#3B82F6", fontWeight: 500 }}
+                  style={{ color: "#0070E0", fontWeight: 500 }}
                 >
                   <Search className="w-3 h-3" />
                   Not the correct record? Find Another Match
@@ -2540,7 +2540,7 @@ function IntelligenceDrawer({ isOpen, onClose, item }: {
                         type="text"
                         placeholder="Search by client, invoice, or amount…"
                         className="w-full text-[12px] rounded-lg px-3 py-2.5 outline-none transition-all"
-                        style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", color: "#0F172A" }}
+                        style={{ backgroundColor: "#F7F5F5", border: "1px solid #E2E8F0", color: "#17181C" }}
                       />
                     </motion.div>
                   )}
@@ -2633,7 +2633,7 @@ export function UnifiedTransactionInbox({ onOpenRail, initialFilter = "all", ini
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ backgroundColor: "#F9FAFB" }}>
+    <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ backgroundColor: "#F7F5F5" }}>
       <HeaderBar flaggedCount={flaggedCount} onOpenTeammate={onOpenRail} />
       {/* ── Main Content ── */}
       <div className="flex flex-1 overflow-hidden relative">
@@ -2713,7 +2713,7 @@ export function UnifiedTransactionInbox({ onOpenRail, initialFilter = "all", ini
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px]" style={{ fontWeight: 600, color: toast.variant === "reconciled" ? "#166534" : "#0F172A" }}>{toast.message}</p>
+                <p className="text-[13px]" style={{ fontWeight: 600, color: toast.variant === "reconciled" ? "#166534" : "#17181C" }}>{toast.message}</p>
                 <p className="text-[12px]" style={{ color: toast.variant === "reconciled" ? "#15803D" : "#64748B" }}>
                   {toast.variant === "reconciled" ? toast.payee : `${toast.payee} · ${toast.amount}`}
                 </p>
@@ -2725,7 +2725,7 @@ export function UnifiedTransactionInbox({ onOpenRail, initialFilter = "all", ini
                 onClick={() => { setToasts((prev) => prev.filter((t) => t.id !== toast.id)); }}
                 className="text-[12px] px-2.5 py-1 rounded-md transition-colors flex-shrink-0 whitespace-nowrap"
                 style={{
-                  color: toast.variant === "reconciled" ? "#16A34A" : "#3B82F6",
+                  color: toast.variant === "reconciled" ? "#16A34A" : "#0070E0",
                   fontWeight: 600,
                 }}
               >

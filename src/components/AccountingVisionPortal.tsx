@@ -21,8 +21,8 @@ function PersonaIllustration({ src, name }: { src: string; name: string }) {
 const PILLARS = [
   {
     badge: "Pillar 1",
-    badgeColor: "#EFF6FF",
-    badgeText: "#3B82F6",
+    badgeColor: "color-mix(in srgb, #A3DCFF 28%, #ffffff)",
+    badgeText: "#0070E0",
     title: "Setup & Onboarding",
     subtitle: "Configure the software",
     src: "/persona-jennifer.png",
@@ -31,7 +31,7 @@ const PILLARS = [
     description:
       "Jennifer sets up Clio Accounting for the firm, migrates existing books, and lands in the AI-powered accounting dashboard ready to work.",
     cta: "Start setup",
-    accentColor: "#3B82F6",
+    accentColor: "#0070E0",
   },
   {
     badge: "Pillar 2",
@@ -70,9 +70,9 @@ export function AccountingVisionPortal({ onPillar1, onPillar2, onPillar3 }: Acco
     <div className="min-h-screen w-full bg-white flex flex-col">
       {/* Header */}
       <div className="px-12 pt-12 pb-8 max-w-6xl mx-auto w-full">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Accounting Vision</h1>
+        <h1 className="text-4xl font-bold text-foreground mb-4">Accounting Vision</h1>
 
-        <p className="text-sm text-gray-600 leading-relaxed">
+        <p className="text-sm text-muted-foreground leading-relaxed">
           Use the paths below to explore this product vision prototype. Each pillar highlights how Clio Accounting
           adapts to different roles within the firm — from initial setup to daily operations to executive oversight —
           offering a clear view of how the experience evolves depending on who is using it.
@@ -86,7 +86,7 @@ export function AccountingVisionPortal({ onPillar1, onPillar2, onPillar3 }: Acco
           {PILLARS.map((pillar, i) => (
             <div
               key={pillar.badge}
-              className="flex flex-col rounded-2xl border border-gray-200 overflow-hidden"
+              className="flex flex-col rounded-2xl border border-border overflow-hidden"
               style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
             >
               <div className="flex flex-col flex-1 p-6">
@@ -101,8 +101,8 @@ export function AccountingVisionPortal({ onPillar1, onPillar2, onPillar3 }: Acco
                 </div>
 
                 {/* Title */}
-                <h2 className="text-xl font-bold text-gray-900 mb-1">{pillar.title}</h2>
-                <p className="text-sm text-gray-500 mb-5">{pillar.subtitle}</p>
+                <h2 className="text-xl font-bold text-foreground mb-1">{pillar.title}</h2>
+                <p className="text-sm text-muted-foreground mb-5">{pillar.subtitle}</p>
 
                 {/* Illustration */}
                 <div className="flex justify-center mb-5">
@@ -111,12 +111,12 @@ export function AccountingVisionPortal({ onPillar1, onPillar2, onPillar3 }: Acco
 
                 {/* Name + role */}
                 <div className="text-center mb-4">
-                  <p className="text-base font-bold text-gray-900">{pillar.name}</p>
-                  <p className="text-sm text-gray-500">{pillar.role}</p>
+                  <p className="text-base font-bold text-foreground">{pillar.name}</p>
+                  <p className="text-sm text-muted-foreground">{pillar.role}</p>
                 </div>
 
                 {/* Description */}
-                <p className="text-sm text-gray-600 text-center leading-relaxed mb-6 flex-1">
+                <p className="text-sm text-muted-foreground text-center leading-relaxed mb-6 flex-1">
                   {pillar.description}
                 </p>
 
@@ -136,7 +136,7 @@ export function AccountingVisionPortal({ onPillar1, onPillar2, onPillar3 }: Acco
       </div>
 
       <div className="px-12 max-w-6xl mx-auto w-full mt-8 text-center">
-        <p className="text-2xl font-semibold text-gray-700">
+        <p className="text-2xl font-semibold text-foreground/80">
           Your books run themselves. You move the firm forward.
         </p>
       </div>

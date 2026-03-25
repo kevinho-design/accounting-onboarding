@@ -191,12 +191,12 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-semibold text-gray-900">Good morning, Sarah</h1>
-              <span className="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">
+              <h1 className="text-2xl font-semibold text-foreground">Good morning, Sarah</h1>
+              <span className="px-2.5 py-0.5 bg-accent text-primary text-xs font-semibold rounded-full">
                 Bookkeeper · Hartwell &amp; Morris
               </span>
             </div>
-            <p className="text-gray-500 text-sm">Tuesday, March 18, 2026</p>
+            <p className="text-muted-foreground text-sm">Tuesday, March 18, 2026</p>
           </div>
 
           {/* 2-column layout */}
@@ -208,8 +208,8 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                 <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-sm">
                   <Sparkles className="w-3.5 h-3.5 text-white" />
                 </div>
-                <h2 className="text-base font-semibold text-gray-900">Today</h2>
-                <span className="text-xs text-gray-400 font-normal">— {SARAH_EXCEPTIONS.length} items need your input</span>
+                <h2 className="text-base font-semibold text-foreground">Today</h2>
+                <span className="text-xs text-muted-foreground/60 font-normal">— {SARAH_EXCEPTIONS.length} items need your input</span>
               </div>
 
               <div className="space-y-2">
@@ -243,10 +243,10 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                   return (
                     <div
                       key={exc.id}
-                      className={`bg-white rounded-xl border border-gray-200 overflow-hidden ${isResolved ? "opacity-60" : ""}`}
+                      className={`bg-card rounded-xl border border-border shadow-sm overflow-hidden ${isResolved ? "opacity-60" : ""}`}
                     >
                       <button
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-background transition-colors cursor-pointer"
                         onClick={() => setExpandedExceptionId(isExpanded ? null : exc.id)}
                       >
                         <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${agentColor} flex items-center justify-center flex-shrink-0`}>
@@ -256,10 +256,10 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 leading-snug">{exc.title}</p>
-                          <p className="text-xs text-gray-500 truncate mt-0.5">{exc.description}</p>
+                          <p className="text-sm font-medium text-foreground leading-snug">{exc.title}</p>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">{exc.description}</p>
                         </div>
-                        <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        <ChevronDown className={`w-4 h-4 text-muted-foreground/60 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                       </button>
 
                       {isExpanded && (
@@ -268,7 +268,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.2 }}
-                          className="px-4 pb-4 pt-1 border-t border-gray-100"
+                          className="px-4 pb-4 pt-1 border-t border-border/60"
                         >
                           {exc.impact && (
                             <div className="flex items-start gap-1.5 p-2.5 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
@@ -288,7 +288,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                               ) : (
                               <Button
                                 size="sm"
-                                className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer"
+                                className="bg-primary hover:bg-primary/90 text-white text-xs cursor-pointer"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (exc.id === "sys-bank-disconnect") {
@@ -310,13 +310,13 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs cursor-pointer"
+                                  className="border-border text-muted-foreground hover:bg-background text-xs cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     onAskTeammate(askPrompt);
                                   }}
                                 >
-                                  <Sparkles className="w-3 h-3 mr-1 text-blue-500" />
+                                  <Sparkles className="w-3 h-3 mr-1 text-primary/70" />
                                   Ask Teammate
                                 </Button>
                               )}
@@ -331,7 +331,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                 {SARAH_EXCEPTIONS.length > 3 && onOpenRail && (
                   <button
                     onClick={onOpenRail}
-                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-blue-200 text-blue-600 text-sm font-medium hover:bg-blue-50 transition-colors cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-primary/20 text-primary text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
                   >
                     See all {SARAH_EXCEPTIONS.length} items in Today
                     <ChevronRight className="w-4 h-4" />
@@ -342,8 +342,8 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
               {/* Handled for you */}
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Handled for you</h3>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Handled for you</h3>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                     <span>3 agents active</span>
                   </div>
@@ -354,13 +354,13 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                     const mins = Math.floor(timeDiff / 60000);
                     const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
                     return (
-                      <div key={action.id} className="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-start gap-3">
+                      <div key={action.id} className="bg-card rounded-xl border border-border shadow-sm px-4 py-3 flex items-start gap-3">
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <CheckCircle className="w-3 h-3 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-800 leading-snug">{action.action}</p>
-                          <p className="text-[11px] text-gray-400 mt-0.5">{timeLabel}</p>
+                          <p className="text-xs text-foreground leading-snug">{action.action}</p>
+                          <p className="text-[11px] text-muted-foreground/60 mt-0.5">{timeLabel}</p>
                         </div>
                       </div>
                     );
@@ -378,13 +378,13 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                 const pct = Math.round(((AI_PROCESSED - INITIAL_FLAGGED_COUNT) / AI_PROCESSED) * 100);
                 const isReady = INITIAL_FLAGGED_COUNT === 0;
                 return (
-                  <div className="mt-3 bg-white rounded-xl border border-gray-200 overflow-hidden">
+                  <div className="mt-3 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
                     <div className="p-4">
                       {/* Top row: heading | CTA + large % */}
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400 mb-0.5">March 2026</p>
-                          <p className="text-sm font-bold text-gray-900">Reconciliation Status</p>
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/60 mb-0.5">March 2026</p>
+                          <p className="text-sm font-semibold text-foreground">Reconciliation Status</p>
                         </div>
                         <div className="flex items-center gap-3 flex-shrink-0">
                           {isReady ? (
@@ -406,8 +406,8 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                             </button>
                           )}
                           <div className="text-right">
-                            <p className="text-2xl font-bold leading-none" style={{ color: isReady ? "#16A34A" : "#0F172A" }}>{pct}%</p>
-                            <p className="text-[10px] text-gray-400 mt-0.5">readiness</p>
+                            <p className="text-2xl font-bold leading-none" style={{ color: isReady ? "#16A34A" : "#17181C" }}>{pct}%</p>
+                            <p className="text-[10px] text-muted-foreground/60 mt-0.5">readiness</p>
                           </div>
                         </div>
                       </div>
@@ -415,16 +415,16 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                       <div className="flex items-center gap-4 mb-3">
                         <div className="flex items-center gap-1.5">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#10B981" }} />
-                          <span className="text-[11px] text-gray-600"><span className="font-semibold text-gray-900">{AI_PROCESSED.toLocaleString()}</span> auto-processed</span>
+                          <span className="text-[11px] text-muted-foreground"><span className="font-semibold text-foreground">{AI_PROCESSED.toLocaleString()}</span> auto-processed</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: INITIAL_FLAGGED_COUNT > 0 ? "#F59E0B" : "#10B981" }} />
-                          <span className="text-[11px] text-gray-600"><span className="font-semibold text-gray-900">{INITIAL_FLAGGED_COUNT}</span> need review</span>
+                          <span className="text-[11px] text-muted-foreground"><span className="font-semibold text-foreground">{INITIAL_FLAGGED_COUNT}</span> need review</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: trustAtRisk > 0 ? "#EF4444" : "#14B8A6" }} />
-                          <span className="text-[11px] text-gray-600">
-                            <span className="font-semibold text-gray-900">{trustAtRisk > 0 ? `${trustAtRisk} at risk` : `${ioltaMatters} compliant`}</span> IOLTA
+                          <span className="text-[11px] text-muted-foreground">
+                            <span className="font-semibold text-foreground">{trustAtRisk > 0 ? `${trustAtRisk} at risk` : `${ioltaMatters} compliant`}</span> IOLTA
                           </span>
                         </div>
                       </div>
@@ -441,7 +441,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                       )}
                     </div>
                     {/* Progress bar pinned to bottom */}
-                    <div className="h-1.5 w-full bg-gray-100">
+                    <div className="h-1.5 w-full bg-muted">
                       <div className="h-1.5 bg-emerald-500 transition-all duration-700" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
@@ -450,17 +450,17 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
 
               {/* Bank feed status */}
               <div className="mt-3 grid grid-cols-2 gap-3">
-                <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs text-gray-500 mb-1">Bank Feed</p>
+                <div className="bg-card rounded-xl border border-border shadow-sm px-4 py-3">
+                  <p className="text-xs text-muted-foreground mb-1">Bank Feed</p>
                   <div className="flex items-center gap-1.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-xs font-medium text-gray-800">Live · 2 min ago</span>
+                    <span className="text-xs font-medium text-foreground">Live · 2 min ago</span>
                   </div>
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 px-4 py-3">
-                  <p className="text-xs text-gray-500 mb-1">Auto-coded today</p>
+                <div className="bg-card rounded-xl border border-border shadow-sm px-4 py-3">
+                  <p className="text-xs text-muted-foreground mb-1">Auto-coded today</p>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-gray-800">89 transactions</span>
+                    <span className="text-xs font-medium text-foreground">89 transactions</span>
                   </div>
                 </div>
               </div>
@@ -471,54 +471,54 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                   <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-blue-500 flex items-center justify-center shadow-sm">
                     <Receipt className="w-3.5 h-3.5 text-white" />
                   </div>
-                  <h2 className="text-base font-semibold text-gray-900">Recent Transactions</h2>
+                  <h2 className="text-base font-semibold text-foreground">Recent Transactions</h2>
                 </div>
 
-                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                  <div className="grid grid-cols-12 px-4 py-2.5 border-b border-gray-100 bg-gray-50">
-                    <span className="col-span-2 text-xs font-medium text-gray-500">Date</span>
-                    <span className="col-span-4 text-xs font-medium text-gray-500">Vendor / Description</span>
-                    <span className="col-span-3 text-xs font-medium text-gray-500 text-right">Amount</span>
-                    <span className="col-span-3 text-xs font-medium text-gray-500 text-right">Account</span>
+                <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                  <div className="grid grid-cols-12 px-4 py-2.5 border-b border-border/60 bg-background">
+                    <span className="col-span-2 text-xs font-medium text-muted-foreground">Date</span>
+                    <span className="col-span-4 text-xs font-medium text-muted-foreground">Vendor / Description</span>
+                    <span className="col-span-3 text-xs font-medium text-muted-foreground text-right">Amount</span>
+                    <span className="col-span-3 text-xs font-medium text-muted-foreground text-right">Account</span>
                   </div>
 
                   <div className="divide-y divide-gray-50">
                     {RECENT_TRANSACTIONS.map((tx, i) => (
                       <div
                         key={i}
-                        className={`grid grid-cols-12 items-center px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer ${tx.flagged ? 'bg-amber-50/40' : ''}`}
+                        className={`grid grid-cols-12 items-center px-4 py-3 hover:bg-background transition-colors cursor-pointer ${tx.flagged ? 'bg-amber-50/40' : ''}`}
                       >
-                        <span className="col-span-2 text-xs text-gray-500">{tx.date}</span>
+                        <span className="col-span-2 text-xs text-muted-foreground">{tx.date}</span>
                         <div className="col-span-4 flex items-center gap-2 min-w-0">
                           <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            tx.type === 'credit' ? 'bg-emerald-100' : 'bg-gray-100'
+                            tx.type === 'credit' ? 'bg-emerald-100' : 'bg-muted'
                           }`}>
                             {tx.type === 'credit'
                               ? <ArrowDownLeft className="w-3 h-3 text-emerald-600" />
-                              : <ArrowUpRight className="w-3 h-3 text-gray-500" />
+                              : <ArrowUpRight className="w-3 h-3 text-muted-foreground" />
                             }
                           </div>
-                          <span className="text-xs text-gray-800 font-medium truncate">{tx.vendor}</span>
+                          <span className="text-xs text-foreground font-medium truncate">{tx.vendor}</span>
                           {tx.flagged && (
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" title="Flagged" />
                           )}
                         </div>
                         <span className={`col-span-3 text-xs font-medium text-right tabular-nums ${
-                          tx.type === 'credit' ? 'text-emerald-700' : 'text-gray-800'
+                          tx.type === 'credit' ? 'text-emerald-700' : 'text-foreground'
                         }`}>
                           {tx.type === 'credit' ? '+' : ''}
                           {tx.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
                         </span>
-                        <span className="col-span-3 text-xs text-gray-400 text-right truncate">{tx.account}</span>
+                        <span className="col-span-3 text-xs text-muted-foreground/60 text-right truncate">{tx.account}</span>
                       </div>
                     ))}
                   </div>
 
-                  <div className="px-4 py-3 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                    <span className="text-xs text-gray-400">Showing last 10 of 141 transactions this month</span>
+                  <div className="px-4 py-3 border-t border-border/60 bg-background flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground/60">Showing last 10 of 141 transactions this month</span>
                     <button
                       onClick={() => onNavigateToTransactions?.()}
-                      className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                      className="text-xs text-primary hover:text-primary font-medium flex items-center gap-1"
                     >
                       View all <ChevronRight className="w-3 h-3" />
                     </button>

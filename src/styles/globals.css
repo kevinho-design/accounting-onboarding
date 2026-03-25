@@ -1,51 +1,54 @@
 @import "tailwindcss";
+@import "./finance-hub-theme.css";
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-size: 14px;
-  --background: #ffffff;
-  --foreground: oklch(0.145 0 0);
+  --font-size: 16px;
+  --font-sans-stack: 'Satoshi', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --background: #F7F5F5;
+  --foreground: #17181C;
   --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #1C60FF;
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
-  --muted: #ececf0;
-  --muted-foreground: #717182;
-  --accent: #e9ebef;
-  --accent-foreground: #030213;
-  --destructive: #d4183d;
+  --card-foreground: #17181C;
+  --popover: #ffffff;
+  --popover-foreground: #17181C;
+  --primary: #0070E0;
+  --primary-foreground: #ffffff;
+  --secondary: color-mix(in srgb, #EEE0EA 45%, #ffffff);
+  --secondary-foreground: #17181C;
+  --muted: color-mix(in srgb, #EEE0EA 55%, #ffffff);
+  --muted-foreground: color-mix(in srgb, #17181C 62%, #ffffff);
+  --accent: color-mix(in srgb, #A3DCFF 28%, #ffffff);
+  --accent-foreground: #17181C;
+  --destructive: #D74417;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
+  --border: color-mix(in srgb, #17181C 12%, transparent);
   --input: transparent;
-  --input-background: #f3f3f5;
+  --input-background: color-mix(in srgb, #F7F5F5 70%, #ffffff);
   --switch-background: #cbced4;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  --ring: #0070E0;
+  --chart-1: #0070E0;
+  --chart-2: #018B7D;
+  --chart-3: #0F478D;
+  --chart-4: #D74417;
+  --chart-5: color-mix(in srgb, #A3DCFF 85%, #17181C);
   --radius: 0.625rem;
   --sidebar: #ffffff;
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #1e40af;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: #dbeafe;
-  --sidebar-accent-foreground: #1e40af;
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-foreground: #17181C;
+  --sidebar-primary: #0070E0;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: color-mix(in srgb, #A3DCFF 32%, #ffffff);
+  --sidebar-accent-foreground: #17181C;
+  --sidebar-border: color-mix(in srgb, #17181C 10%, transparent);
+  --sidebar-ring: #0070E0;
 
   /* Accounting Section Gradients */
-  --accounting-black-gradient: linear-gradient(135deg, #1C60FF 0%, #0D1EBB 50%, #021338 100%);
-  --accounting-blue: #1C60FF;
-  --accounting-peach-gradient: linear-gradient(135deg, #3C8AFF 0%, #D0BBEB 50%, #EA827A 100%);
+  --accounting-black-gradient: linear-gradient(135deg, #0070E0 0%, #04304C 100%);
+  --accounting-blue: #0070E0;
+  --accounting-peach-gradient: linear-gradient(135deg, #0070E0 0%, #A3DCFF 50%, #018B7D 100%);
   --accounting-white: #FFFFFF;
 }
 
@@ -87,6 +90,7 @@
 }
 
 @theme inline {
+  --font-sans: var(--font-sans-stack);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -125,6 +129,22 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Finance hub colors */
+  --color-surface-page: var(--surface-page);
+  --color-surface-nav: var(--surface-nav);
+  --color-surface-subdued: var(--surface-subdued);
+  --color-nav-border: var(--nav-border);
+  --color-nav-active: var(--nav-item-active-bg);
+  --color-nav-hover: var(--nav-item-hover-bg);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-chart-ocean: var(--chart-ocean);
+  --color-chart-emerald: var(--chart-emerald);
+  --color-chart-cobalt: var(--chart-cobalt);
+  --color-chart-coral: var(--chart-coral);
+  --color-chart-sky: var(--chart-sky);
+  --color-chart-mountain: var(--chart-mountain);
 }
 
 @layer base {
@@ -134,6 +154,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans-stack);
   }
 }
 

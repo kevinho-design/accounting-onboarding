@@ -7,6 +7,7 @@ import { BankingPage } from "./accounting/BankingPage";
 import { FundsInPage } from "./accounting/FundsInPage";
 import { FundsOutPage } from "./accounting/FundsOutPage";
 import { ReportsPage } from "./accounting/ReportsPage";
+import { FinanceHubPage } from "./accounting/FinanceHubPage";
 import { ChartOfAccountsPage } from "./accounting/ChartOfAccountsPage";
 import { AgentAction, Exception } from "./agents/AgentTypes";
 
@@ -25,6 +26,8 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
   const [currentPage, setCurrentPage] = React.useState(initialPage);
   const [transactionFilter, setTransactionFilter] = React.useState<string>("all");
   const [transactionMonth, setTransactionMonth] = React.useState<string | undefined>();
+  const [fhoScrollTarget, setFhoScrollTarget] = React.useState<string | undefined>();
+  const addPageRef = React.useRef<(() => void) | null>(null);
 
   const navigateToTransactions = (filter: string = "all", month?: string) => {
     setTransactionFilter(filter);
@@ -35,6 +38,10 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
   const navigateToConnections = () => setCurrentPage("Connections");
 
   const renderPage = () => {
+    if (currentPage.startsWith("Finances:")) {
+      const subPage = currentPage.split(":")[1];
+      return <FinanceHubPage initialPage={subPage} scrollToWidget={fhoScrollTarget} onAddPageRef={addPageRef} />;
+    }
     switch (currentPage) {
       case "Dashboard":
         return activeUser === "sarah" ? (
@@ -57,6 +64,7 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
             onNavigateToTransactions={() => navigateToTransactions("all")}
             onNavigateToTransactionsFiltered={navigateToTransactions}
             onNavigateToConnections={navigateToConnections}
+            onNavigateToFinancialHealth={(scrollTo) => { setFhoScrollTarget(scrollTo); setCurrentPage("Finances:fp_financial_health"); }}
           />
         );
       case "Transactions":
@@ -88,7 +96,7 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
           </div>
         );
       case "Finances":
-        return <ReportsPage />;
+        return <FinanceHubPage onAddPageRef={addPageRef} />;
       case "Chart of Accounts":
         return <ChartOfAccountsPage />;
       case "Documents":
@@ -123,6 +131,7 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
             onNavigateToTransactions={() => navigateToTransactions("all")}
             onNavigateToTransactionsFiltered={navigateToTransactions}
             onNavigateToConnections={navigateToConnections}
+            onNavigateToFinancialHealth={(scrollTo) => { setFhoScrollTarget(scrollTo); setCurrentPage("Finances:fp_financial_health"); }}
           />
         );
     }
@@ -135,6 +144,7 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         onBackToClio={onBackToClio}
+        onAddFinancePage={() => addPageRef.current?.()}
       />
 
       {/* Column 2: Main Content (Fluid) */}

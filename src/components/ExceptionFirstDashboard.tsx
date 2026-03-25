@@ -19,7 +19,6 @@ import {
 import { Button } from "./ui/button";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { AGENTS, Exception, AgentAction } from "./agents/AgentTypes";
-import { DrillDownPanel } from "./DrillDownPanel";
 import { MigrationReportModal } from "./MigrationReportModal";
 import { FinancialGoalsViewModal } from "./FinancialGoalsViewModal";
 import { motion } from "motion/react";
@@ -136,14 +135,13 @@ interface ExceptionFirstDashboardProps {
   onNavigateToTransactions?: () => void;
   onNavigateToTransactionsFiltered?: (filter: string, month?: string) => void;
   onNavigateToConnections?: () => void;
+  onNavigateToFinancialHealth?: (scrollTo?: string) => void;
 }
 
-export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onOpenRail, onNavigateToTransactions, onNavigateToTransactionsFiltered, onNavigateToConnections }: ExceptionFirstDashboardProps) {
-  const [selectedMetric, setSelectedMetric] = React.useState<string | null>(null);
+export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onOpenRail, onNavigateToTransactions, onNavigateToTransactionsFiltered, onNavigateToConnections, onNavigateToFinancialHealth }: ExceptionFirstDashboardProps) {
   const [showMigrationBanner, setShowMigrationBanner] = React.useState(true);
   const [showReportModal, setShowReportModal] = React.useState(false);
-  const [showGoalsModal, setShowGoalsModal] = React.useState(false);
-  const [goalsExpanded, setGoalsExpanded] = React.useState(false);
+  const [goalsExpanded, setGoalsExpanded] = React.useState(true);
   const [expandedExceptionId, setExpandedExceptionId] = React.useState<string | null>(null);
 
   // Migration stats
@@ -254,8 +252,8 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
           
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-1">Welcome back, Jennifer</h1>
-            <p className="text-gray-500 text-sm">Tuesday, March 18, 2026</p>
+            <h1 className="text-2xl font-semibold text-foreground mb-1">Welcome back, Jennifer</h1>
+            <p className="text-muted-foreground text-sm">Tuesday, March 18, 2026</p>
           </div>
 
           {/* Migration Success Banner - full width, dismissible */}
@@ -263,7 +261,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white rounded-2xl border border-gray-200 p-6 mb-8"
+              className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-8"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
@@ -271,14 +269,14 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                     <CheckCircle className="w-4 h-4 text-green-600" />
                   </div>
                   <div>
-                    <h2 className="text-base font-semibold text-gray-900">Migration Complete</h2>
-                    <p className="text-sm text-gray-500">Your financial team started monitoring immediately. During migration, they found items that need your review.</p>
+                    <h2 className="text-base font-semibold text-foreground">Migration Complete</h2>
+                    <p className="text-sm text-muted-foreground">Your financial team started monitoring immediately. During migration, they found items that need your review.</p>
                   </div>
                 </div>
                 <Button 
                   variant="outline"
                   onClick={() => setShowMigrationBanner(false)}
-                  className="border-gray-200 bg-white hover:bg-gray-50 text-gray-600 text-sm flex-shrink-0"
+                  className="border-border bg-white hover:bg-background text-muted-foreground text-sm flex-shrink-0"
                 >
                   Dismiss
                 </Button>
@@ -287,9 +285,9 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
               {/* Migration Stats */}
               <div className="grid grid-cols-4 gap-3 mb-4">
                 {migrationStats.map((stat) => (
-                  <div key={stat.label} className="p-3 bg-gray-50 rounded-xl">
-                    <div className="text-lg font-bold text-gray-900 mb-0.5">{stat.value}</div>
-                    <div className="text-xs text-gray-500 mb-1">{stat.label}</div>
+                  <div key={stat.label} className="p-3 bg-background rounded-xl">
+                    <div className="text-lg font-bold text-foreground mb-0.5">{stat.value}</div>
+                    <div className="text-xs text-muted-foreground mb-1">{stat.label}</div>
                     {stat.percentage && (
                       <div className={`text-xs font-medium ${stat.status === 'success' ? 'text-green-600' : 'text-yellow-600'}`}>
                         {stat.percentage}
@@ -300,16 +298,71 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
               </div>
 
               <div className="flex gap-2">
-                <Button onClick={() => onOpenRail?.()} className="bg-blue-600 hover:bg-blue-700 text-white text-sm cursor-pointer">
+                <Button onClick={() => onOpenRail?.()} className="bg-primary hover:bg-primary/90 text-white text-sm cursor-pointer">
                   Review items in Teammate
                   <ChevronRight className="w-3.5 h-3.5 ml-1" />
                 </Button>
-                <Button variant="outline" className="border-gray-300 bg-white hover:bg-gray-50 text-sm" onClick={() => setShowReportModal(true)}>
+                <Button variant="outline" className="border-border bg-white hover:bg-background text-sm" onClick={() => setShowReportModal(true)}>
                   View Full Migration Report
                 </Button>
               </div>
             </motion.div>
           )}
+
+          {/* Q1 2026 Financial Goals — full width, below migration banner */}
+          <div className="bg-card rounded-xl border border-border shadow-sm mb-8">
+            <div
+              className="flex items-center justify-between p-4 cursor-pointer hover:bg-background transition-colors"
+              onClick={() => setGoalsExpanded(!goalsExpanded)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                  <Target className="w-4 h-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Q1 2026 Financial Goals</p>
+                  <p className="text-xs text-muted-foreground">3 of 4 on track • 1 at risk</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-border bg-white hover:bg-background text-xs"
+                  onClick={(e) => { e.stopPropagation(); onNavigateToFinancialHealth?.('fho_w_goals'); }}
+                >
+                  Review Goals
+                </Button>
+                <ChevronDown className={`w-4 h-4 text-muted-foreground/60 transition-transform ${goalsExpanded ? 'rotate-180' : ''}`} />
+              </div>
+            </div>
+            {goalsExpanded && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="border-t border-border/60 p-4 grid grid-cols-4 gap-3"
+              >
+                {financialGoals.map((goal, idx) => (
+                  <div key={idx} className="p-4 bg-background rounded-xl">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-xs font-medium text-foreground/80">{goal.goal}</p>
+                      <div className={`w-2 h-2 rounded-full ${goal.status === 'on-track' ? 'bg-green-500' : goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'}`} />
+                    </div>
+                    <div className="flex items-baseline gap-1.5 mb-2">
+                      <span className="text-xl font-bold text-foreground">{goal.current}</span>
+                      <span className="text-xs text-muted-foreground">of {goal.target}</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-1 mb-2">
+                      <div className={`h-1 rounded-full ${goal.status === 'on-track' ? 'bg-green-500' : goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${goal.progress}%` }} />
+                    </div>
+                    <p className="text-xs text-muted-foreground">{goal.insight}</p>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+          </div>
 
           {/* 2-column layout */}
           <div className="grid grid-cols-12 gap-8">
@@ -320,8 +373,8 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                 <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-sm">
                   <Sparkles className="w-3.5 h-3.5 text-white" />
                 </div>
-                <h2 className="text-base font-semibold text-gray-900">Today</h2>
-                <span className="text-xs text-gray-400 font-normal">— {exceptions.length} items need your input</span>
+                <h2 className="text-base font-semibold text-foreground">Today</h2>
+                <span className="text-xs text-muted-foreground/60 font-normal">— {exceptions.length} items need your input</span>
               </div>
 
               {hasExceptions ? (
@@ -352,20 +405,20 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                     const isExpanded = expandedExceptionId === exception.id;
 
                     return (
-                      <div key={exception.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                      <div key={exception.id} className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
                         {/* Collapsed header */}
                         <button
-                          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
+                          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-background transition-colors cursor-pointer"
                           onClick={() => setExpandedExceptionId(isExpanded ? null : exception.id)}
                         >
                           <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${agentColor} flex items-center justify-center flex-shrink-0`}>
                             <AgentIcon className="w-3 h-3 text-white" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 leading-snug">{exception.title}</p>
-                            <p className="text-xs text-gray-500 truncate mt-0.5">{exception.description}</p>
+                            <p className="text-sm font-medium text-foreground leading-snug">{exception.title}</p>
+                            <p className="text-xs text-muted-foreground truncate mt-0.5">{exception.description}</p>
                           </div>
-                          <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          <ChevronDown className={`w-4 h-4 text-muted-foreground/60 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                         </button>
 
                         {/* Expanded detail */}
@@ -375,7 +428,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
                             transition={{ duration: 0.2 }}
-                            className="px-4 pb-4 pt-1 border-t border-gray-100"
+                            className="px-4 pb-4 pt-1 border-t border-border/60"
                           >
                             {exception.impact && (
                               <div className="flex items-start gap-1.5 p-2.5 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
@@ -389,7 +442,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                               ) : exception.suggestedAction && (
                                 <Button
                                   size="sm"
-                                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs cursor-pointer"
+                                  className="bg-primary hover:bg-primary/90 text-white text-xs cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     if (exception.id === "sys-bank-disconnect") {
@@ -411,13 +464,13 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs cursor-pointer"
+                                  className="border-border text-muted-foreground hover:bg-background text-xs cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     onAskTeammate(`Help me with: "${exception.title}"`);
                                   }}
                                 >
-                                  <Sparkles className="w-3 h-3 mr-1 text-blue-500" />
+                                  <Sparkles className="w-3 h-3 mr-1 text-primary/70" />
                                   Ask Teammate
                                 </Button>
                               )}
@@ -431,7 +484,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   {exceptions.length > 3 && onOpenRail && (
                     <button
                       onClick={onOpenRail}
-                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-blue-200 text-blue-600 text-sm font-medium hover:bg-blue-50 transition-colors cursor-pointer"
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-primary/20 text-primary text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
                     >
                       See all {exceptions.length} items in Today
                       <ChevronRight className="w-4 h-4" />
@@ -439,20 +492,20 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   )}
                 </div>
               ) : (
-                <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+                <div className="bg-card rounded-xl border border-border shadow-sm p-8 text-center">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-3">
                     <CheckCircle className="w-6 h-6 text-white" />
                   </div>
-                  <p className="text-sm font-semibold text-gray-900 mb-1">You're all caught up!</p>
-                  <p className="text-xs text-gray-500">Your financial team is actively monitoring.</p>
+                  <p className="text-sm font-semibold text-foreground mb-1">You're all caught up!</p>
+                  <p className="text-xs text-muted-foreground">Your financial team is actively monitoring.</p>
                 </div>
               )}
 
               {/* Handled for you */}
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide text-xs">Handled for you</h3>
-                  <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide text-xs">Handled for you</h3>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                     <span>3 agents active</span>
                   </div>
@@ -463,13 +516,13 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                     const mins = Math.floor(timeDiff / 60000);
                     const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
                     return (
-                      <div key={action.id} className="bg-white rounded-xl border border-gray-200 px-4 py-3 flex items-start gap-3">
+                      <div key={action.id} className="bg-card rounded-xl border border-border shadow-sm px-4 py-3 flex items-start gap-3">
                         <div className="w-5 h-5 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
                           <CheckCircle className="w-3 h-3 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-800 leading-snug">{action.action}</p>
-                          <p className="text-[11px] text-gray-400 mt-0.5">{timeLabel}</p>
+                          <p className="text-xs text-foreground leading-snug">{action.action}</p>
+                          <p className="text-[11px] text-muted-foreground/60 mt-0.5">{timeLabel}</p>
                         </div>
                       </div>
                     );
@@ -480,77 +533,31 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
 
             {/* RIGHT COLUMN — System of Record */}
             <div className="col-span-7">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
-                  <TrendingUp className="w-3.5 h-3.5 text-white" />
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
+                    <TrendingUp className="w-3.5 h-3.5 text-white" />
+                  </div>
+                  <h2 className="text-base font-semibold text-foreground">Financial Health</h2>
                 </div>
-                <h2 className="text-base font-semibold text-gray-900">Financial Health</h2>
-              </div>
-
-              {/* Goals card */}
-              <div className="bg-white rounded-xl border border-gray-200 mb-4">
-                <div
-                  className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                  onClick={() => setGoalsExpanded(!goalsExpanded)}
+                <button
+                  onClick={() => onNavigateToFinancialHealth?.()}
+                  className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                      <Target className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Q1 2026 Financial Goals</p>
-                      <p className="text-xs text-gray-500">3 of 4 on track • 1 at risk</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-gray-300 bg-white hover:bg-gray-50 text-xs"
-                      onClick={(e) => { e.stopPropagation(); setShowGoalsModal(true); }}
-                    >
-                      Review Goals
-                    </Button>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${goalsExpanded ? 'rotate-180' : ''}`} />
-                  </div>
-                </div>
-                {goalsExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="border-t border-gray-100 p-4 grid grid-cols-2 gap-3"
-                  >
-                    {financialGoals.map((goal, idx) => (
-                      <div key={idx} className="p-4 bg-gray-50 rounded-xl">
-                        <div className="flex items-center justify-between mb-2">
-                          <p className="text-xs font-medium text-gray-700">{goal.goal}</p>
-                          <div className={`w-2 h-2 rounded-full ${goal.status === 'on-track' ? 'bg-green-500' : goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'}`} />
-                        </div>
-                        <div className="flex items-baseline gap-1.5 mb-2">
-                          <span className="text-xl font-bold text-gray-900">{goal.current}</span>
-                          <span className="text-xs text-gray-500">of {goal.target}</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-1 mb-2">
-                          <div className={`h-1 rounded-full ${goal.status === 'on-track' ? 'bg-green-500' : goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${goal.progress}%` }} />
-                        </div>
-                        <p className="text-xs text-gray-500">{goal.insight}</p>
-                      </div>
-                    ))}
-                  </motion.div>
-                )}
+                  View full analysis
+                  <ChevronRight className="w-3 h-3" />
+                </button>
               </div>
 
               {/* 2x2 metric cards */}
               <div className="grid grid-cols-2 gap-3 mb-4" style={{ gridAutoRows: "200px" }}>
                 {/* Operating Cash */}
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => setSelectedMetric("operating")}>
+                <div className="p-4 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => onNavigateToFinancialHealth?.('fho_w_k1')}>
                   <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Healthy</span>
                   <div className="flex-shrink-0">
-                    <p className="text-xs font-medium text-gray-500 mb-1">Operating Cash</p>
-                    <p className="text-xs text-gray-400 mb-2">March 2026</p>
-                    <p className="text-2xl font-bold text-gray-900 mb-1">$142,847</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Operating Cash</p>
+                    <p className="text-xs text-muted-foreground/60 mb-2">March 2026</p>
+                    <p className="text-2xl font-bold text-foreground mb-1">$142,847</p>
                     <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 rounded text-xs font-medium text-emerald-700">
                       <TrendingUp className="w-3 h-3" />+8% MoM
                     </div>
@@ -559,23 +566,23 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                     <svg className="w-full h-24" viewBox="0 0 200 60" preserveAspectRatio="none">
                       <defs>
                         <linearGradient id="areaGradient2" x1="0" x2="0" y1="0" y2="1">
-                          <stop offset="0%" stopColor="#6EE7B7" stopOpacity="0.3"/>
-                          <stop offset="100%" stopColor="#6EE7B7" stopOpacity="0.05"/>
+                          <stop offset="0%" stopColor="#018B7D" stopOpacity="0.3"/>
+                          <stop offset="100%" stopColor="#018B7D" stopOpacity="0.05"/>
                         </linearGradient>
                       </defs>
                       <path d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10 L200,60 L0,60 Z" fill="url(#areaGradient2)" />
-                      <path d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10" fill="none" stroke="#6EE7B7" strokeWidth="2" />
+                      <path d="M0,45 Q25,35 50,30 T100,25 Q125,20 150,15 T200,10" fill="none" stroke="#018B7D" strokeWidth="2" />
                     </svg>
                   </div>
                 </div>
 
                 {/* Revenue */}
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => setSelectedMetric("revenue")}>
+                <div className="p-4 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => onNavigateToFinancialHealth?.('fho_w_k2')}>
                   <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">On Track</span>
                   <div className="flex-shrink-0">
-                    <p className="text-xs font-medium text-gray-500 mb-1">Revenue</p>
-                    <p className="text-xs text-gray-400 mb-2">March 2026 MTD</p>
-                    <p className="text-2xl font-bold text-gray-900 mb-1">$284,500</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Revenue</p>
+                    <p className="text-xs text-muted-foreground/60 mb-2">March 2026 MTD</p>
+                    <p className="text-2xl font-bold text-foreground mb-1">$284,500</p>
                     <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-emerald-100 rounded text-xs font-medium text-emerald-700">
                       <TrendingUp className="w-3 h-3" />+12% MoM
                     </div>
@@ -583,26 +590,26 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   <div className="flex-1 flex flex-col justify-end min-w-0">
                     <div className="flex items-end gap-0.5 h-24">
                       {[25,15,65,70,68,72,60,20,18,75,78,80,76,70,22,16,82].map((h, i) => (
-                        <div key={i} className={`flex-1 rounded-t ${i === 16 ? 'bg-blue-500' : h < 30 ? 'bg-blue-200' : 'bg-emerald-400'}`} style={{ height: `${h}%` }} />
+                        <div key={i} className={`flex-1 rounded-t ${i === 16 ? 'bg-primary' : h < 30 ? 'bg-primary/20' : 'bg-emerald-400'}`} style={{ height: `${h}%` }} />
                       ))}
                     </div>
                   </div>
                 </div>
 
                 {/* AR at Risk */}
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => setSelectedMetric("collections")}>
+                <div className="p-4 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => onNavigateToFinancialHealth?.('fho_w_k3')}>
                   <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded uppercase">Behind Goal</span>
                   <div className="flex-shrink-0">
-                    <p className="text-xs font-medium text-gray-500 mb-1">AR at Risk</p>
-                    <p className="text-xs text-gray-400 mb-2">60+ Days Overdue</p>
-                    <p className="text-2xl font-bold text-gray-900 mb-1">$73,700</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">AR at Risk</p>
+                    <p className="text-xs text-muted-foreground/60 mb-2">60+ Days Overdue</p>
+                    <p className="text-2xl font-bold text-foreground mb-1">$73,700</p>
                     <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 rounded text-xs font-medium text-orange-700">
                       <AlertTriangle className="w-3 h-3" />3 invoices
                     </div>
                   </div>
                   <div className="flex-1 flex flex-col justify-end min-w-0">
                     <div className="flex items-end gap-1 h-24">
-                      {[{h:45,c:'bg-emerald-300'},{h:60,c:'bg-emerald-200'},{h:35,c:'bg-blue-200'},{h:50,c:'bg-blue-300'},{h:75,c:'bg-blue-500'}].map((b,i) => (
+                      {[{h:45,c:'bg-emerald-300'},{h:60,c:'bg-emerald-200'},{h:35,c:'bg-primary/20'},{h:50,c:'bg-primary/30'},{h:75,c:'bg-primary'}].map((b,i) => (
                         <div key={i} className="flex-1 flex flex-col justify-end h-full">
                           <div className={`w-full rounded-t ${b.c}`} style={{ height: `${b.h}%` }} />
                         </div>
@@ -610,19 +617,19 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                     </div>
                     <div className="flex gap-1 mt-1">
                       {['Current','1-30','31-60','61-90','90+'].map((l,i) => (
-                        <div key={i} className={`flex-1 text-center text-[9px] ${i === 4 ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>{l}</div>
+                        <div key={i} className={`flex-1 text-center text-[9px] ${i === 4 ? 'text-primary font-medium' : 'text-muted-foreground/60'}`}>{l}</div>
                       ))}
                     </div>
                   </div>
                 </div>
 
                 {/* Cash Runway */}
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => setSelectedMetric("cash-runway")}>
+                <div className="p-4 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all cursor-pointer flex gap-4 relative" onClick={() => onNavigateToFinancialHealth?.('fho_w_k4')}>
                   <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded uppercase">Behind Goal</span>
                   <div className="flex-shrink-0">
-                    <p className="text-xs font-medium text-gray-500 mb-1">Runway</p>
-                    <p className="text-xs text-gray-400 mb-2">vs 90-day target</p>
-                    <p className="text-2xl font-bold text-gray-900 mb-1">74 Days</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Runway</p>
+                    <p className="text-xs text-muted-foreground/60 mb-2">vs 90-day target</p>
+                    <p className="text-2xl font-bold text-foreground mb-1">74 Days</p>
                     <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-yellow-100 rounded text-xs font-medium text-yellow-700">
                       <Info className="w-3 h-3" />-16 days from goal
                     </div>
@@ -644,7 +651,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                             />
                             <path
                               d={`M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`}
-                              stroke="#60A5FA" strokeWidth="8" strokeLinecap="round"
+                              stroke="#0070E0" strokeWidth="8" strokeLinecap="round"
                               fill="none"
                               strokeDasharray={`${halfCirc}`}
                               strokeDashoffset={`${halfCirc * (1 - pct)}`}
@@ -652,7 +659,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                           </svg>
                         );
                       })()}
-                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xl font-bold text-gray-700">82%</div>
+                      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xl font-bold text-foreground/80">82%</div>
                     </div>
                   </div>
                 </div>
@@ -660,38 +667,38 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
 
               {/* Trust + Unbilled */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer relative" onClick={() => setSelectedMetric("trust")}>
+                <div className="p-4 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all cursor-pointer relative" onClick={() => onNavigateToFinancialHealth?.('fho_w_trust')}>
                   <span className="absolute top-3 right-3 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded uppercase">Compliant</span>
-                  <p className="text-xs font-medium text-gray-500 mb-0.5">IOLTA Trust</p>
-                  <p className="text-xs text-gray-400 mb-3">March 2026</p>
+                  <p className="text-xs font-medium text-muted-foreground mb-0.5">IOLTA Trust</p>
+                  <p className="text-xs text-muted-foreground/60 mb-3">March 2026</p>
                   <div className="flex items-baseline gap-3 mb-3">
                     <div>
-                      <p className="text-xl font-bold text-gray-900">$89,234.67</p>
-                      <p className="text-xs text-gray-500">Bank Balance</p>
+                      <p className="text-xl font-bold text-foreground">$89,234.67</p>
+                      <p className="text-xs text-muted-foreground">Bank Balance</p>
                     </div>
                     <div>
-                      <p className="text-xl font-bold text-gray-900">$89,234.67</p>
-                      <p className="text-xs text-gray-500">Client Ledgers</p>
+                      <p className="text-xl font-bold text-foreground">$89,234.67</p>
+                      <p className="text-xs text-muted-foreground">Client Ledgers</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 p-2 bg-background rounded-lg">
                     <CheckCircle className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
-                    <p className="text-xs text-gray-700"><span className="font-medium">Three-way reconciled</span> • 2 min ago</p>
+                    <p className="text-xs text-foreground/80"><span className="font-medium">Three-way reconciled</span> • 2 min ago</p>
                   </div>
                 </div>
 
-                <div className="p-4 bg-white rounded-xl border border-gray-200 hover:shadow-md transition-all cursor-pointer">
+                <div className="p-4 bg-card rounded-xl border border-border shadow-sm hover:shadow-md transition-all cursor-pointer" onClick={() => onNavigateToFinancialHealth?.('fho_w_unbilled')}>
                   <div className="flex items-center justify-between mb-1">
-                    <p className="text-xs font-medium text-gray-500">Unbilled Time</p>
+                    <p className="text-xs font-medium text-muted-foreground">Unbilled Time</p>
                     <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded uppercase">Opportunity</span>
                   </div>
-                  <p className="text-xs text-gray-400 mb-2">90+ Days Aged</p>
-                  <p className="text-2xl font-bold text-gray-900 mb-1">$52,500</p>
-                  <p className="text-xs text-gray-500 mb-3">40.4 hours • 8 matters</p>
+                  <p className="text-xs text-muted-foreground/60 mb-2">90+ Days Aged</p>
+                  <p className="text-2xl font-bold text-foreground mb-1">$52,500</p>
+                  <p className="text-xs text-muted-foreground mb-3">40.4 hours • 8 matters</p>
                   <div className="space-y-1">
-                    <p className="text-xs text-gray-500">• Venture Partners M&A: $18.2K</p>
-                    <p className="text-xs text-gray-500">• Tech Startup Inc: $12.4K</p>
-                    <p className="text-xs text-gray-500">• Harbor LLC: $8.9K</p>
+                    <p className="text-xs text-muted-foreground">• Venture Partners M&A: $18.2K</p>
+                    <p className="text-xs text-muted-foreground">• Tech Startup Inc: $12.4K</p>
+                    <p className="text-xs text-muted-foreground">• Harbor LLC: $8.9K</p>
                   </div>
                 </div>
               </div>
@@ -701,16 +708,8 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
         </div>
       </div>
 
-      {/* Drill-Down Panel */}
-      {selectedMetric && (
-        <DrillDownPanel metricId={selectedMetric} onClose={() => setSelectedMetric(null)} />
-      )}
-
       {/* Migration Report Modal */}
       <MigrationReportModal isOpen={showReportModal} stats={migrationStats} onClose={() => setShowReportModal(false)} />
-
-      {/* Financial Goals View Modal */}
-      <FinancialGoalsViewModal isOpen={showGoalsModal} onClose={() => setShowGoalsModal(false)} />
     </div>
   );
 }

@@ -180,7 +180,7 @@ export function ReconciliationReviewModal({ open, onClose, month, monthLabel, is
               const hasAcctDiff = Math.abs(acctDiff) > 0.005;
               return (
                 <div key={acct.name} className="rounded-xl overflow-hidden" style={{ border: `1px solid ${hasAcctDiff ? "#FDE68A" : "#E2E8F0"}` }}>
-                  <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: "#F8FAFC" }}>
+                  <div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: "#F7F5F5" }}>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: acct.status === "reconciled" ? "#F0FDF4" : "#FFFBEB" }}>
                         <Landmark className="w-4 h-4" style={{ color: acct.status === "reconciled" ? "#16A34A" : "#D97706" }} />
@@ -208,7 +208,7 @@ export function ReconciliationReviewModal({ open, onClose, month, monthLabel, is
                     </div>
                     <div>
                       <p className="text-[10px] uppercase tracking-wide mb-0.5" style={{ color: "#94A3B8", fontWeight: 600 }}>Books</p>
-                      <p className="text-[14px] font-bold" style={{ color: hasAcctDiff ? "#D97706" : "#0F172A" }}>{fmt(acct.bookBalance)}</p>
+                      <p className="text-[14px] font-bold" style={{ color: hasAcctDiff ? "#D97706" : "#17181C" }}>{fmt(acct.bookBalance)}</p>
                     </div>
                     <div>
                       <p className="text-[10px] uppercase tracking-wide mb-0.5" style={{ color: hasAcctDiff ? "#D97706" : "#16A34A", fontWeight: 600 }}>Difference</p>
@@ -248,7 +248,7 @@ export function ReconciliationReviewModal({ open, onClose, month, monthLabel, is
             {matchedExpanded && (
               <div className="mt-3">
                 <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
-                  <div className="grid grid-cols-12 px-4 py-2 text-[10px] uppercase tracking-wide font-semibold" style={{ backgroundColor: "#F8FAFC", color: "#94A3B8" }}>
+                  <div className="grid grid-cols-12 px-4 py-2 text-[10px] uppercase tracking-wide font-semibold" style={{ backgroundColor: "#F7F5F5", color: "#94A3B8" }}>
                     <span className="col-span-2">Date</span>
                     <span className="col-span-6">Payee</span>
                     <span className="col-span-3 text-right">Amount</span>
@@ -327,7 +327,7 @@ export function ReconciliationReviewModal({ open, onClose, month, monthLabel, is
           </div>
           <div className="flex items-center gap-2">
             {isReconciled && (
-              <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90" style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0", color: "#475569", fontWeight: 500 }}>
+              <button className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] transition-all hover:opacity-90" style={{ backgroundColor: "#F7F5F5", border: "1px solid #E2E8F0", color: "#475569", fontWeight: 500 }}>
                 <Download className="w-3.5 h-3.5" />
                 Download PDF
               </button>

@@ -186,7 +186,12 @@ export default function App() {
               showSarahInviteToast();
             }}
             onPillar3={() => {
-              window.open("https://ambient-cfo-kappa.vercel.app/", "_blank");
+              setShowPortal(false);
+              setActiveUser("ryan");
+              setCurrentPage("Accounting");
+              setInitialPage("Finances");
+              setInAccountingApp(true);
+              setRailSeen(false);
             }}
           />
         </div>

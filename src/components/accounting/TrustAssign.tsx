@@ -6,7 +6,7 @@ export type FirmMember = { id: string; name: string; role: string; dept: string;
 
 export const TRUST_ASSIGNABLE: FirmMember[] = [
   { id: "priya",   name: "Priya Sharma",   role: "Senior Associate", dept: "Associates", initials: "PS", color: "#10B981" },
-  { id: "tom",     name: "Tom Reeves",     role: "Associate",        dept: "Associates", initials: "TR", color: "#3B82F6" },
+  { id: "tom",     name: "Tom Reeves",     role: "Associate",        dept: "Associates", initials: "TR", color: "#0070E0" },
   { id: "ana",     name: "Ana Flores",     role: "Associate",        dept: "Associates", initials: "AF", color: "#F97316" },
   { id: "james",   name: "James Park",     role: "Paralegal",        dept: "Admin",      initials: "JP", color: "#84CC16" },
   { id: "karen",   name: "Karen Mills",    role: "Office Manager",   dept: "Admin",      initials: "KM", color: "#64748B" },
@@ -112,7 +112,7 @@ export function TrustAssignCTA({ onDismiss, compact = false, buttonClassName, bu
       }}
     >
       <div className="px-2.5 pt-2 pb-1.5" style={{ borderBottom: "1px solid #F1F5F9" }}>
-        <div className="flex items-center gap-2 px-2 py-1 rounded-lg" style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}>
+        <div className="flex items-center gap-2 px-2 py-1 rounded-lg" style={{ backgroundColor: "#F7F5F5", border: "1px solid #E2E8F0" }}>
           <Search className="w-3 h-3 flex-shrink-0" style={{ color: "#94A3B8" }} />
           <input
             ref={inputRef}
@@ -120,7 +120,7 @@ export function TrustAssignCTA({ onDismiss, compact = false, buttonClassName, bu
             onChange={e => setSearch(e.target.value)}
             placeholder="Search associates…"
             className="flex-1 bg-transparent outline-none text-[12px]"
-            style={{ color: "#0F172A" }}
+            style={{ color: "#17181C" }}
           />
         </div>
       </div>
@@ -133,7 +133,7 @@ export function TrustAssignCTA({ onDismiss, compact = false, buttonClassName, bu
           >
             <MemberAvatar member={m} size={28} />
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] truncate" style={{ fontWeight: 500, color: "#0F172A" }}>{m.name}</p>
+              <p className="text-[12px] truncate" style={{ fontWeight: 500, color: "#17181C" }}>{m.name}</p>
               <p className="text-[10px]" style={{ color: "#94A3B8" }}>{m.role} · {m.dept}</p>
             </div>
           </button>

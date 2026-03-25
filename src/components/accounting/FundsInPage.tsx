@@ -55,7 +55,7 @@ const RECENT_PAYMENTS: Payment[] = [
 
 const STATUS_CONFIG: Record<InvoiceStatus, { label: string; bg: string; text: string }> = {
   draft:   { label: "Draft",   bg: "#F3F4F6", text: "#4B5563" },
-  sent:    { label: "Sent",    bg: "#EFF6FF", text: "#2563EB" },
+  sent:    { label: "Sent",    bg: "color-mix(in srgb, #A3DCFF 28%, #ffffff)", text: "#0070E0" },
   paid:    { label: "Paid",    bg: "#F0FDF4", text: "#16A34A" },
   overdue: { label: "Overdue", bg: "#FEF2F2", text: "#DC2626" },
 };
@@ -120,14 +120,14 @@ function FeatureColumn({ sections, dotColor }: { sections: FeatureSection[]; dot
     <div className="space-y-5">
       {sections.map((section) => (
         <div key={section.title}>
-          <p className="text-[10px] uppercase tracking-widest font-semibold mb-2.5" style={{ color: "#94A3B8" }}>{section.title}</p>
+          <p className="text-[10px] uppercase tracking-widest font-semibold mb-2.5" className="text-muted-foreground">{section.title}</p>
           <div className="space-y-2">
             {section.items.map((item) => (
               <div key={item.name} className="flex items-start gap-2.5">
                 <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ backgroundColor: dotColor }} />
                 <div>
-                  <p className="text-[13px] font-medium text-gray-900">{item.name}</p>
-                  {item.subtitle && <p className="text-[11px] text-gray-400">{item.subtitle}</p>}
+                  <p className="text-[13px] font-medium text-foreground">{item.name}</p>
+                  {item.subtitle && <p className="text-[11px] text-muted-foreground/60">{item.subtitle}</p>}
                 </div>
               </div>
             ))}
@@ -160,14 +160,14 @@ export function FundsInPage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: "#FAFBFF" }}>
+    <div className="flex-1 flex flex-col overflow-hidden" className="bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between px-8 pt-8 pb-6 flex-shrink-0" style={{ backgroundColor: "#F9FAFB" }}>
+      <div className="flex items-center justify-between px-8 pt-8 pb-6 flex-shrink-0" style={{ backgroundColor: "#F7F5F5" }}>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Funds In</h1>
-          <p className="text-gray-600 mt-1">Billing, client payments, and trust deposits</p>
+          <h1 className="text-2xl font-semibold text-foreground">Funds In</h1>
+          <p className="text-muted-foreground mt-1">Billing, client payments, and trust deposits</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-sm">
+        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-foreground hover:bg-foreground/90 transition-all shadow-sm">
           <Plus className="w-4 h-4" />
             Create Bill
         </button>
@@ -176,22 +176,22 @@ export function FundsInPage() {
       <div className="flex-1 overflow-y-auto px-8 pb-24">
 
         {/* PLG Activation Banner */}
-        <div className="rounded-xl p-5 mb-6 flex items-center justify-between" style={{ background: "linear-gradient(135deg, #EFF6FF, #F5F3FF)", border: "1px solid #DBEAFE" }}>
+        <div className="rounded-xl p-5 mb-6 flex items-center justify-between" style={{ background: "linear-gradient(135deg, color-mix(in srgb, #A3DCFF 28%, #ffffff), #F5F3FF)", border: "1px solid #DBEAFE" }}>
           <div className="flex items-center gap-4">
             <img src="/clio-logo.png" alt="Clio" className="h-8 flex-shrink-0 object-contain" />
             <div>
-              <p className="text-[14px] font-semibold text-gray-900">Unlock the complete billing suite</p>
-              <p className="text-[13px] text-gray-500 mt-0.5">Professional bill templates, a dedicated client payment portal, and flexible options like payment plans and online payments. Available with Clio Manage.</p>
+              <p className="text-[14px] font-semibold text-foreground">Unlock the complete billing suite</p>
+              <p className="text-[13px] text-muted-foreground mt-0.5">Professional bill templates, a dedicated client payment portal, and flexible options like payment plans and online payments. Available with Clio Manage.</p>
             </div>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
             <button
               onClick={() => setCompareOpen(true)}
-              className="text-[13px] font-medium text-blue-600 hover:text-blue-700 transition-colors"
+              className="text-[13px] font-medium text-primary hover:text-primary transition-colors"
             >
               Compare features
             </button>
-            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm">
+            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-primary hover:bg-primary/90 transition-all shadow-sm">
               Start free trial
               <ArrowUpRight className="w-3.5 h-3.5" />
             </button>
@@ -200,59 +200,59 @@ export function FundsInPage() {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-xl p-4" style={{ border: "1px solid #E2E8F0" }}>
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-400">Revenue Collected</p>
+              <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Revenue Collected</p>
               <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                 <DollarSign className="w-4 h-4 text-emerald-600" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">$87,420</p>
+            <p className="text-2xl font-bold text-foreground">$87,420</p>
             <div className="flex items-center gap-1 mt-1">
               <TrendingUp className="w-3 h-3 text-emerald-600" />
               <span className="text-[12px] font-medium text-emerald-600">+12% vs last month</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-4" style={{ border: "1px solid #E2E8F0" }}>
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-400">Outstanding AR</p>
-              <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                <FileText className="w-4 h-4 text-blue-600" />
+              <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Outstanding AR</p>
+              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
+                <FileText className="w-4 h-4 text-primary" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">$34,150</p>
-            <p className="text-[12px] text-gray-500 mt-1">8 invoices</p>
+            <p className="text-2xl font-bold text-foreground">$34,150</p>
+            <p className="text-[12px] text-muted-foreground mt-1">8 invoices</p>
           </div>
 
-          <div className="bg-white rounded-xl p-4" style={{ border: "1px solid #E2E8F0" }}>
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-400">Overdue</p>
+              <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Overdue</p>
               <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
                 <AlertTriangle className="w-4 h-4 text-red-500" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">$12,800</p>
+            <p className="text-2xl font-bold text-foreground">$12,800</p>
             <p className="text-[12px] text-red-500 font-medium mt-1">3 invoices past due</p>
           </div>
 
-          <div className="bg-white rounded-xl p-4" style={{ border: "1px solid #E2E8F0" }}>
+          <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-gray-400">Trust Deposits</p>
+              <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Trust Deposits</p>
               <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
                 <Landmark className="w-4 h-4 text-teal-600" />
               </div>
             </div>
-            <p className="text-2xl font-bold text-gray-900">$28,500</p>
-            <p className="text-[12px] text-gray-500 mt-1">6 deposits this month</p>
+            <p className="text-2xl font-bold text-foreground">$28,500</p>
+            <p className="text-[12px] text-muted-foreground mt-1">6 deposits this month</p>
           </div>
         </div>
 
         {/* Invoice List */}
-        <div className="bg-white rounded-xl overflow-hidden mb-6" style={{ border: "1px solid #E2E8F0" }}>
+        <div className="bg-card rounded-xl overflow-hidden mb-6 border border-border shadow-sm">
           {/* Toolbar */}
-          <div className="px-5 pt-4 pb-3 flex items-center justify-between" style={{ borderBottom: "1px solid #F1F5F9" }}>
-            <div className="flex items-center gap-1 p-0.5 rounded-lg" style={{ backgroundColor: "#F1F5F9" }}>
+          <div className="px-5 pt-4 pb-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
+            <div className="flex items-center gap-1 p-0.5 rounded-lg" className="bg-muted">
               {tabs.map((tab) => (
                 <button
                   key={tab.key}
@@ -260,25 +260,25 @@ export function FundsInPage() {
                   className="px-3 py-1.5 rounded-md text-[13px] transition-all"
                   style={{
                     fontWeight: statusFilter === tab.key ? 600 : 400,
-                    color: statusFilter === tab.key ? "#0F172A" : "#94A3B8",
+                    color: statusFilter === tab.key ? "var(--foreground)" : "var(--muted-foreground)",
                     backgroundColor: statusFilter === tab.key ? "#FFFFFF" : "transparent",
                     boxShadow: statusFilter === tab.key ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
                   }}
                 >
                   {tab.label}
-                  <span className="ml-1.5 text-[11px]" style={{ color: statusFilter === tab.key ? "#64748B" : "#CBD5E1" }}>{tab.count}</span>
+                  <span className="ml-1.5 text-[11px]" style={{ color: statusFilter === tab.key ? "var(--muted-foreground)" : "color-mix(in srgb, var(--muted-foreground) 40%, transparent)" }}>{tab.count}</span>
                 </button>
               ))}
             </div>
             {!isDraftEmpty && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#F8FAFC", border: "1px solid #E2E8F0" }}>
-                <Search className="w-3.5 h-3.5 text-gray-400" />
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#F7F5F5", border: "1px solid var(--border)" }}>
+                <Search className="w-3.5 h-3.5 text-muted-foreground/60" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search invoices…"
                   className="bg-transparent outline-none text-[13px] w-40"
-                  style={{ color: "#0F172A" }}
+                  style={{ color: "var(--foreground)" }}
                 />
               </div>
             )}
@@ -286,22 +286,22 @@ export function FundsInPage() {
 
           {isDraftEmpty ? (
             <div className="px-8 py-14 text-center">
-              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
-                <ClipboardEdit className="w-6 h-6 text-blue-500" />
+              <div className="w-12 h-12 rounded-xl bg-accent flex items-center justify-center mx-auto mb-4">
+                <ClipboardEdit className="w-6 h-6 text-primary/70" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Bill drafting & approval workflows</h3>
-              <p className="text-sm text-gray-500 max-w-md mx-auto mb-6">
+              <h3 className="text-lg font-semibold text-foreground mb-2">Bill drafting & approval workflows</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
                 Create bill drafts, route them for partner approval, and send directly to clients — available in Clio Manage.
               </p>
               <div className="flex items-center justify-center gap-3">
                 <button
                   onClick={() => setCompareOpen(true)}
-                  className="px-4 py-2.5 rounded-xl text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-all"
-                  style={{ border: "1px solid #E2E8F0" }}
+                  className="px-4 py-2.5 rounded-xl text-[13px] font-medium text-foreground/80 hover:bg-background transition-all"
+                  style={{ border: "1px solid var(--border)" }}
                 >
                   Compare features
                 </button>
-                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm">
+                <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-primary hover:bg-primary/90 transition-all shadow-sm">
                   Start free trial
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>
@@ -311,14 +311,14 @@ export function FundsInPage() {
             <>
               <table className="w-full">
                 <thead>
-                  <tr style={{ borderBottom: "1px solid #F1F5F9" }}>
-                    <th className="px-5 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-gray-400">Invoice</th>
-                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-gray-400">Client</th>
-                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-gray-400">Matter</th>
-                    <th className="px-4 py-3 text-right text-[11px] uppercase tracking-wide font-semibold text-gray-400">Amount</th>
-                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-gray-400">Issued</th>
-                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-gray-400">Due</th>
-                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-gray-400">Status</th>
+                  <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                    <th className="px-5 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Invoice</th>
+                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Client</th>
+                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Matter</th>
+                    <th className="px-4 py-3 text-right text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Amount</th>
+                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Issued</th>
+                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Due</th>
+                    <th className="px-4 py-3 text-left text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Status</th>
                     <th className="px-4 py-3 w-8"></th>
                   </tr>
                 </thead>
@@ -326,13 +326,13 @@ export function FundsInPage() {
                   {filtered.map((inv) => {
                     const cfg = STATUS_CONFIG[inv.status];
                     return (
-                      <tr key={inv.id} className="hover:bg-gray-50 transition-colors cursor-pointer" style={{ borderBottom: "1px solid #F8FAFC" }}>
-                        <td className="px-5 py-3 text-[13px] font-medium text-blue-600">{inv.id}</td>
-                        <td className="px-4 py-3 text-[13px] font-medium text-gray-900">{inv.client}</td>
-                        <td className="px-4 py-3 text-[13px] text-gray-500 truncate max-w-[180px]">{inv.matter}</td>
-                        <td className="px-4 py-3 text-[13px] font-semibold text-gray-900 text-right tabular-nums">{fmt(inv.amount)}</td>
-                        <td className="px-4 py-3 text-[13px] text-gray-500">{inv.dateIssued}</td>
-                        <td className="px-4 py-3 text-[13px] text-gray-500">{inv.dueDate}</td>
+                      <tr key={inv.id} className="hover:bg-background transition-colors cursor-pointer" style={{ borderBottom: "1px solid #F7F5F5" }}>
+                        <td className="px-5 py-3 text-[13px] font-medium text-primary">{inv.id}</td>
+                        <td className="px-4 py-3 text-[13px] font-medium text-foreground">{inv.client}</td>
+                        <td className="px-4 py-3 text-[13px] text-muted-foreground truncate max-w-[180px]">{inv.matter}</td>
+                        <td className="px-4 py-3 text-[13px] font-semibold text-foreground text-right tabular-nums">{fmt(inv.amount)}</td>
+                        <td className="px-4 py-3 text-[13px] text-muted-foreground">{inv.dateIssued}</td>
+                        <td className="px-4 py-3 text-[13px] text-muted-foreground">{inv.dueDate}</td>
                         <td className="px-4 py-3">
                           <span
                             className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold"
@@ -350,9 +350,9 @@ export function FundsInPage() {
                 </tbody>
               </table>
 
-              <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: "1px solid #F1F5F9", backgroundColor: "#F9FAFB" }}>
-                <span className="text-[12px] text-gray-400">Showing {filtered.length} of 47 invoices</span>
-                <button className="text-[12px] text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+              <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: "1px solid var(--border)", backgroundColor: "#F7F5F5" }}>
+                <span className="text-[12px] text-muted-foreground/60">Showing {filtered.length} of 47 invoices</span>
+                <button className="text-[12px] text-primary hover:text-primary font-medium flex items-center gap-1">
                   View all <ChevronRight className="w-3 h-3" />
                 </button>
               </div>
@@ -361,30 +361,30 @@ export function FundsInPage() {
         </div>
 
         {/* Recent Payments */}
-        <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #E2E8F0" }}>
-          <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid #F1F5F9" }}>
-            <h3 className="text-[14px] font-semibold text-gray-900">Recent Payments</h3>
-            <span className="text-[12px] text-gray-400">Last 5 received</span>
+        <div className="bg-card rounded-xl overflow-hidden border border-border shadow-sm">
+          <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
+            <h3 className="text-[14px] font-semibold text-foreground">Recent Payments</h3>
+            <span className="text-[12px] text-muted-foreground/60">Last 5 received</span>
           </div>
           <div>
             {RECENT_PAYMENTS.map((pmt, i) => (
               <div
                 key={i}
-                className="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors"
-                style={{ borderBottom: i < RECENT_PAYMENTS.length - 1 ? "1px solid #F8FAFC" : "none", borderLeft: "3px solid #10B981" }}
+                className="flex items-center justify-between px-5 py-3.5 hover:bg-background transition-colors"
+                style={{ borderBottom: i < RECENT_PAYMENTS.length - 1 ? "1px solid #F7F5F5" : "none", borderLeft: "3px solid #10B981" }}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
                     <ArrowUpRight className="w-4 h-4 text-emerald-600" style={{ transform: "rotate(180deg)" }} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-medium text-gray-900">{pmt.client}</p>
-                    <p className="text-[11px] text-gray-400">{pmt.invoiceRef} · {pmt.method}</p>
+                    <p className="text-[13px] font-medium text-foreground">{pmt.client}</p>
+                    <p className="text-[11px] text-muted-foreground/60">{pmt.invoiceRef} · {pmt.method}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-[13px] font-semibold text-emerald-700 tabular-nums">+{fmt(pmt.amount)}</p>
-                  <p className="text-[11px] text-gray-400">{pmt.date}</p>
+                  <p className="text-[11px] text-muted-foreground/60">{pmt.date}</p>
                 </div>
               </div>
             ))}
@@ -396,19 +396,19 @@ export function FundsInPage() {
       <Dialog open={compareOpen} onOpenChange={setCompareOpen}>
         <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto p-0 gap-0">
           <DialogTitle className="sr-only">Billing Plan Comparison</DialogTitle>
-          <div className="px-6 pt-6 pb-4" style={{ borderBottom: "1px solid #F1F5F9" }}>
-            <h2 className="text-lg font-bold text-gray-900">Compare Billing Features</h2>
+          <div className="px-6 pt-6 pb-4" style={{ borderBottom: "1px solid var(--border)" }}>
+            <h2 className="text-lg font-semibold text-foreground">Compare Billing Features</h2>
           </div>
 
           <div className="grid grid-cols-2 gap-5 p-6">
             {/* Core billing card */}
-            <div className="rounded-xl overflow-hidden" style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-              <div className="px-6 pt-6 pb-4 text-center" style={{ borderBottom: "1px solid #F1F5F9" }}>
+            <div className="rounded-xl overflow-hidden border border-border shadow-sm">
+              <div className="px-6 pt-6 pb-4 text-center" style={{ borderBottom: "1px solid var(--border)" }}>
                 <span className="inline-flex items-center px-3 py-0.5 rounded-full text-[11px] font-semibold mb-3" style={{ backgroundColor: "#F0FDF4", color: "#16A34A" }}>
                   Included
                 </span>
-                <h3 className="text-xl font-bold text-gray-900">Core billing</h3>
-                <p className="text-sm text-gray-400 mt-1">Included with Clio Accounting</p>
+                <h3 className="text-xl font-semibold text-foreground">Core billing</h3>
+                <p className="text-sm text-muted-foreground/60 mt-1">Included with Clio Accounting</p>
               </div>
               <div className="px-6 py-5">
                 <FeatureColumn sections={CORE_FEATURES} dotColor="#16A34A" />
@@ -416,20 +416,20 @@ export function FundsInPage() {
             </div>
 
             {/* Advanced billing card — highlighted */}
-            <div className="rounded-xl overflow-hidden relative" style={{ border: "2px solid #3B82F6", boxShadow: "0 4px 16px rgba(59,130,246,0.12)" }}>
-              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: "linear-gradient(90deg, #3B82F6, #6366F1)" }} />
-              <div className="px-6 pt-6 pb-4 text-center" style={{ borderBottom: "1px solid #F1F5F9" }}>
-                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-[11px] font-semibold mb-3" style={{ backgroundColor: "#EFF6FF", color: "#2563EB" }}>
+            <div className="rounded-xl overflow-hidden relative" style={{ border: "2px solid #0070E0", boxShadow: "0 4px 16px rgba(59,130,246,0.12)" }}>
+              <div className="absolute top-0 left-0 right-0 h-1" style={{ background: "linear-gradient(90deg, #0070E0, #6366F1)" }} />
+              <div className="px-6 pt-6 pb-4 text-center" style={{ borderBottom: "1px solid var(--border)" }}>
+                <span className="inline-flex items-center px-3 py-0.5 rounded-full text-[11px] font-semibold mb-3" style={{ backgroundColor: "color-mix(in srgb, #A3DCFF 28%, #ffffff)", color: "#0070E0" }}>
                   Recommended
                 </span>
-                <h3 className="text-xl font-bold text-gray-900">Advanced billing</h3>
-                <p className="text-sm text-gray-400 mt-1">Available with Clio Manage</p>
+                <h3 className="text-xl font-semibold text-foreground">Advanced billing</h3>
+                <p className="text-sm text-muted-foreground/60 mt-1">Available with Clio Manage</p>
               </div>
               <div className="px-6 py-5">
-                <FeatureColumn sections={ADVANCED_FEATURES} dotColor="#3B82F6" />
+                <FeatureColumn sections={ADVANCED_FEATURES} dotColor="#0070E0" />
               </div>
               <div className="px-6 pb-6">
-                <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-sm">
+                <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-primary hover:bg-primary/90 transition-all shadow-sm">
                   Start free trial
                   <ArrowUpRight className="w-3.5 h-3.5" />
                 </button>

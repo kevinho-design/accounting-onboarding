@@ -1,0 +1,46 @@
+/* Finance Hub theme — brand colors and chart variables used by finance-hub components */
+
+:root {
+  --brand-mountain: #04304c;
+  --brand-ocean: #0070e0;
+  --brand-emerald: #018b7d;
+  --brand-coral: #d74417;
+  --brand-sand: #eee0ea;
+  --brand-carbon: #17181c;
+  --brand-cobalt: #0f478d;
+  --brand-sky: #a3dcff;
+  --brand-amber: #f4a540;
+  --brand-bone: #f7f5f5;
+
+  --motion-duration-xs: 150ms;
+  --motion-duration-sm: 200ms;
+  --motion-duration-md: 280ms;
+  --motion-ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --motion-ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  --surface-page: var(--brand-bone);
+  --surface-nav: #ffffff;
+  --surface-card: #ffffff;
+  --surface-subdued: color-mix(in srgb, var(--brand-sand) 45%, #ffffff);
+  --nav-border: color-mix(in srgb, var(--brand-carbon) 10%, transparent);
+  --nav-item-active-bg: color-mix(in srgb, var(--brand-sky) 32%, #ffffff);
+  --nav-item-hover-bg: color-mix(in srgb, var(--brand-carbon) 5%, transparent);
+  --text-primary: var(--brand-carbon);
+  --text-secondary: color-mix(in srgb, var(--brand-carbon) 62%, #ffffff);
+
+  --chart-ocean: #0070e0;
+  --chart-emerald: #018b7d;
+  --chart-cobalt: #0f478d;
+  --chart-coral: #d74417;
+  --chart-sky: #a3dcff;
+  --chart-mountain: #04304c;
+  --chart-scenario: var(--brand-cobalt);
+  --chart-peer: var(--brand-emerald);
+  --chart-grid: color-mix(in srgb, var(--brand-carbon) 8%, #ffffff);
+  --chart-tick: color-mix(in srgb, var(--brand-carbon) 48%, #ffffff);
+
+  --input-background: color-mix(in srgb, var(--brand-bone) 70%, #ffffff);
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+}

@@ -104,22 +104,22 @@ export function SpecializedTeammateRail({
       <div className="border-b border-blue-100 p-4 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-blue-600" />
-          <span className="text-sm font-semibold text-gray-900">Teammate</span>
+          <span className="text-sm font-semibold text-foreground">Teammate</span>
         </div>
         {onToggle && (
           <button onClick={onToggle} className="p-1 hover:bg-blue-50 rounded transition-colors">
-            <X className="w-4 h-4 text-gray-500" />
+            <X className="w-4 h-4 text-muted-foreground" />
           </button>
         )}
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 flex-shrink-0">
+      <div className="border-b border-border flex-shrink-0">
         <div className="flex">
           <button
             onClick={() => setActiveTab("today")}
             className={`flex-1 px-3 py-3 text-xs font-medium transition-colors relative ${
-              activeTab === "today" ? "text-blue-600 bg-white" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              activeTab === "today" ? "text-blue-600 bg-white" : "text-muted-foreground hover:text-foreground hover:bg-background"
             }`}
           >
             <div className="flex items-center justify-center gap-1.5">
@@ -136,7 +136,7 @@ export function SpecializedTeammateRail({
           <button
             onClick={() => setActiveTab("chat")}
             className={`flex-1 px-3 py-3 text-xs font-medium transition-colors relative ${
-              activeTab === "chat" ? "text-blue-600 bg-white" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              activeTab === "chat" ? "text-blue-600 bg-white" : "text-muted-foreground hover:text-foreground hover:bg-background"
             }`}
           >
             <div className="flex items-center justify-center gap-1.5">
@@ -158,7 +158,7 @@ export function SpecializedTeammateRail({
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 && (
-              <div className="text-center py-12 text-xs text-gray-400">
+              <div className="text-center py-12 text-xs text-muted-foreground/60">
                 Ask your Teammate anything about your firm's finances.
               </div>
             )}
@@ -172,7 +172,7 @@ export function SpecializedTeammateRail({
                 <div className={`max-w-[80%] px-3 py-2.5 rounded-2xl text-sm leading-relaxed ${
                   msg.role === "user"
                     ? "bg-blue-600 text-white rounded-br-sm"
-                    : "bg-white border border-gray-200 text-gray-800 rounded-bl-sm shadow-sm"
+                    : "bg-white border border-border text-foreground rounded-bl-sm shadow-sm"
                 }`}>
                   {msg.text}
                 </div>
@@ -183,10 +183,10 @@ export function SpecializedTeammateRail({
                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 mr-2 mt-1">
                   <Sparkles className="w-3 h-3 text-white" />
                 </div>
-                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                <div className="bg-white border border-border rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
                   <div className="flex gap-1">
                     {[0, 150, 300].map((delay) => (
-                      <span key={delay} className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: `${delay}ms` }} />
+                      <span key={delay} className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full animate-bounce" style={{ animationDelay: `${delay}ms` }} />
                     ))}
                   </div>
                 </div>
@@ -194,8 +194,8 @@ export function SpecializedTeammateRail({
             )}
             <div ref={messagesEndRef} />
           </div>
-          <div className="flex-shrink-0 p-3 border-t border-gray-200 bg-white">
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+          <div className="flex-shrink-0 p-3 border-t border-border bg-white">
+            <div className="flex items-center gap-2 bg-background border border-border rounded-xl px-3 py-2">
               <input
                 type="text"
                 value={question}
@@ -203,12 +203,12 @@ export function SpecializedTeammateRail({
                 onKeyDown={(e) => { if (e.key === "Enter" && !isTyping) sendMessage(question); }}
                 placeholder="Ask about your finances..."
                 disabled={isTyping}
-                className="flex-1 text-sm bg-transparent outline-none text-gray-700 placeholder:text-gray-400 disabled:opacity-50"
+                className="flex-1 text-sm bg-transparent outline-none text-foreground/80 placeholder:text-muted-foreground/60 disabled:opacity-50"
               />
               <button
                 onClick={() => sendMessage(question)}
                 disabled={isTyping || !question.trim()}
-                className="w-7 h-7 flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400 text-white transition-colors flex-shrink-0"
+                className="w-7 h-7 flex items-center justify-center rounded-lg bg-primary hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground/60 text-white transition-colors flex-shrink-0"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>
@@ -244,7 +244,7 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
     <div className="p-4 space-y-6">
       {/* Section 1: Needs your input */}
       <div>
-        <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">
+        <h4 className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-3">
           Needs your input
         </h4>
         {exceptions.length === 0 ? (
@@ -252,8 +252,8 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-3">
               <Zap className="w-6 h-6 text-white" />
             </div>
-            <p className="text-sm font-semibold text-gray-900 mb-1">All clear!</p>
-            <p className="text-xs text-gray-500">Nothing needs your attention right now.</p>
+            <p className="text-sm font-semibold text-foreground mb-1">All clear!</p>
+            <p className="text-xs text-muted-foreground">Nothing needs your attention right now.</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -265,23 +265,23 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
               return (
                 <div
                   key={exception.id}
-                  className="bg-white rounded-xl border border-gray-200 overflow-hidden"
+                  className="bg-white rounded-xl border border-border overflow-hidden"
                 >
                   {/* Collapsed header — always visible */}
                   <button
-                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-background transition-colors cursor-pointer"
                     onClick={() => setExpandedId(isExpanded ? null : exception.id)}
                   >
                     <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${agentColor} flex items-center justify-center flex-shrink-0`}>
                       <AgentIcon className="w-3 h-3 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{exception.title}</p>
-                      <p className="text-xs text-gray-500 truncate">{agent.name}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{exception.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{agent.name}</p>
                     </div>
                     {isExpanded
-                      ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      ? <ChevronUp className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
+                      : <ChevronDown className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
                     }
                   </button>
 
@@ -295,8 +295,8 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className="px-4 pb-4 pt-1 border-t border-gray-100">
-                          <p className="text-xs text-gray-600 mb-3 line-clamp-2">{exception.description}</p>
+                        <div className="px-4 pb-4 pt-1 border-t border-border/60">
+                          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{exception.description}</p>
                           {exception.impact && (
                             <div className="flex items-start gap-1.5 p-2 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
                               <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
@@ -319,7 +319,7 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-gray-300 text-gray-600 hover:bg-gray-50 text-xs cursor-pointer flex-shrink-0"
+                              className="border-border text-muted-foreground hover:bg-background text-xs cursor-pointer flex-shrink-0"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setActiveTab("chat");
@@ -344,14 +344,14 @@ function TodayTab({ exceptions, recentActions }: { exceptions: Exception[]; rece
       {/* Section 2: Handled for you */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500">Handled for you</h4>
-          <div className="flex items-center gap-1.5 text-xs text-gray-400">
+          <h4 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Handled for you</h4>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             <span>3 agents active</span>
           </div>
         </div>
         {recentActions.length === 0 ? (
-          <div className="text-xs text-gray-400 text-center py-4">No recent activity</div>
+          <div className="text-xs text-muted-foreground/60 text-center py-4">No recent activity</div>
         ) : (
           <div className="space-y-2">
             {recentActions.map((action) => (

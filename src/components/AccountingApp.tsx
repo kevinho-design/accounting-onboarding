@@ -2,6 +2,7 @@ import * as React from "react";
 import { AccountingSidebar } from "./AccountingSidebar";
 import { ExceptionFirstDashboard } from "./ExceptionFirstDashboard";
 import { BookkeeperDashboard } from "./BookkeeperDashboard";
+import { RyanDashboard } from "./RyanDashboard";
 import { UnifiedTransactionInbox } from "./accounting/UnifiedTransactionInbox";
 import { BankingPage } from "./accounting/BankingPage";
 import { FundsInPage } from "./accounting/FundsInPage";
@@ -44,19 +45,32 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
     }
     switch (currentPage) {
       case "Dashboard":
-        return activeUser === "sarah" ? (
-          <BookkeeperDashboard
-            onAskTeammate={onAskTeammate}
-            onOpenRail={onOpenRail}
-            onExceptionsChange={onExceptionsChange}
-            onRecentActionsChange={onRecentActionsChange}
-            onNavigateToTransactions={() => navigateToTransactions("all")}
-            onNavigateToTransactionsFiltered={navigateToTransactions}
-            onNavigateToConnections={navigateToConnections}
-          />
-        ) : (
-          <ExceptionFirstDashboard 
-            onReviewFinancialGoals={onReviewFinancialGoals} 
+        if (activeUser === "sarah") {
+          return (
+            <BookkeeperDashboard
+              onAskTeammate={onAskTeammate}
+              onOpenRail={onOpenRail}
+              onExceptionsChange={onExceptionsChange}
+              onRecentActionsChange={onRecentActionsChange}
+              onNavigateToTransactions={() => navigateToTransactions("all")}
+              onNavigateToTransactionsFiltered={navigateToTransactions}
+              onNavigateToConnections={navigateToConnections}
+            />
+          );
+        }
+        if (activeUser === "ryan") {
+          return (
+            <RyanDashboard
+              onAskTeammate={onAskTeammate}
+              onOpenRail={onOpenRail}
+              onNavigateToTransactionsFiltered={navigateToTransactions}
+              onNavigateToFinancialHealth={(scrollTo) => { setFhoScrollTarget(scrollTo); setCurrentPage("Finances:fp_financial_health"); }}
+            />
+          );
+        }
+        return (
+          <ExceptionFirstDashboard
+            onReviewFinancialGoals={onReviewFinancialGoals}
             onRecentActionsChange={onRecentActionsChange}
             onExceptionsChange={onExceptionsChange}
             onAskTeammate={onAskTeammate}

@@ -1,13 +1,15 @@
 import * as React from "react";
-import { FileText, Calendar, Mail, Sparkles, CheckCircle, Plus, X, Send, ChevronLeft } from "lucide-react";
+import { FileText, Calendar, Mail, Sparkles, CheckCircle, Plus, X, Send, ChevronLeft, UserPlus } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
 import { WizardProgress } from "./WizardProgress";
+import { AssignTaskModal, AssignedTask } from "./AssignTaskModal";
 
 interface Screen9Props {
   onComplete: () => void;
   onBack?: () => void;
+  onAssign?: (task: AssignedTask) => void;
 }
 
 interface Rule {
@@ -29,7 +31,8 @@ const EXAMPLE_PLACEHOLDERS = [
   "Generate a practice area profitability report at the end of each quarter",
 ];
 
-export function Screen9_ReportingPreferences({ onComplete, onBack }: Screen9Props) {
+export function Screen9_ReportingPreferences({ onComplete, onBack, onAssign }: Screen9Props) {
+  const [showAssign, setShowAssign] = React.useState(false);
   const [mode, setMode] = React.useState<"suggested" | "advanced">("suggested");
   const [frequency, setFrequency] = React.useState("monthly");
   const [reports, setReports] = React.useState(["pl", "cashflow", "trust"]);
@@ -321,9 +324,28 @@ export function Screen9_ReportingPreferences({ onComplete, onBack }: Screen9Prop
             >
               Next: Financial Goals
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowAssign(true)}
+              className="px-6 py-6 rounded-lg font-medium shrink-0"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Assign to someone
+            </Button>
           </div>
         </div>
       </div>
+
+      {showAssign && (
+        <AssignTaskModal
+          taskName="Reporting Preferences"
+          onAssign={(task) => {
+            onAssign?.(task);
+            setShowAssign(false);
+          }}
+          onClose={() => setShowAssign(false)}
+        />
+      )}
     </div>
   );
 }

@@ -473,7 +473,7 @@ function HeaderBar({ flaggedCount = 0, onOpenTeammate }: {
       style={{ backgroundColor: "#F7F5F5" }}
     >
       <div className="flex flex-col">
-        <h1 className="text-3xl font-bold text-foreground">Transactions</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Transactions</h1>
         <p className="text-muted-foreground mt-1">Track, review, and reconcile your firm's financial activity</p>
       </div>
     </div>

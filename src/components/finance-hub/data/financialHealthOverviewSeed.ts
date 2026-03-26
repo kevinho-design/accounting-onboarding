@@ -12,6 +12,19 @@ export const FHO_RUNWAY_NARRATIVE = {
   priorMonthDays: 91,
 } as const;
 
+/** Prototype series for the Runway detail mini-chart (days of runway). Last point matches KPI k4. */
+export const FHO_RUNWAY_TREND: { month: string; days: number }[] = [
+  { month: 'Oct', days: 96 },
+  { month: 'Nov', days: 93 },
+  { month: 'Dec', days: 89 },
+  { month: 'Jan', days: 87 },
+  { month: 'Feb', days: 91 },
+  { month: 'Mar', days: 74 },
+];
+
+/** Aligns with k4 “-16 days from goal” when current runway is 74 days. */
+export const FHO_RUNWAY_GOAL_DAYS = 90;
+
 export type FhoArInvoiceRow = {
   id: string;
   client: string;

@@ -11,7 +11,6 @@ import {
   Settings,
   ArrowLeft,
   Wifi,
-  Target,
   Plus,
   Activity,
 } from "lucide-react";
@@ -74,9 +73,8 @@ export function AccountingSidebar({ onPageChange, currentPage, onBackToClio, onA
       onClick: () => onPageChange("Finances"),
       children: [
         { label: "Financial Health", route: "fp_financial_health", icon: Activity, onClick: () => onPageChange("Finances:fp_financial_health") },
-        { label: "Strategic Dashboard", route: "fp_default", icon: LayoutDashboard, onClick: () => onPageChange("Finances:fp_default") },
         { label: "Reports", route: "Reports", icon: FileText, onClick: () => onPageChange("Finances:Reports") },
-        { label: "Financial Goals", route: "Financial Goals", icon: Target, onClick: () => onPageChange("Finances:Financial Goals") },
+        { label: "Strategic Dashboard", route: "fp_default", icon: LayoutDashboard, onClick: () => onPageChange("Finances:fp_default") },
         { label: "Add a custom view", icon: Plus, onClick: () => { onPageChange("Finances"); onAddFinancePage?.(); } },
       ],
     },

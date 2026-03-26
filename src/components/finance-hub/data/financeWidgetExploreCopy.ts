@@ -19,9 +19,9 @@ export const FINANCE_WIDGET_EXPLORE_COPY: Record<string, FinanceWidgetExploreCop
     bullets: [
       'Alerts and recommendations elsewhere in the product are filtered through these declared goals.',
       'When a goal slips, Firm Intelligence prioritizes actions that move the metric—not noise.',
-      'Adjust goals on the Financial Goals page when strategy shifts.',
+      'Adjust goals from Financial Health Overview when strategy shifts.',
     ],
-    followUp: { label: 'Go to Financial Goals', pageId: 'Financial Goals' },
+    followUp: { label: 'Open Financial Health Overview', pageId: 'fp_financial_health' },
   },
   fho_operating_cash_detail: {
     title: 'Operating cash bridge',
@@ -72,7 +72,7 @@ export const FINANCE_WIDGET_EXPLORE_COPY: Record<string, FinanceWidgetExploreCop
     title: 'Unbilled WIP',
     subtitle: 'Aged WIP and matter-level ranking to prioritize invoicing.',
     bullets: [
-      'High WIP aging often predicts future cash—pair with collection goals on Financial Goals.',
+      'High WIP aging often predicts future cash—pair with collection goals on your firm goals strip.',
       'Billing Health on the strategic page complements this operational lens.',
     ],
     followUp: { label: 'Open Profit and Loss', reportName: 'Profit and Loss' },
@@ -88,13 +88,13 @@ export const FINANCE_WIDGET_EXPLORE_COPY: Record<string, FinanceWidgetExploreCop
   },
   suggested_modelling: {
     title: 'Suggested Modelling',
-    subtitle: 'Preview scenarios on Cash, Burn, and Runway—then link plans to Financial Goals.',
+    subtitle: 'Preview scenarios on Cash, Burn, and Runway—then link plans for tracking alongside firm goals.',
     bullets: [
       'Preview toggles an overlay on strategic charts; peer benchmark adds a composite band.',
       'Explore opens a scenario plan with modelled outcomes and alternatives before you commit.',
-      'Execute recommended plan promotes the model to Financial Goals for ongoing tracking.',
+      'Execute recommended plan promotes the model for ongoing tracking with Firm Intelligence.',
     ],
-    followUp: { label: 'View Financial Goals', pageId: 'Financial Goals' },
+    followUp: { label: 'Open Financial Health Overview', pageId: 'fp_financial_health' },
   },
 };
 

@@ -4,27 +4,12 @@ import {
   FinanceWidgetContent,
   hydratePlacedWidgets,
   getFinanceWidgetPinKey,
+  dashboardPinGridClass,
   type DashboardFinancialPin,
   type FinancePageWidget,
   type ReportLibraryEntry,
 } from './financeWidgetCatalog';
 import { cn } from './ui/utils';
-
-function dashboardPinGridClass(widgetId: string): string {
-  if (widgetId === 'fho_firm_goals_detail') return 'lg:col-span-4';
-  if (
-    widgetId === 'fho_operating_cash_detail' ||
-    widgetId === 'fho_revenue_detail' ||
-    widgetId === 'fho_ar_at_risk_detail' ||
-    widgetId === 'fho_runway_detail'
-  ) {
-    return 'lg:col-span-1';
-  }
-  if (widgetId === 'fho_iolta_trust_detail' || widgetId === 'fho_unbilled_detail') {
-    return 'lg:col-span-2';
-  }
-  return 'lg:col-span-2';
-}
 
 export type DashboardFinancialHealthSectionProps = {
   pins: DashboardFinancialPin[];

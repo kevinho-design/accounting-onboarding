@@ -94,7 +94,7 @@ export function getCatalogWidgetSummary(
           { label: 'Current Q3 rev', value: fmtMoney(footerAmount) },
           { label: 'Lens', value: subtitle || 'Quarter plan' },
         ],
-        insight: 'Gauge ties to firm revenue goals—pair with Financial Goals and collections widgets for context.',
+        insight: 'Gauge ties to firm revenue goals—pair with firm goals and collections widgets for context.',
       };
     }
     case 'strat_cash': {
@@ -296,7 +296,7 @@ export function getCatalogWidgetSummary(
           { label: 'Q3 revenue', value: fmtMoney(briefingSnapshot.financialGoals.q3Current) },
           { label: 'Reserve', value: fmtMoney(briefingSnapshot.financialGoals.reserveCurrent) },
         ],
-        insight: 'Same definitions as the Financial Goals page—Firm Intelligence filters insights through these bars.',
+        insight: 'Same definitions as your firm goals strip—Firm Intelligence filters insights through these bars.',
       };
     case 'suggested_modelling':
       return {

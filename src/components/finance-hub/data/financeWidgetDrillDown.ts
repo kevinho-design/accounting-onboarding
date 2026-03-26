@@ -28,14 +28,45 @@ export function getFinanceWidgetExploreAction(
   }
 
   switch (widgetId) {
+    /** Firm Financial Goals: no footer CTA — goals are managed inline on the widget. */
     case 'fho_firm_goals_detail':
+      return { type: 'noop' };
     case 'fho_operating_cash_detail':
+      return {
+        type: 'teammate_prompt',
+        label: 'Explore actions',
+        prompt: 'Walk through operating cash next steps and the cash bridge.',
+      };
     case 'fho_revenue_detail':
+      return {
+        type: 'teammate_prompt',
+        label: 'Explore actions',
+        prompt: 'Outline revenue and pipeline actions I can take this week.',
+      };
     case 'fho_ar_at_risk_detail':
+      return {
+        type: 'teammate_prompt',
+        label: 'Explore actions',
+        prompt: 'We are behind goal on AR at risk — what are my collections options?',
+      };
     case 'fho_runway_detail':
+      return {
+        type: 'teammate_prompt',
+        label: 'Explore actions',
+        prompt: 'What should I do about runway vs. our firm goal?',
+      };
     case 'fho_iolta_trust_detail':
+      return {
+        type: 'teammate_prompt',
+        label: 'Explore actions',
+        prompt: 'List trust and IOLTA compliance actions before close.',
+      };
     case 'fho_unbilled_detail':
-      return { type: 'open_dialog', label: 'Explore details' };
+      return {
+        type: 'teammate_prompt',
+        label: 'Explore actions',
+        prompt: 'How should I prioritize unbilled WIP and invoicing?',
+      };
 
     case 'runway':
     case 'cash_flow':
@@ -68,7 +99,7 @@ export function getFinanceWidgetExploreAction(
       return { type: 'navigate_report', reportName: 'Profit and Loss', label: 'Open P&L report' };
 
     case 'financial_goals':
-      return { type: 'navigate_page', pageId: 'Financial Goals', label: 'View Financial Goals' };
+      return { type: 'navigate_page', pageId: 'fp_financial_health', label: 'View Financial Health Overview' };
 
     case 'practice_areas':
       return {

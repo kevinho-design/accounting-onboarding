@@ -1,4 +1,5 @@
 import * as React from "react";
+import { UploadFileFlow, type UploadStep } from "./UploadFileFlow";
 import { Screen1_UploadAnalysis } from "./migration/Screen1_UploadAnalysis";
 import { Screen2_MigrationIntelligence } from "./migration/Screen2_MigrationIntelligence";
 import { Screen3_ConnectedServices } from "./migration/Screen3_ConnectedServices";
@@ -33,6 +34,8 @@ interface MigrationOnboardingFlowProps {
 
 export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowProps) {
   const [currentStep, setCurrentStep] = React.useState<MigrationStep>("upload");
+  const [uploadMode, setUploadMode] = React.useState(false);
+  const [uploadStep, setUploadStep] = React.useState<UploadStep>("processing");
 
   const steps: MigrationStep[] = [
     "upload",
@@ -85,7 +88,7 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
   const renderStep = () => {
     switch (currentStep) {
       case "upload":
-        return <Screen1_UploadAnalysis onComplete={handleStepComplete} />;
+        return <Screen1_UploadAnalysis onComplete={handleStepComplete} onUploadFile={() => setUploadMode(true)} />;
       case "intelligence":
         return <Screen2_MigrationIntelligence onComplete={handleStepComplete} onBack={() => setCurrentStep("upload")} />;
       case "services":
@@ -118,6 +121,24 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
   React.useEffect(() => {
     scrollContainerRef.current?.scrollTo({ top: 0 });
   }, [currentStep]);
+
+  const uploadMainStep = 1;
+
+  if (uploadMode) {
+    return (
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-shrink-0 sticky top-0 z-10">
+          <MigrationStepProgress currentStep={uploadMainStep} />
+        </div>
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto flex flex-col">
+          <UploadFileFlow
+            onComplete={() => { setUploadMode(false); setCurrentStep("services"); }}
+            onStepChange={setUploadStep}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">

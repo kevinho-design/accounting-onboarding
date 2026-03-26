@@ -1205,7 +1205,8 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
     anomalies: ["anomaly_amount", "duplicate"],
     missing_info: ["matching_gap", "partial_match", "blind_check", "receipt_required", "first_time_vendor", "reconciliation_block", "recon_imbalance", "stale_check", "orphaned_trust"],
   };
-  const [priorityFilter, setPriorityFilter] = React.useState<"all" | "approval" | "anomalies" | "missing_info" | "processed">(initialFilter as any);
+  const TAB_ORDER = ["approval", "anomalies", "missing_info", "processed"] as const;
+  const [priorityFilter, setPriorityFilter] = React.useState<"all" | "approval" | "anomalies" | "missing_info" | "processed">(initialFilter === "all" ? "approval" : initialFilter as any);
   const [showBankAlert, setShowBankAlert] = React.useState(true);
   const [showTrustAlert, setShowTrustAlert] = React.useState(true);
   const [selectedMonth, setSelectedMonth] = React.useState(initialMonth ?? "mar");
@@ -1257,6 +1258,14 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
     });
     return counts;
   }, [monthFiltered]);
+
+  React.useEffect(() => {
+    if (priorityFilter === "all") return;
+    if ((priorityCounts[priorityFilter] || 0) === 0) {
+      const first = TAB_ORDER.find((k) => (priorityCounts[k] || 0) > 0);
+      setPriorityFilter(first ?? "all");
+    }
+  }, [priorityCounts]);
 
   React.useEffect(() => { setVisibleCount(20); }, [accountFilter, priorityFilter]);
 
@@ -1322,15 +1331,16 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
       <div className="flex items-center justify-between px-6 py-2 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: "#FFFFFF" }}>
         <div className="flex items-center gap-1.5">
         {([
-          { key: "all", label: "All" },
           { key: "approval", label: "Needs Approval" },
           { key: "anomalies", label: "Anomalies" },
           { key: "missing_info", label: "Missing Info" },
           { key: "processed", label: "Processed" },
+          { key: "all", label: "All" },
         ] as const).map(({ key, label }) => {
           const isActive = priorityFilter === key;
           const count = key === "all" ? Object.values(priorityCounts).reduce((a, b) => a + b, 0) : priorityCounts[key] || 0;
           const isProcessed = key === "processed";
+          if (key !== "all" && count === 0) return null;
           return (
             <button
               key={key}

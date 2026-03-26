@@ -1,6 +1,5 @@
 import * as React from "react";
 import { Plus, Search, ChevronDown, ChevronRight } from "lucide-react";
-import { Button } from "../ui/button";
 
 interface Account {
   number: string;
@@ -131,63 +130,61 @@ export function ChartOfAccountsPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#FAFBFF' }}>
-      <div className="max-w-[1400px] mx-auto px-8 py-8 pb-24">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <div>
-              <h1 className="text-3xl font-semibold text-gray-900 mb-2">Chart of Accounts</h1>
-              <p className="text-gray-600">
-                Migrated from QuickBooks Online • Optimized for law firm accounting
-              </p>
-            </div>
-            <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Account
-            </Button>
-          </div>
+    <div className="flex-1 flex flex-col overflow-hidden bg-background">
+      {/* Header */}
+      <div className="flex items-center justify-between px-8 pt-8 pb-6 flex-shrink-0" style={{ backgroundColor: "#F7F5F5" }}>
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">Chart of Accounts</h1>
+          <p className="text-muted-foreground mt-1">Migrated from QuickBooks Online · Optimized for law firm accounting</p>
         </div>
+        <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-foreground hover:bg-foreground/90 transition-all shadow-sm">
+          <Plus className="w-4 h-4" />
+          Add Account
+        </button>
+      </div>
 
+      <div className="flex-1 overflow-y-auto px-8 pb-24">
         {/* Search */}
-        <div className="mb-6">
+        <div className="mt-6 mb-4">
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/60" />
             <input
               type="text"
-              placeholder="Search accounts..."
+              placeholder="Search accounts…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-9 pr-4 py-2 rounded-lg text-[13px] outline-none"
+              style={{ border: "1px solid var(--border)", backgroundColor: "#FFFFFF", color: "var(--foreground)" }}
             />
           </div>
         </div>
 
         {/* Accounts Table */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden mb-6">
           {filteredAccounts.map((category) => {
             const isExpanded = expandedCategories.has(category.type);
             const categoryTotal = getCategoryTotal(category.accounts);
 
             return (
-              <div key={category.type} className="border-b border-gray-200 last:border-b-0">
+              <div key={category.type} style={{ borderBottom: "1px solid var(--border)" }} className="last:border-b-0">
                 {/* Category Header */}
                 <button
                   onClick={() => toggleCategory(category.type)}
-                  className="w-full flex items-center justify-between px-6 py-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                  className="w-full flex items-center justify-between px-6 py-4 hover:bg-background transition-colors"
+                  style={{ backgroundColor: "#FFFFFF" }}
                 >
                   <div className="flex items-center gap-3">
                     {isExpanded ? (
-                      <ChevronDown className="w-5 h-5 text-gray-500" />
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
                     ) : (
-                      <ChevronRight className="w-5 h-5 text-gray-500" />
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
                     )}
-                    <h3 className="text-lg font-semibold text-gray-900">{category.type}</h3>
-                    <span className="text-sm text-gray-500">
-                      ({category.accounts.length} account{category.accounts.length !== 1 ? 's' : ''})
+                    <h3 className="text-[14px] font-semibold text-foreground">{category.type}</h3>
+                    <span className="text-[12px] text-muted-foreground/60">
+                      {category.accounts.length} account{category.accounts.length !== 1 ? 's' : ''}
                     </span>
                   </div>
-                  <div className="text-lg font-semibold text-gray-900">
+                  <div className="text-[14px] font-semibold text-foreground tabular-nums">
                     {formatCurrency(categoryTotal)}
                   </div>
                 </button>
@@ -196,7 +193,7 @@ export function ChartOfAccountsPage() {
                 {isExpanded && (
                   <div>
                     {/* Table Header */}
-                    <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-gray-50 border-t border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <div className="grid grid-cols-12 gap-4 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/60" style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", backgroundColor: "#F8FAFC" }}>
                       <div className="col-span-2">Account #</div>
                       <div className="col-span-5">Account Name</div>
                       <div className="col-span-3">Type</div>
@@ -207,18 +204,19 @@ export function ChartOfAccountsPage() {
                     {category.accounts.map((account) => (
                       <div
                         key={account.number}
-                        className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                        className="grid grid-cols-12 gap-4 px-6 py-3.5 hover:bg-background transition-colors cursor-pointer"
+                        style={{ borderBottom: "1px solid var(--border)" }}
                       >
-                        <div className="col-span-2 text-sm font-mono text-gray-900">
+                        <div className="col-span-2 text-[13px] font-mono text-muted-foreground">
                           {account.number}
                         </div>
-                        <div className="col-span-5 text-sm font-medium text-gray-900">
+                        <div className="col-span-5 text-[13px] font-medium text-foreground">
                           {account.name}
                         </div>
-                        <div className="col-span-3 text-sm text-gray-600">
+                        <div className="col-span-3 text-[13px] text-muted-foreground">
                           {account.type}
                         </div>
-                        <div className="col-span-2 text-sm text-right font-medium text-gray-900">
+                        <div className="col-span-2 text-[13px] text-right font-medium text-foreground tabular-nums">
                           {account.balance < 0 && '('}
                           {formatCurrency(account.balance)}
                           {account.balance < 0 && ')'}
@@ -233,22 +231,22 @@ export function ChartOfAccountsPage() {
         </div>
 
         {/* Summary Stats */}
-        <div className="mt-6 grid grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="text-sm text-gray-600 mb-1">Total Assets</div>
-            <div className="text-2xl font-semibold text-gray-900">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-card rounded-xl border border-border shadow-sm p-4">
+            <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60 mb-1">Total Assets</p>
+            <div className="text-2xl font-bold text-foreground tabular-nums">
               {formatCurrency(getCategoryTotal(chartOfAccounts[0].accounts))}
             </div>
           </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="text-sm text-gray-600 mb-1">Total Revenue (YTD)</div>
-            <div className="text-2xl font-semibold text-green-600">
+          <div className="bg-card rounded-xl border border-border shadow-sm p-4">
+            <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60 mb-1">Total Revenue (YTD)</p>
+            <div className="text-2xl font-bold tabular-nums" style={{ color: "#16A34A" }}>
               {formatCurrency(getCategoryTotal(chartOfAccounts[3].accounts))}
             </div>
           </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <div className="text-sm text-gray-600 mb-1">Total Expenses (YTD)</div>
-            <div className="text-2xl font-semibold text-gray-900">
+          <div className="bg-card rounded-xl border border-border shadow-sm p-4">
+            <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60 mb-1">Total Expenses (YTD)</p>
+            <div className="text-2xl font-bold text-foreground tabular-nums">
               {formatCurrency(getCategoryTotal(chartOfAccounts[4].accounts))}
             </div>
           </div>

@@ -2,6 +2,7 @@ import * as React from "react";
 import { AccountingSidebar } from "./AccountingSidebar";
 import { ExceptionFirstDashboard } from "./ExceptionFirstDashboard";
 import { BookkeeperDashboard } from "./BookkeeperDashboard";
+import { RyanDashboard } from "./RyanDashboard";
 import { UnifiedTransactionInbox } from "./accounting/UnifiedTransactionInbox";
 import { BankingPage } from "./accounting/BankingPage";
 import { FundsInPage } from "./accounting/FundsInPage";
@@ -42,21 +43,38 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
       const subPage = currentPage.split(":")[1];
       return <FinanceHubPage initialPage={subPage} scrollToWidget={fhoScrollTarget} onAddPageRef={addPageRef} />;
     }
+    if (currentPage.startsWith("Funds Out:")) {
+      const sub = currentPage.split(":")[1] as "payables" | "expenses" | "vendors";
+      return <FundsOutPage initialTab={sub} />;
+    }
     switch (currentPage) {
       case "Dashboard":
-        return activeUser === "sarah" ? (
-          <BookkeeperDashboard
-            onAskTeammate={onAskTeammate}
-            onOpenRail={onOpenRail}
-            onExceptionsChange={onExceptionsChange}
-            onRecentActionsChange={onRecentActionsChange}
-            onNavigateToTransactions={() => navigateToTransactions("all")}
-            onNavigateToTransactionsFiltered={navigateToTransactions}
-            onNavigateToConnections={navigateToConnections}
-          />
-        ) : (
-          <ExceptionFirstDashboard 
-            onReviewFinancialGoals={onReviewFinancialGoals} 
+        if (activeUser === "sarah") {
+          return (
+            <BookkeeperDashboard
+              onAskTeammate={onAskTeammate}
+              onOpenRail={onOpenRail}
+              onExceptionsChange={onExceptionsChange}
+              onRecentActionsChange={onRecentActionsChange}
+              onNavigateToTransactions={() => navigateToTransactions("all")}
+              onNavigateToTransactionsFiltered={navigateToTransactions}
+              onNavigateToConnections={navigateToConnections}
+            />
+          );
+        }
+        if (activeUser === "ryan") {
+          return (
+            <RyanDashboard
+              onAskTeammate={onAskTeammate}
+              onOpenRail={onOpenRail}
+              onNavigateToTransactionsFiltered={navigateToTransactions}
+              onNavigateToFinancialHealth={(scrollTo) => { setFhoScrollTarget(scrollTo); setCurrentPage("Finances:fp_financial_health"); }}
+            />
+          );
+        }
+        return (
+          <ExceptionFirstDashboard
+            onReviewFinancialGoals={onReviewFinancialGoals}
             onRecentActionsChange={onRecentActionsChange}
             onExceptionsChange={onExceptionsChange}
             onAskTeammate={onAskTeammate}
@@ -83,7 +101,7 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
       case "Funds In":
         return <FundsInPage />;
       case "Funds Out":
-        return <FundsOutPage />;
+        return <FundsOutPage initialTab="payables" />;
       case "Payroll":
         return (
           <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#FAFBFF' }}>

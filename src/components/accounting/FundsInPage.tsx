@@ -35,14 +35,31 @@ interface Payment {
 }
 
 const INVOICES: Invoice[] = [
-  { id: "INV-2026-0051", client: "Robert Chen",      matter: "Chen v. StateFarm",       amount: 4500.00,  dateIssued: "Mar 12", dueDate: "Apr 11", status: "sent" },
-  { id: "INV-2026-0050", client: "Jane Doe",         matter: "Doe v. Metroplex",        amount: 8200.00,  dateIssued: "Mar 10", dueDate: "Mar 25", status: "overdue" },
-  { id: "INV-2026-0049", client: "Green Family",     matter: "Green Estate Admin.",      amount: 3150.00,  dateIssued: "Mar 8",  dueDate: "Apr 7",  status: "paid" },
-  { id: "INV-2026-0048", client: "D. Williams",      matter: "Williams IP Filing",      amount: 6800.00,  dateIssued: "Mar 7",  dueDate: "Apr 6",  status: "sent" },
-  { id: "INV-2026-0047", client: "Martinez Family",  matter: "Martinez Estate Admin.",   amount: 4600.00,  dateIssued: "Mar 5",  dueDate: "Mar 20", status: "overdue" },
-  { id: "INV-2026-0046", client: "Tom Wilson",       matter: "Wilson v. Metro",          amount: 2900.00,  dateIssued: "Mar 4",  dueDate: "Apr 3",  status: "paid" },
-  { id: "INV-2026-0045", client: "M. Santos",        matter: "Santos Immigration",       amount: 5400.00,  dateIssued: "Mar 3",  dueDate: "Apr 2",  status: "sent" },
-  { id: "INV-2026-0044", client: "Priya Sharma",     matter: "Sharma v. DataCorp",       amount: 7500.00,  dateIssued: "Mar 1",  dueDate: "Mar 31", status: "paid" },
+  { id: "INV-2026-0051", client: "Robert Chen",       matter: "Chen v. StateFarm",          amount: 4500.00,  dateIssued: "Mar 12", dueDate: "Apr 11", status: "sent"    },
+  { id: "INV-2026-0050", client: "Jane Doe",          matter: "Doe v. Metroplex",           amount: 8200.00,  dateIssued: "Mar 10", dueDate: "Mar 25", status: "overdue" },
+  { id: "INV-2026-0049", client: "Green Family",      matter: "Green Estate Admin.",         amount: 3150.00,  dateIssued: "Mar 8",  dueDate: "Apr 7",  status: "paid"    },
+  { id: "INV-2026-0048", client: "D. Williams",       matter: "Williams IP Filing",         amount: 6800.00,  dateIssued: "Mar 7",  dueDate: "Apr 6",  status: "sent"    },
+  { id: "INV-2026-0047", client: "Martinez Family",   matter: "Martinez Estate Admin.",      amount: 4600.00,  dateIssued: "Mar 5",  dueDate: "Mar 20", status: "overdue" },
+  { id: "INV-2026-0046", client: "Tom Wilson",        matter: "Wilson v. Metro",             amount: 2900.00,  dateIssued: "Mar 4",  dueDate: "Apr 3",  status: "paid"    },
+  { id: "INV-2026-0045", client: "M. Santos",         matter: "Santos Immigration",          amount: 5400.00,  dateIssued: "Mar 3",  dueDate: "Apr 2",  status: "sent"    },
+  { id: "INV-2026-0044", client: "Priya Sharma",      matter: "Sharma v. DataCorp",          amount: 7500.00,  dateIssued: "Mar 1",  dueDate: "Mar 31", status: "paid"    },
+  { id: "INV-2026-0043", client: "Ellis Hirthe",      matter: "Hirthe v. Consolidated",      amount: 11200.00, dateIssued: "Feb 28", dueDate: "Mar 30", status: "overdue" },
+  { id: "INV-2026-0042", client: "Vanessa Towns",     matter: "Towns Custody",               amount: 3800.00,  dateIssued: "Feb 26", dueDate: "Mar 28", status: "sent"    },
+  { id: "INV-2026-0041", client: "Bruce Wayne",       matter: "Wayne Enterprises IP",        amount: 22500.00, dateIssued: "Feb 24", dueDate: "Mar 26", status: "sent"    },
+  { id: "INV-2026-0040", client: "Lucy Hane",         matter: "Hane Trust Setup",            amount: 5900.00,  dateIssued: "Feb 22", dueDate: "Mar 24", status: "paid"    },
+  { id: "INV-2026-0039", client: "Bethany Gleason",   matter: "Gleason v. Metro Transit",    amount: 6400.00,  dateIssued: "Feb 20", dueDate: "Mar 22", status: "sent"    },
+  { id: "INV-2026-0038", client: "Felix Spinko",      matter: "Spinko Malpractice",          amount: 9100.00,  dateIssued: "Feb 18", dueDate: "Mar 20", status: "overdue" },
+  { id: "INV-2026-0037", client: "Shannon Klein",     matter: "Klein Divorce",               amount: 4250.00,  dateIssued: "Feb 16", dueDate: "Mar 18", status: "paid"    },
+  { id: "INV-2026-0036", client: "Kelvin Nitzsche",   matter: "Nitzsche Contract Dispute",   amount: 7800.00,  dateIssued: "Feb 14", dueDate: "Mar 16", status: "sent"    },
+  { id: "INV-2026-0035", client: "D. Williams",       matter: "Williams Employment",         amount: 3300.00,  dateIssued: "Feb 12", dueDate: "Mar 14", status: "paid"    },
+  { id: "INV-2026-0034", client: "Robert Chen",       matter: "Chen Personal Injury",        amount: 5750.00,  dateIssued: "Feb 10", dueDate: "Mar 12", status: "paid"    },
+  { id: "INV-2026-0033", client: "Priya Sharma",      matter: "Sharma Trademark Filing",     amount: 2100.00,  dateIssued: "Feb 8",  dueDate: "Mar 10", status: "paid"    },
+  { id: "INV-2026-0032", client: "Martinez Family",   matter: "Martinez Property",           amount: 8900.00,  dateIssued: "Feb 6",  dueDate: "Mar 8",  status: "paid"    },
+  { id: "INV-2026-0031", client: "Tom Wilson",        matter: "Wilson Workers Comp",         amount: 4100.00,  dateIssued: "Feb 4",  dueDate: "Mar 6",  status: "paid"    },
+  { id: "INV-2026-0030", client: "Jane Doe",          matter: "Doe Immigration Appeal",      amount: 6600.00,  dateIssued: "Feb 2",  dueDate: "Mar 4",  status: "paid"    },
+  { id: "INV-2026-0029", client: "Ellis Hirthe",      matter: "Hirthe Business Formation",   amount: 3950.00,  dateIssued: "Jan 31", dueDate: "Mar 2",  status: "paid"    },
+  { id: "INV-2026-0028", client: "Lucy Hane",         matter: "Hane Real Estate Closing",    amount: 12400.00, dateIssued: "Jan 29", dueDate: "Feb 28", status: "paid"    },
+  { id: "INV-2026-0027", client: "Bruce Wayne",       matter: "Wayne Estate Planning",       amount: 18000.00, dateIssued: "Jan 27", dueDate: "Feb 26", status: "paid"    },
 ];
 
 const RECENT_PAYMENTS: Payment[] = [
@@ -120,7 +137,7 @@ function FeatureColumn({ sections, dotColor }: { sections: FeatureSection[]; dot
     <div className="space-y-5">
       {sections.map((section) => (
         <div key={section.title}>
-          <p className="text-[10px] uppercase tracking-widest font-semibold mb-2.5" className="text-muted-foreground">{section.title}</p>
+          <p className="text-[10px] uppercase tracking-widest font-semibold mb-2.5 text-muted-foreground">{section.title}</p>
           <div className="space-y-2">
             {section.items.map((item) => (
               <div key={item.name} className="flex items-start gap-2.5">
@@ -138,16 +155,42 @@ function FeatureColumn({ sections, dotColor }: { sections: FeatureSection[]; dot
   );
 }
 
+const LOAD_BATCH = 12;
+
 export function FundsInPage() {
   const [statusFilter, setStatusFilter] = React.useState<"all" | InvoiceStatus>("all");
   const [search, setSearch] = React.useState("");
   const [compareOpen, setCompareOpen] = React.useState(false);
+  const [visibleCount, setVisibleCount] = React.useState(LOAD_BATCH);
+  const sentinelRef = React.useRef<HTMLDivElement>(null);
 
   const filtered = INVOICES.filter((inv) => {
     if (statusFilter !== "all" && inv.status !== statusFilter) return false;
     if (search && !inv.client.toLowerCase().includes(search.toLowerCase()) && !inv.id.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
+  const visibleInvoices = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
+  React.useEffect(() => {
+    setVisibleCount(LOAD_BATCH);
+  }, [statusFilter, search]);
+
+  React.useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + LOAD_BATCH, filtered.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [filtered.length]);
 
   const isDraftEmpty = statusFilter === "draft" && filtered.length === 0;
 
@@ -160,12 +203,11 @@ export function FundsInPage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden" className="bg-background">
+    <div className="flex-1 flex flex-col overflow-hidden bg-background">
       {/* Header */}
       <div className="flex items-center justify-between px-8 pt-8 pb-6 flex-shrink-0" style={{ backgroundColor: "#F7F5F5" }}>
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Funds In</h1>
-          <p className="text-muted-foreground mt-1">Billing, client payments, and trust deposits</p>
+          <h1 className="text-2xl font-semibold text-foreground">Billings</h1>
         </div>
         <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-foreground hover:bg-foreground/90 transition-all shadow-sm">
           <Plus className="w-4 h-4" />
@@ -201,12 +243,7 @@ export function FundsInPage() {
         {/* KPI Cards */}
         <div className="grid grid-cols-4 gap-4 mb-6">
           <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Revenue Collected</p>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                <DollarSign className="w-4 h-4 text-emerald-600" />
-              </div>
-            </div>
+            <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60 mb-2">Revenue Collected</p>
             <p className="text-2xl font-bold text-foreground">$87,420</p>
             <div className="flex items-center gap-1 mt-1">
               <TrendingUp className="w-3 h-3 text-emerald-600" />
@@ -215,34 +252,19 @@ export function FundsInPage() {
           </div>
 
           <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Outstanding AR</p>
-              <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
-                <FileText className="w-4 h-4 text-primary" />
-              </div>
-            </div>
+            <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60 mb-2">Outstanding AR</p>
             <p className="text-2xl font-bold text-foreground">$34,150</p>
             <p className="text-[12px] text-muted-foreground mt-1">8 invoices</p>
           </div>
 
           <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Overdue</p>
-              <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4 text-red-500" />
-              </div>
-            </div>
+            <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60 mb-2">Overdue</p>
             <p className="text-2xl font-bold text-foreground">$12,800</p>
             <p className="text-[12px] text-red-500 font-medium mt-1">3 invoices past due</p>
           </div>
 
           <div className="bg-card rounded-xl p-4 border border-border shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60">Trust Deposits</p>
-              <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center">
-                <Landmark className="w-4 h-4 text-teal-600" />
-              </div>
-            </div>
+            <p className="text-[11px] uppercase tracking-wide font-semibold text-muted-foreground/60 mb-2">Trust Deposits</p>
             <p className="text-2xl font-bold text-foreground">$28,500</p>
             <p className="text-[12px] text-muted-foreground mt-1">6 deposits this month</p>
           </div>
@@ -252,23 +274,37 @@ export function FundsInPage() {
         <div className="bg-card rounded-xl overflow-hidden mb-6 border border-border shadow-sm">
           {/* Toolbar */}
           <div className="px-5 pt-4 pb-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
-            <div className="flex items-center gap-1 p-0.5 rounded-lg" className="bg-muted">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => setStatusFilter(tab.key)}
-                  className="px-3 py-1.5 rounded-md text-[13px] transition-all"
-                  style={{
-                    fontWeight: statusFilter === tab.key ? 600 : 400,
-                    color: statusFilter === tab.key ? "var(--foreground)" : "var(--muted-foreground)",
-                    backgroundColor: statusFilter === tab.key ? "#FFFFFF" : "transparent",
-                    boxShadow: statusFilter === tab.key ? "0 1px 3px rgba(0,0,0,0.06)" : "none",
-                  }}
-                >
-                  {tab.label}
-                  <span className="ml-1.5 text-[11px]" style={{ color: statusFilter === tab.key ? "var(--muted-foreground)" : "color-mix(in srgb, var(--muted-foreground) 40%, transparent)" }}>{tab.count}</span>
-                </button>
-              ))}
+            <div className="flex items-center gap-1.5">
+              {tabs.map((tab) => {
+                const isActive = statusFilter === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setStatusFilter(tab.key)}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] transition-all"
+                    style={{
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? "#17181C" : "#64748B",
+                      backgroundColor: isActive ? "#F1F5F9" : "transparent",
+                      border: isActive ? "1px solid #CBD5E1" : "1px solid transparent",
+                    }}
+                  >
+                    {tab.label}
+                    {tab.count > 0 && (
+                      <span
+                        className="text-[11px] px-1.5 py-0.5 rounded-full"
+                        style={{
+                          backgroundColor: isActive ? "#E2E8F0" : "#F1F5F9",
+                          color: isActive ? "#475569" : "#94A3B8",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
             {!isDraftEmpty && (
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ backgroundColor: "#F7F5F5", border: "1px solid var(--border)" }}>
@@ -323,7 +359,7 @@ export function FundsInPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((inv) => {
+                  {visibleInvoices.map((inv) => {
                     const cfg = STATUS_CONFIG[inv.status];
                     return (
                       <tr key={inv.id} className="hover:bg-background transition-colors cursor-pointer" style={{ borderBottom: "1px solid #F7F5F5" }}>
@@ -350,45 +386,21 @@ export function FundsInPage() {
                 </tbody>
               </table>
 
-              <div className="px-5 py-3 flex items-center justify-between" style={{ borderTop: "1px solid var(--border)", backgroundColor: "#F7F5F5" }}>
-                <span className="text-[12px] text-muted-foreground/60">Showing {filtered.length} of 47 invoices</span>
-                <button className="text-[12px] text-primary hover:text-primary font-medium flex items-center gap-1">
-                  View all <ChevronRight className="w-3 h-3" />
-                </button>
-              </div>
+              {/* Sentinel for infinite scroll */}
+              <div ref={sentinelRef} className="h-1" />
+              {hasMore && (
+                <div className="flex items-center justify-center py-4 gap-2" style={{ color: "#94A3B8" }}>
+                  <div className="w-4 h-4 rounded-full border-2 border-slate-200 border-t-slate-400 animate-spin" />
+                  <span className="text-[12px]">Loading more…</span>
+                </div>
+              )}
+              {!hasMore && filtered.length > 0 && (
+                <div className="flex items-center justify-center py-3">
+                  <span className="text-[12px] text-muted-foreground/40">All {filtered.length} invoices loaded</span>
+                </div>
+              )}
             </>
           )}
-        </div>
-
-        {/* Recent Payments */}
-        <div className="bg-card rounded-xl overflow-hidden border border-border shadow-sm">
-          <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
-            <h3 className="text-[14px] font-semibold text-foreground">Recent Payments</h3>
-            <span className="text-[12px] text-muted-foreground/60">Last 5 received</span>
-          </div>
-          <div>
-            {RECENT_PAYMENTS.map((pmt, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between px-5 py-3.5 hover:bg-background transition-colors"
-                style={{ borderBottom: i < RECENT_PAYMENTS.length - 1 ? "1px solid #F7F5F5" : "none", borderLeft: "3px solid #10B981" }}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                    <ArrowUpRight className="w-4 h-4 text-emerald-600" style={{ transform: "rotate(180deg)" }} />
-                  </div>
-                  <div>
-                    <p className="text-[13px] font-medium text-foreground">{pmt.client}</p>
-                    <p className="text-[11px] text-muted-foreground/60">{pmt.invoiceRef} · {pmt.method}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-[13px] font-semibold text-emerald-700 tabular-nums">+{fmt(pmt.amount)}</p>
-                  <p className="text-[11px] text-muted-foreground/60">{pmt.date}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 

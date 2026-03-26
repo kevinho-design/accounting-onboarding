@@ -111,7 +111,7 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
       case "workflow":
         return <Screen8_WorkflowApprovals onComplete={handleStepComplete} onBack={handleStepBack} onAssign={handleAssign} />;
       case "reporting":
-        return <Screen9_ReportingPreferences onComplete={handleStepComplete} onBack={handleStepBack} />;
+        return <Screen9_ReportingPreferences onComplete={handleStepComplete} onBack={handleStepBack} onAssign={handleAssign} />;
       case "goals":
         return <Screen10_FinancialGoals onComplete={handleStepComplete} onBack={handleStepBack} onAssign={handleAssign} />;
       case "configuring":

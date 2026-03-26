@@ -189,7 +189,7 @@ export default function App() {
               setShowPortal(false);
               setActiveUser("ryan");
               setCurrentPage("Accounting");
-              setInitialPage("Finances");
+              setInitialPage("Dashboard");
               setInAccountingApp(true);
               setRailSeen(false);
             }}

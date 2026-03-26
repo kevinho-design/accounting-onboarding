@@ -56,7 +56,12 @@ export function AccountingSidebar({ onPageChange, currentPage, onBackToClio, onA
     { 
       icon: ArrowUpFromLine, 
       label: "Funds Out", 
-      onClick: () => onPageChange("Funds Out") 
+      onClick: () => onPageChange("Funds Out:payables"),
+      children: [
+        { label: "Payables", route: "payables", onClick: () => onPageChange("Funds Out:payables") },
+        { label: "Expenses", route: "expenses", onClick: () => onPageChange("Funds Out:expenses") },
+        { label: "Vendors",  route: "vendors",  onClick: () => onPageChange("Funds Out:vendors")  },
+      ],
     },
     { 
       icon: Users, 

@@ -43,6 +43,10 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
       const subPage = currentPage.split(":")[1];
       return <FinanceHubPage initialPage={subPage} scrollToWidget={fhoScrollTarget} onAddPageRef={addPageRef} />;
     }
+    if (currentPage.startsWith("Funds Out:")) {
+      const sub = currentPage.split(":")[1] as "payables" | "expenses" | "vendors";
+      return <FundsOutPage initialTab={sub} />;
+    }
     switch (currentPage) {
       case "Dashboard":
         if (activeUser === "sarah") {
@@ -97,7 +101,7 @@ export function AccountingApp({ onBackToClio, onReviewFinancialGoals, onRecentAc
       case "Funds In":
         return <FundsInPage />;
       case "Funds Out":
-        return <FundsOutPage />;
+        return <FundsOutPage initialTab="payables" />;
       case "Payroll":
         return (
           <div className="flex-1 overflow-y-auto" style={{ backgroundColor: '#FAFBFF' }}>

@@ -8,6 +8,7 @@ import {
   Target,
   TrendingUp,
   Wallet,
+  Plus,
 } from 'lucide-react';
 import {
   financialKpis,
@@ -17,9 +18,14 @@ import {
   type FinancialKpi,
 } from '../data/homeDashboardSeed';
 import {
-  FIRM_GOAL_DEFINITIONS,
+  addFirmGoal,
+  deleteFirmGoal,
   FIRM_INTELLIGENCE_GOALS_FILTER_NARRATIVE,
+  getFirmGoalById,
+  getFirmGoalDashboardCards,
   firmGoalsOnTrackCount,
+  updateFirmGoal,
+  useFirmGoalsState,
 } from '../data/firmGoals';
 import {
   FHO_AR_INVOICE_ROWS,
@@ -30,12 +36,26 @@ import {
   FHO_OPERATING_CASH_NOTE,
   FHO_REVENUE_MARGIN_CONTEXT,
   FHO_REVENUE_PRACTICE_MIX,
+  FHO_RUNWAY_GOAL_DAYS,
   FHO_RUNWAY_NARRATIVE,
+  FHO_RUNWAY_TREND,
   FHO_UNBILLED_MATTER_ROWS,
   fhoPersonalizationCopy,
 } from '../data/financialHealthOverviewSeed';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import { USER_FIRST_NAME } from '../data/prototypePersona';
 import { cn } from './ui/utils';
+import { FirmGoalsCardList } from './FirmGoalsCardList';
+import { GoalOptimizationModal } from './GoalOptimizationModal';
 
 export type FhoSurface = 'page' | 'dashboardSummary';
 
@@ -120,6 +140,20 @@ function KpiHeadline({
         ))}
         {kpi.footnote ? <span className="text-xs font-semibold text-muted-foreground">{kpi.footnote}</span> : null}
       </div>
+    </div>
+  );
+}
+
+/** Pinned to top of each FHO widget’s internal scroll area (Financial Health page). */
+function FhoPageStickyHeader({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div
+      className={cn(
+        'sticky top-0 z-10 -mx-1 mb-3 bg-card px-1 pb-3 pt-0.5 border-b border-border/80',
+        className,
+      )}
+    >
+      {children}
     </div>
   );
 }
@@ -209,7 +243,13 @@ export function FhoPersonalizationBanner(props?: {
 }
 
 export function FhoFirmGoalsDetailWidget({ surface = 'page' }: { surface?: FhoSurface } = {}) {
+  useFirmGoalsState();
   const { onTrack, total } = firmGoalsOnTrackCount();
+  const [detailsOpen, setDetailsOpen] = React.useState(true);
+  const goals = getFirmGoalDashboardCards();
+  const [reviewGoalId, setReviewGoalId] = React.useState<string | null>(null);
+  const atRiskCount = goals.filter((g) => g.status === 'at-risk').length;
+  const selectedGoal = reviewGoalId ? getFirmGoalById(reviewGoalId) : null;
   if (surface === 'dashboardSummary') {
     return (
       <div className="space-y-1">
@@ -229,47 +269,68 @@ export function FhoFirmGoalsDetailWidget({ surface = 'page' }: { surface?: FhoSu
   }
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-        <Target className="h-5 w-5 text-violet-600 shrink-0" strokeWidth={2} />
-        <h4 className="text-sm font-bold">{goalsSummary.label}</h4>
-      </div>
-      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-        {onTrack} of {total} on track
-        <span className="ml-2 font-normal text-muted-foreground">— {goalsSummary.atRiskLine}</span>
-      </p>
+      <FhoPageStickyHeader className="space-y-3">
+        <div className="flex items-center justify-between gap-3 text-gray-900 dark:text-gray-100">
+          <div className="flex items-center gap-2">
+            <Target className="h-5 w-5 text-violet-600 shrink-0" strokeWidth={2} />
+            <h4 className="text-sm font-bold">{goalsSummary.label}</h4>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const newGoal = addFirmGoal();
+              setReviewGoalId(newGoal.id);
+              setDetailsOpen(true);
+            }}
+            className="inline-flex items-center gap-1 rounded-[8px] border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add new goal
+          </button>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDetailsOpen((prev) => !prev)}
+          className="w-full rounded-lg border border-border bg-muted/10 px-3 py-2 text-left hover:bg-muted/20 transition-colors"
+        >
+          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {onTrack} of {total} on track
+            <span className="ml-2 font-normal text-muted-foreground">• {atRiskCount} at risk</span>
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            Dashboard-style goal cards {detailsOpen ? 'shown' : 'hidden'} — click to {detailsOpen ? 'collapse' : 'expand'}
+          </p>
+        </button>
+      </FhoPageStickyHeader>
       <p className="text-sm leading-relaxed text-muted-foreground">{FIRM_INTELLIGENCE_GOALS_FILTER_NARRATIVE}</p>
-      <ul className="space-y-4">
-        {FIRM_GOAL_DEFINITIONS.map((g) => (
-          <li key={g.id} className="rounded-lg border border-border bg-muted/15 p-3">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{g.title}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{g.metricHint}</p>
-              </div>
-              <KpiBadge
-                label={g.status === 'on_track' ? 'On track' : 'Behind'}
-                variant={g.status === 'on_track' ? 'success' : 'warning'}
-              />
-            </div>
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
-              <span className="font-semibold text-muted-foreground">{g.progressCurrentLabel}</span>
-              <span className="text-muted-foreground">→ {g.progressTargetLabel}</span>
-            </div>
-            <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className={cn(
-                  'h-full rounded-full transition-all',
-                  g.status === 'on_track' ? 'bg-[var(--chart-emerald)]' : 'bg-amber-500/80',
-                )}
-                style={{ width: `${g.progressPct}%` }}
-              />
-            </div>
-          </li>
-        ))}
-      </ul>
+      {detailsOpen ? (
+        <FirmGoalsCardList
+          goals={goals}
+          gridClassName="grid grid-cols-1 lg:grid-cols-2 gap-3"
+          cardClassName="p-4 bg-background rounded-xl border border-border/70"
+          onReviewGoal={(goalId) => setReviewGoalId(goalId)}
+        />
+      ) : null}
       <p className="text-xs text-muted-foreground">
-        Review and adjust goals in Financial Goals (same targets as your Dashboard strip).
+        Review and adjust goals here (same targets as your Dashboard strip).
       </p>
+      <GoalOptimizationModal
+        open={Boolean(reviewGoalId && selectedGoal)}
+        goal={selectedGoal}
+        onOpenChange={(open) => {
+          if (!open) setReviewGoalId(null);
+        }}
+        onSave={({ title, goalTemplateId, targetValue, targetDeadline }) => {
+          if (!selectedGoal) return;
+          updateFirmGoal(selectedGoal.id, { title, goalTemplateId, targetValue, targetDeadline });
+          setReviewGoalId(null);
+        }}
+        onDelete={() => {
+          if (!selectedGoal) return;
+          deleteFirmGoal(selectedGoal.id);
+          setReviewGoalId(null);
+        }}
+      />
     </div>
   );
 }
@@ -289,7 +350,9 @@ export function FhoOperatingCashDetailWidget({ surface = 'page' }: { surface?: F
   }
   return (
     <div className="space-y-4">
-      <KpiHeadline kpi={k1} icon={Wallet} iconClass="text-emerald-600" />
+      <FhoPageStickyHeader>
+        <KpiHeadline kpi={k1} icon={Wallet} iconClass="text-emerald-600" />
+      </FhoPageStickyHeader>
       <p className="text-sm leading-relaxed text-muted-foreground">{FHO_OPERATING_CASH_NOTE}</p>
       <div className="rounded-lg border border-border bg-muted/10 p-3">
         <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">MoM trend</p>
@@ -334,7 +397,9 @@ export function FhoRevenueDetailWidget({ surface = 'page' }: { surface?: FhoSurf
   }
   return (
     <div className="space-y-4">
-      <KpiHeadline kpi={k2} icon={TrendingUp} iconClass="text-violet-600" />
+      <FhoPageStickyHeader>
+        <KpiHeadline kpi={k2} icon={TrendingUp} iconClass="text-violet-600" />
+      </FhoPageStickyHeader>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-left text-sm">
           <thead>
@@ -405,7 +470,9 @@ export function FhoArAtRiskDetailWidget({ surface = 'page' }: { surface?: FhoSur
   }
   return (
     <div className="space-y-4">
-      <KpiHeadline kpi={k3} icon={AlertTriangle} iconClass="text-amber-600" />
+      <FhoPageStickyHeader>
+        <KpiHeadline kpi={k3} icon={AlertTriangle} iconClass="text-amber-600" />
+      </FhoPageStickyHeader>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full text-left text-sm">
           <thead>
@@ -474,6 +541,73 @@ export function FhoArAtRiskDetailWidget({ surface = 'page' }: { surface?: FhoSur
   );
 }
 
+function FhoRunwayTrendMiniChart() {
+  return (
+    <div className="mt-3 rounded-lg border border-border bg-muted/15">
+      <p className="border-b border-border/80 px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        Runway trend (days)
+      </p>
+      <div className="h-[112px] w-full px-1 pb-1 pt-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={[...FHO_RUNWAY_TREND]}
+            margin={{ top: 8, right: 6, left: 0, bottom: 4 }}
+            accessibilityLayer={false}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 10, fill: 'var(--chart-tick)' }}
+              dy={6}
+            />
+            <YAxis
+              domain={['dataMin - 6', 'dataMax + 8']}
+              axisLine={false}
+              tickLine={false}
+              width={32}
+              tick={{ fontSize: 10, fill: 'var(--chart-tick)' }}
+              tickFormatter={(v) => `${v}`}
+            />
+            <Tooltip
+              contentStyle={{
+                borderRadius: 8,
+                fontSize: 12,
+                border: 'none',
+                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+              }}
+              formatter={(value: number) => [`${value} days`, 'Runway']}
+              labelFormatter={(label) => `${label}`}
+            />
+            <ReferenceLine
+              y={FHO_RUNWAY_GOAL_DAYS}
+              stroke="var(--chart-tick)"
+              strokeDasharray="4 4"
+              strokeOpacity={0.6}
+              label={{
+                value: 'Goal',
+                position: 'insideTopRight',
+                fill: 'var(--muted-foreground)',
+                fontSize: 10,
+              }}
+            />
+            <Line
+              type="monotone"
+              dataKey="days"
+              name="Runway"
+              stroke="rgb(219 39 119)"
+              strokeWidth={2}
+              dot={{ r: 3, strokeWidth: 1.5, fill: '#fff' }}
+              activeDot={{ r: 4 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 export function FhoRunwayDetailWidget({ surface = 'page' }: { surface?: FhoSurface } = {}) {
   const k4 = kpiById('k4');
   const radialPct = k4.vizMeta?.radialPct ?? 0;
@@ -492,12 +626,14 @@ export function FhoRunwayDetailWidget({ surface = 'page' }: { surface?: FhoSurfa
   }
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 flex-1 space-y-3">
-          <KpiHeadline kpi={k4} icon={Activity} iconClass="text-pink-600" />
+      <FhoPageStickyHeader>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1 space-y-3">
+            <KpiHeadline kpi={k4} icon={Activity} iconClass="text-pink-600" />
+          </div>
+          <RunwayRadialHint pct={radialPct} />
         </div>
-        <RunwayRadialHint pct={radialPct} />
-      </div>
+      </FhoPageStickyHeader>
       <p className="text-sm leading-relaxed text-muted-foreground">{FHO_RUNWAY_NARRATIVE.body}</p>
       <div className="flex flex-wrap gap-3 text-xs font-semibold">
         <span className="rounded-full border border-pink-500/30 bg-pink-500/10 px-2.5 py-1 text-pink-900 dark:text-pink-200">
@@ -507,6 +643,7 @@ export function FhoRunwayDetailWidget({ surface = 'page' }: { surface?: FhoSurfa
           Prior month: ~{FHO_RUNWAY_NARRATIVE.priorMonthDays} days
         </span>
       </div>
+      <FhoRunwayTrendMiniChart />
     </div>
   );
 }
@@ -538,16 +675,18 @@ export function FhoIoltaTrustDetailWidget({ surface = 'page' }: { surface?: FhoS
   }
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-        <Shield className="h-5 w-5 text-emerald-600 shrink-0" strokeWidth={2} />
-        <h4 className="text-sm font-bold">IOLTA trust</h4>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-1 text-sm font-bold text-emerald-800 dark:text-emerald-200">
-          {ioltaTrustCard.complianceBadge}
-        </span>
-        <span className="text-sm text-muted-foreground">{ioltaTrustCard.footer}</span>
-      </div>
+      <FhoPageStickyHeader className="space-y-3">
+        <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+          <Shield className="h-5 w-5 text-emerald-600 shrink-0" strokeWidth={2} />
+          <h4 className="text-sm font-bold">IOLTA trust</h4>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full border border-emerald-500/40 bg-emerald-500/15 px-3 py-1 text-sm font-bold text-emerald-800 dark:text-emerald-200">
+            {ioltaTrustCard.complianceBadge}
+          </span>
+          <span className="text-sm text-muted-foreground">{ioltaTrustCard.footer}</span>
+        </div>
+      </FhoPageStickyHeader>
       <ul className="space-y-2 rounded-lg border border-border bg-muted/20 p-3">
         <li className="flex justify-between gap-4 text-sm">
           <span className="text-muted-foreground">Bank balance</span>
@@ -603,15 +742,17 @@ export function FhoUnbilledDetailWidget({ surface = 'page' }: { surface?: FhoSur
   }
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
-        <FileText className="h-5 w-5 text-orange-600 shrink-0" strokeWidth={2} />
-        <h4 className="text-sm font-bold">Unbilled time</h4>
-      </div>
-      <div className="flex flex-wrap items-baseline gap-2">
-        <span className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{unbilledTimeCard.value}</span>
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{unbilledTimeCard.sublabel}</span>
-        <KpiBadge label={unbilledTimeCard.opportunityBadge} variant="opportunity" />
-      </div>
+      <FhoPageStickyHeader className="space-y-3">
+        <div className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+          <FileText className="h-5 w-5 text-orange-600 shrink-0" strokeWidth={2} />
+          <h4 className="text-sm font-bold">Unbilled time</h4>
+        </div>
+        <div className="flex flex-wrap items-baseline gap-2">
+          <span className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">{unbilledTimeCard.value}</span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{unbilledTimeCard.sublabel}</span>
+          <KpiBadge label={unbilledTimeCard.opportunityBadge} variant="opportunity" />
+        </div>
+      </FhoPageStickyHeader>
       <p className="text-sm text-muted-foreground">
         Ranked matters — top three match your Dashboard card; extended list shows the next aging buckets.
       </p>

@@ -1,9 +1,16 @@
 import * as React from 'react';
-import { X, Sparkles } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Loader2, X, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
+import {
+  getExecuteOutcomeForOption,
+  type FhoExecuteOutcome,
+  type FhoTeammatePlan,
+  type FhoWorkflowOption,
+} from '../../data/fhoTeammateBreakdowns';
 import { AgentCard } from './agents/AgentCard';
 import { ExplainableAction } from './agents/ExplainableAction';
 import { AGENTS, type Agent, type AgentAction, type Exception } from './agents/AgentTypes';
@@ -40,26 +47,6 @@ const MOCK_EXCEPTIONS: Exception[] = [
   },
 ];
 
-const MOCK_ACTIONS: AgentAction[] = [
-  {
-    agentId: 'matching',
-    timestamp: new Date(Date.now() - 120000),
-    action: 'Matched 14 bank lines to expense GL with 98% confidence.',
-    reasoning:
-      'Vendor names and amounts aligned with recurring payroll and utility patterns; two items flagged for partner review.',
-    isEditable: true,
-    isReversible: true,
-  },
-  {
-    agentId: 'revenue-forecasting',
-    timestamp: new Date(Date.now() - 3600000),
-    action: 'Updated Q2 revenue forecast +3.2% based on pipeline stage changes.',
-    reasoning: 'Three large matters moved to “negotiation” in Clio; historical conversion applied.',
-    isEditable: false,
-    isReversible: true,
-  },
-];
-
 function severityStyles(severity: Exception['severity']) {
   switch (severity) {
     case 'critical':
@@ -84,6 +71,10 @@ export interface SpecializedTeammateRailProps {
    * When true, the panel sits beside main content (pushes layout) instead of overlaying with a scrim.
    */
   dock?: boolean;
+  /** When incremented (e.g. Finances widget "Explore actions"), switch to the Plan tab. */
+  focusPlanTabNonce?: number;
+  /** Content for Financial Health "Explore actions" — shown on Plan, not as chat. */
+  teammatePlan?: FhoTeammatePlan | null;
 }
 
 export function SpecializedTeammateRail({
@@ -94,9 +85,45 @@ export function SpecializedTeammateRail({
   onClearChat,
   brandColor = '#0069D1',
   dock = false,
+  focusPlanTabNonce = 0,
+  teammatePlan = null,
 }: SpecializedTeammateRailProps) {
   const [tab, setTab] = React.useState('chat');
   const [draft, setDraft] = React.useState('');
+  const [expandedOptionId, setExpandedOptionId] = React.useState<string | null>(null);
+  const [executingOptionId, setExecutingOptionId] = React.useState<string | null>(null);
+  const [completedByOptionId, setCompletedByOptionId] = React.useState<Record<string, FhoExecuteOutcome>>(
+    {},
+  );
+  const executeTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    setExpandedOptionId(null);
+    setExecutingOptionId(null);
+    setCompletedByOptionId({});
+  }, [teammatePlan]);
+
+  React.useEffect(() => {
+    return () => {
+      if (executeTimerRef.current) clearTimeout(executeTimerRef.current);
+    };
+  }, []);
+
+  const runExecuteWorkflow = (opt: FhoWorkflowOption) => {
+    if (completedByOptionId[opt.id] || executingOptionId) return;
+    setExecutingOptionId(opt.id);
+    if (executeTimerRef.current) clearTimeout(executeTimerRef.current);
+    executeTimerRef.current = setTimeout(() => {
+      executeTimerRef.current = null;
+      const outcome = getExecuteOutcomeForOption(opt);
+      setCompletedByOptionId((prev) => ({ ...prev, [opt.id]: outcome }));
+      setExecutingOptionId(null);
+    }, 650);
+  };
+
+  React.useEffect(() => {
+    if (focusPlanTabNonce > 0) setTab('plan');
+  }, [focusPlanTabNonce]);
 
   React.useEffect(() => {
     if (!open) return;
@@ -114,8 +141,6 @@ export function SpecializedTeammateRail({
     setDraft('');
   };
 
-  const agentList: Agent[] = Object.values(AGENTS);
-
   const panelBody = (
     <>
       <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3">
@@ -127,7 +152,7 @@ export function SpecializedTeammateRail({
             <h2 id="teammate-rail-title" className="text-sm font-bold text-gray-900">
               Clio Teammate
             </h2>
-            <p className="text-xs text-gray-500">Attention · Your team · Chat</p>
+            <p className="text-xs text-gray-500">Attention · Chat · Plan</p>
           </div>
         </div>
         <button
@@ -145,11 +170,11 @@ export function SpecializedTeammateRail({
           <TabsTrigger value="attention" className="flex-1 text-xs sm:text-sm">
             Attention
           </TabsTrigger>
-          <TabsTrigger value="team" className="flex-1 text-xs sm:text-sm">
-            Your team
-          </TabsTrigger>
           <TabsTrigger value="chat" className="flex-1 text-xs sm:text-sm">
             Chat
+          </TabsTrigger>
+          <TabsTrigger value="plan" className="flex-1 text-xs sm:text-sm">
+            Plan
           </TabsTrigger>
         </TabsList>
 
@@ -185,27 +210,6 @@ export function SpecializedTeammateRail({
                 </div>
               );
             })}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="team" className="min-h-0 flex-1 overflow-y-auto custom-scrollbar pb-4">
-          <div className="space-y-4">
-            <div>
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">Active agents</p>
-              <div className="grid gap-2 sm:grid-cols-1">
-                {agentList.map((a) => (
-                  <AgentCard key={a.id} agent={a} compact />
-                ))}
-              </div>
-            </div>
-            <div>
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">Recent actions</p>
-              <div className="space-y-2">
-                {MOCK_ACTIONS.map((act, i) => (
-                  <ExplainableAction key={i} action={act} />
-                ))}
-              </div>
-            </div>
           </div>
         </TabsContent>
 
@@ -284,6 +288,165 @@ export function SpecializedTeammateRail({
               Send
             </Button>
           </div>
+        </TabsContent>
+
+        <TabsContent value="plan" className="min-h-0 flex-1 overflow-y-auto custom-scrollbar pb-4">
+          {teammatePlan ? (
+            <div className="space-y-4">
+              <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-4">
+                <h3 className="text-sm font-semibold text-gray-900">{teammatePlan.title}</h3>
+                {teammatePlan.context ? (
+                  <p className="mt-2 text-xs leading-relaxed text-gray-600">{teammatePlan.context}</p>
+                ) : null}
+              </div>
+              <div className="space-y-3">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                  Workflow options
+                </p>
+                {teammatePlan.options.map((opt) => {
+                  const isOpen = expandedOptionId === opt.id;
+                  const isDone = Boolean(completedByOptionId[opt.id]);
+                  const isExecuting = executingOptionId === opt.id;
+                  const outcome = completedByOptionId[opt.id];
+                  const anyExecuting = executingOptionId !== null;
+                  return (
+                    <div
+                      key={opt.id}
+                      className={cn(
+                        'rounded-xl border bg-white p-3 shadow-sm transition-colors',
+                        isDone ? 'border-emerald-200/80 bg-emerald-50/40' : 'border-gray-200',
+                      )}
+                      aria-busy={isExecuting}
+                    >
+                      <div className="flex flex-col gap-2">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-sm font-semibold text-gray-900">{opt.title}</h4>
+                            {opt.summary ? (
+                              <p className="mt-1 text-xs leading-relaxed text-gray-600">{opt.summary}</p>
+                            ) : null}
+                          </div>
+                          {isDone ? (
+                            <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-100/90 px-2 py-0.5 text-[11px] font-semibold text-emerald-900">
+                              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
+                              Completed
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            disabled={isDone || (anyExecuting && !isExecuting)}
+                            className={cn(
+                              'text-white',
+                              !isDone && 'disabled:opacity-60',
+                              isDone && 'pointer-events-none bg-emerald-600/90 text-white',
+                            )}
+                            style={
+                              isDone
+                                ? undefined
+                                : {
+                                    backgroundColor: brandColor,
+                                  }
+                            }
+                            onClick={() => runExecuteWorkflow(opt)}
+                          >
+                            {isExecuting ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                                Working…
+                              </>
+                            ) : isDone ? (
+                              'Completed'
+                            ) : (
+                              'Execute'
+                            )}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 border-gray-200"
+                            onClick={() => setExpandedOptionId(isOpen ? null : opt.id)}
+                            aria-expanded={isOpen}
+                          >
+                            Explore
+                            <ChevronDown
+                              className={cn(
+                                'h-4 w-4 transition-transform',
+                                isOpen ? 'rotate-180' : 'rotate-0',
+                              )}
+                            />
+                          </Button>
+                        </div>
+                      </div>
+                      {isDone && outcome ? (
+                        <div
+                          className="mt-3 rounded-lg border border-emerald-100 bg-white/90 p-3 shadow-sm"
+                          aria-live="polite"
+                        >
+                          <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-900/90">
+                            What Firm Intelligence did
+                          </p>
+                          <p className="mt-2 text-xs leading-relaxed text-gray-800">{outcome.summary}</p>
+                          <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-snug text-gray-700">
+                            {outcome.bullets.map((line, i) => (
+                              <li key={i}>{line}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : null}
+                      {isOpen ? (
+                        <ol className="mt-3 space-y-3 border-t border-gray-100 pt-3">
+                          {opt.actions.map((action, idx) => (
+                            <li key={action.id} className="text-sm">
+                              <div className="flex gap-2">
+                                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-600">
+                                  {idx + 1}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-medium leading-snug text-gray-900">{action.label}</p>
+                                  {action.detail ? (
+                                    <p className="mt-1 text-xs leading-relaxed text-gray-600">{action.detail}</p>
+                                  ) : null}
+                                  {action.ctaLabel && action.ctaKind !== 'none' ? (
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      className="mt-2 h-7 px-2 text-xs text-blue-700"
+                                      onClick={() =>
+                                        toast.message(
+                                          action.ctaKind === 'toast'
+                                            ? `${action.ctaLabel} — prototype: Firm Intelligence would complete this step.`
+                                            : action.ctaLabel,
+                                        )
+                                      }
+                                    >
+                                      {action.ctaLabel}
+                                    </Button>
+                                  ) : null}
+                                </div>
+                              </div>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-6 text-center">
+              <p className="text-sm font-medium text-gray-700">No plan loaded yet</p>
+              <p className="mt-1 text-xs text-gray-500">
+                Use <span className="font-semibold text-gray-700">Explore actions</span> on a Financial Health widget to
+                see recommended steps and options here.
+              </p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </>

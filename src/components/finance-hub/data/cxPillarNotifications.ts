@@ -86,7 +86,7 @@ export const CX_PILLAR_NOTIFICATIONS: CxPillarNotification[] = [
     title: 'One-click: collection reminder cadence',
     body: 'Goal-aware suggestion: turn on 31–60 day reminders for all non–payment-plan clients to protect your days-to-collect target.',
     timeLabel: 'Just now',
-    navigateTo: 'Financial Goals',
+    navigateTo: 'fp_financial_health',
   },
   {
     id: 'cx-act-2',

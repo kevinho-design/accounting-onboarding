@@ -106,12 +106,28 @@ export const EMBEDDED_REPORT_WIDGET_ID = 'embedded_report' as const;
 /** Built-in Finances page: Financial Health Overview (default firm finances landing). */
 export const FP_FINANCIAL_HEALTH_ID = 'fp_financial_health' as const;
 
+/** Built-in Finances page: scenario Modelling (charts + digital twin + modelling rail). */
+export const FP_MODELLING_ID = 'fp_modelling' as const;
+
+export type FinancialHealthViewMode = 'detailed' | 'compact';
+
 export function isFinancialHealthOverviewWidgetId(widgetId: string): boolean {
   return widgetId.startsWith('fho_');
 }
 
+/** Min + max height for Financial Health Overview widget cards; body scrolls when content exceeds. */
+export const FHO_WIDGET_CARD_MIN_CLASS = 'min-h-[420px] md:min-h-[480px] max-h-[480px]';
+
+/** Scrollable body region inside flex column FHO cards (requires min-h-0 for overflow). */
+export const FHO_WIDGET_BODY_SCROLL_CLASS = 'flex-1 min-h-0 overflow-y-auto custom-scrollbar';
+
 /** Widgets that must stay in Finances context (charts / goals bridge); no Dashboard pin. */
 export function isWidgetPinDisabled(widgetId: string): boolean {
+  return widgetId === 'suggested_modelling';
+}
+
+/** Modelling is a single interactive surface; Full / Summary / Chart does not apply. */
+export function isWidgetDisplayModeToolbarHidden(widgetId: string): boolean {
   return widgetId === 'suggested_modelling';
 }
 
@@ -216,13 +232,13 @@ export const WIDGET_CATALOG = [
     title: 'Suggested Modelling',
     category: 'Modelling',
     icon: Sparkles,
-    desc: 'Scenario models, preview overlay on charts, and Explore to review plans before linking to Financial Goals',
+    desc: 'Scenario models, preview overlay on charts, and Explore to review plans before linking models to firm goals',
   },
   { id: 'expense_rep', title: 'Expense Breakdown', category: 'Reports', icon: FileText, desc: 'Monthly expenses by category' },
   { id: 'rev_target', title: 'Revenue Target', category: 'Reports', icon: FileText, desc: 'Progress towards quarterly goals' },
   {
     id: 'financial_goals',
-    title: 'Financial Goals',
+    title: 'Firm goals',
     category: 'Goals',
     icon: Target,
     desc: 'Net revenue YoY, days-to-collect, and 60-day cash reserve—how Firm Intelligence filters recommendations',
@@ -333,6 +349,27 @@ export function mainGridClass(columns: MainGridColumns = 2): string {
 export function layoutSizeToGridClass(layoutSize: WidgetLayoutSize, columns: MainGridColumns = 2): string {
   if (layoutSize !== 'expanded') return '';
   return columns === 3 ? 'md:col-span-3' : 'md:col-span-2';
+}
+
+/** Same 4-column spans as Dashboard Financial Health pins (compact FHO layout). */
+export function dashboardPinGridClass(widgetId: string): string {
+  if (widgetId === 'fho_firm_goals_detail') return 'lg:col-span-4';
+  if (
+    widgetId === 'fho_operating_cash_detail' ||
+    widgetId === 'fho_revenue_detail' ||
+    widgetId === 'fho_ar_at_risk_detail' ||
+    widgetId === 'fho_runway_detail'
+  ) {
+    return 'lg:col-span-1';
+  }
+  if (widgetId === 'fho_iolta_trust_detail' || widgetId === 'fho_unbilled_detail') {
+    return 'lg:col-span-2';
+  }
+  return 'lg:col-span-2';
+}
+
+export function financialHealthCompactMainGridClass(): string {
+  return 'grid grid-cols-1 gap-4 lg:grid-cols-4 auto-rows-max w-full';
 }
 
 export function hydratePlacedWidgets(
@@ -995,7 +1032,7 @@ function FinanceWidgetBody({
         (
         <div className="h-full w-full flex flex-col mt-1">
           <p className="text-[11px] text-gray-500 mb-3">
-            Firm Intelligence filters insights through these firm goals (same as the Financial Goals page).
+            Firm Intelligence filters insights through these firm goals (aligned with your Dashboard strip).
           </p>
           <div className="grid grid-cols-1 gap-2.5">
             {FIRM_GOAL_DEFINITIONS.map((goal) => {
@@ -1661,6 +1698,10 @@ type FinancePageWidgetGridProps = {
   pinUi?: FinancePagePinUi | null;
   /** Footer CTA: navigate / dialog / teammate / briefing (prototype drill-down) */
   onFinanceWidgetExplore?: (payload: FinanceWidgetExplorePayload) => void;
+  /** Financial Health Overview page: compact matches Dashboard Financial Health strip */
+  financialHealthViewMode?: FinancialHealthViewMode;
+  /** Passed as `sourcePageId` for compact FHO widgets (e.g. embedded_report parity with pins) */
+  financialHealthSourcePageId?: string;
 };
 
 export function FinancePageWidgetGrid({
@@ -1677,9 +1718,12 @@ export function FinancePageWidgetGrid({
   modellingUi,
   pinUi,
   onFinanceWidgetExplore,
+  financialHealthViewMode,
+  financialHealthSourcePageId,
 }: FinancePageWidgetGridProps) {
   const hydrated = hydratePlacedWidgets(widgets, reportLibrary);
   const gridCols = mainGridColumns;
+  const isCompactFho = financialHealthViewMode === 'compact';
 
   if (hydrated.length === 0) {
     return (
@@ -1689,19 +1733,29 @@ export function FinancePageWidgetGrid({
     );
   }
 
+  const outerGridClass = isCompactFho ? financialHealthCompactMainGridClass() : mainGridClass(gridCols);
+
   return (
-    <div className={mainGridClass(gridCols)}>
+    <div className={outerGridClass}>
       {hydrated.map((widget) => {
         const pinKey = getFinanceWidgetPinKey({ widgetId: widget.id, reportName: widget.reportName });
         const showPinChrome = Boolean(pinUi && !isWidgetPinDisabled(widget.id));
         const isPinned = pinUi ? pinUi.pinnedPinKeys.has(pinKey) : false;
+        const layoutClass = isCompactFho
+          ? isFinancialHealthOverviewWidgetId(widget.id)
+            ? dashboardPinGridClass(widget.id)
+            : 'lg:col-span-4'
+          : layoutSizeToGridClass(widget.layoutSize, gridCols);
+        const fhoSurface: FinanceWidgetSurface | undefined =
+          isCompactFho && isFinancialHealthOverviewWidgetId(widget.id) ? 'dashboardSummary' : undefined;
+        const isFho = isFinancialHealthOverviewWidgetId(widget.id);
         return (
         <div
           key={widget.instanceId}
           id={widget.instanceId}
           className={`bg-card rounded-[8px] shadow-sm border border-border flex flex-col hover:border-primary/25 transition-colors duration-[var(--motion-duration-sm)] ease-[var(--motion-ease-standard)] motion-reduce:transition-none relative overflow-hidden ${
-            isFinancialHealthOverviewWidgetId(widget.id) ? 'p-4' : 'p-6'
-          } ${layoutSizeToGridClass(widget.layoutSize, gridCols)}`}
+            isFho ? 'p-4' : 'p-6'
+          } ${isFho ? FHO_WIDGET_CARD_MIN_CLASS : ''} ${layoutClass}`}
         >
           {showPinChrome ? (
             <div className="absolute top-2 right-2 z-10 flex items-center gap-0.5">
@@ -1739,7 +1793,7 @@ export function FinancePageWidgetGrid({
             </div>
           ) : null}
           {widget.id !== 'ambient_cfo' &&
-            !isFinancialHealthOverviewWidgetId(widget.id) &&
+            !isFho &&
             widget.id !== 'suggested_modelling' &&
             widget.id !== 'digital_twin' && (
             <div className="mb-4">
@@ -1756,14 +1810,18 @@ export function FinancePageWidgetGrid({
               <p className="text-xs text-gray-500 mt-0.5">{widget.desc}</p>
             </div>
           )}
-          {onUpdateWidget && !isFinancialHealthOverviewWidgetId(widget.id) && (
+          {onUpdateWidget &&
+          !isFho &&
+          !isWidgetDisplayModeToolbarHidden(widget.id) ? (
             <ReportViewToolbar
               className="mb-3"
               value={widget.reportView ?? 'chart_compact'}
               onChange={(v) => onUpdateWidget(widget.instanceId, { reportView: v })}
             />
-          )}
-          <div className={`flex-1 text-gray-600 text-sm min-w-0 ${showPinChrome ? 'pr-7' : ''}`}>
+          ) : null}
+          <div
+            className={`${isFho ? FHO_WIDGET_BODY_SCROLL_CLASS : 'flex-1'} text-gray-600 text-sm min-w-0 ${showPinChrome ? 'pr-7' : ''}`}
+          >
             <FinanceWidgetContent
               id={widget.id}
               instanceId={widget.instanceId}
@@ -1775,6 +1833,9 @@ export function FinancePageWidgetGrid({
               reportView={widget.reportView}
               onDigitalTwinScenario={onDigitalTwinScenario}
               modellingUi={widget.id === 'suggested_modelling' ? modellingUi : undefined}
+              surface={fhoSurface}
+              sourcePageId={isCompactFho && fhoSurface ? financialHealthSourcePageId : undefined}
+              reportLibrary={reportLibrary}
             />
           </div>
           {onFinanceWidgetExplore ? (() => {
@@ -1821,6 +1882,8 @@ type FinancePageSidebarWidgetStackProps = {
   modellingUi?: ModellingWidgetUiBridge | null;
   pinUi?: FinancePagePinUi | null;
   onFinanceWidgetExplore?: (payload: FinanceWidgetExplorePayload) => void;
+  financialHealthViewMode?: FinancialHealthViewMode;
+  financialHealthSourcePageId?: string;
 };
 
 /** Single-column stack for Finances page right rail */
@@ -1837,11 +1900,14 @@ export function FinancePageSidebarWidgetStack({
   modellingUi,
   pinUi,
   onFinanceWidgetExplore,
+  financialHealthViewMode,
+  financialHealthSourcePageId,
 }: FinancePageSidebarWidgetStackProps) {
   const hydrated = hydratePlacedWidgets(widgets, reportLibrary).map((w) => ({
     ...w,
     layoutSize: 'compact' as const,
   }));
+  const isCompactFho = financialHealthViewMode === 'compact';
 
   if (hydrated.length === 0) {
     return (
@@ -1857,10 +1923,13 @@ export function FinancePageSidebarWidgetStack({
         const pinKey = getFinanceWidgetPinKey({ widgetId: widget.id, reportName: widget.reportName });
         const showPinChrome = Boolean(pinUi && !isWidgetPinDisabled(widget.id));
         const isPinned = pinUi ? pinUi.pinnedPinKeys.has(pinKey) : false;
+        const fhoSurface: FinanceWidgetSurface | undefined =
+          isCompactFho && isFinancialHealthOverviewWidgetId(widget.id) ? 'dashboardSummary' : undefined;
+        const isFho = isFinancialHealthOverviewWidgetId(widget.id);
         return (
         <div
           key={widget.instanceId}
-          className="bg-card rounded-[8px] shadow-sm border border-border p-5 flex flex-col hover:border-primary/25 transition-colors duration-[var(--motion-duration-sm)] ease-[var(--motion-ease-standard)] motion-reduce:transition-none relative overflow-hidden"
+          className={`bg-card rounded-[8px] shadow-sm border border-border p-5 flex flex-col hover:border-primary/25 transition-colors duration-[var(--motion-duration-sm)] ease-[var(--motion-ease-standard)] motion-reduce:transition-none relative overflow-hidden ${isFho ? FHO_WIDGET_CARD_MIN_CLASS : ''}`}
         >
           {showPinChrome ? (
             <div className="absolute top-2 right-2 z-10 flex items-center gap-0.5">
@@ -1898,7 +1967,7 @@ export function FinancePageSidebarWidgetStack({
             </div>
           ) : null}
           {widget.id !== 'ambient_cfo' &&
-            !isFinancialHealthOverviewWidgetId(widget.id) &&
+            !isFho &&
             widget.id !== 'suggested_modelling' &&
             widget.id !== 'digital_twin' && (
             <div className="mb-4">
@@ -1915,14 +1984,18 @@ export function FinancePageSidebarWidgetStack({
               <p className="text-xs text-gray-500 mt-0.5">{widget.desc}</p>
             </div>
           )}
-          {onUpdateWidget && !isFinancialHealthOverviewWidgetId(widget.id) && (
+          {onUpdateWidget &&
+          !isFho &&
+          !isWidgetDisplayModeToolbarHidden(widget.id) ? (
             <ReportViewToolbar
               className="mb-3"
               value={widget.reportView ?? 'chart_compact'}
               onChange={(v) => onUpdateWidget(widget.instanceId, { reportView: v })}
             />
-          )}
-          <div className={`flex-1 text-gray-600 text-sm min-w-0 ${showPinChrome ? 'pr-7' : ''}`}>
+          ) : null}
+          <div
+            className={`${isFho ? FHO_WIDGET_BODY_SCROLL_CLASS : 'flex-1'} text-gray-600 text-sm min-w-0 ${showPinChrome ? 'pr-7' : ''}`}
+          >
             <FinanceWidgetContent
               id={widget.id}
               instanceId={widget.instanceId}
@@ -1934,6 +2007,9 @@ export function FinancePageSidebarWidgetStack({
               reportView={widget.reportView}
               onDigitalTwinScenario={onDigitalTwinScenario}
               modellingUi={widget.id === 'suggested_modelling' ? modellingUi : undefined}
+              surface={fhoSurface}
+              sourcePageId={isCompactFho && fhoSurface ? financialHealthSourcePageId : undefined}
+              reportLibrary={reportLibrary}
             />
           </div>
           {onFinanceWidgetExplore ? (() => {

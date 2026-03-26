@@ -17,13 +17,11 @@ import {
   TrendingUp,
   History,
   Info,
-  Edit2,
   Wallet,
   Briefcase,
   Activity,
   BarChart3,
   PieChart,
-  Target,
   Plus,
   ChevronRight,
   FileText,
@@ -65,7 +63,6 @@ import { SpecializedTeammateRail } from './components/clio-teammate/SpecializedT
 import { isBriefingInsightId, type BriefingInsightId } from './data/briefingPanelContent';
 import { buildModellingExplorePanelContent } from './data/modellingExplorePanel';
 import { BRIEFING_DEFAULT_INSIGHT_ID } from './data/briefingInsights';
-import { FIRM_GOAL_DEFINITIONS, FIRM_INTELLIGENCE_GOALS_FILTER_NARRATIVE } from './data/firmGoals';
 import { ReportDetail } from './components/ReportDetail';
 import {
   DEFAULT_PROFIT_LOSS_VIEW_STATE,
@@ -92,10 +89,15 @@ import {
   getFinanceWidgetPinKey,
   isWidgetPinDisabled,
   type DashboardFinancialPin,
+  type FinancialHealthViewMode,
   type FinancePageWidget,
   type MainGridColumns,
+  type FinanceWidgetExplorePayload,
   type ModellingWidgetUiBridge,
 } from './components/financeWidgetCatalog';
+import { FinanceWidgetExploreDialog } from './components/FinanceWidgetExploreDialog';
+import { getFinanceWidgetExploreAction } from './data/financeWidgetDrillDown';
+import { getFhoTeammatePlan, type FhoTeammatePlan } from './data/fhoTeammateBreakdowns';
 import { strategicData } from './data/strategicDashboardSeed';
 import { buildBriefingFinancialSnapshot } from './data/briefingFinancialImpact';
 import {
@@ -103,7 +105,6 @@ import {
   type PeerBenchmarkPageContext,
 } from './data/peerBenchmarkSeries';
 import { StrategicDashboardChartsProvider } from './context/StrategicDashboardChartsContext';
-import { FhoPersonalizationBanner } from './components/FinancialHealthOverviewWidgets';
 import {
   FIRM_NAME,
   FIRM_ATTORNEY_COUNT,
@@ -263,29 +264,6 @@ const defaultFinancialModels: FinancialScenarioModel[] = [
     ],
   },
 ];
-
-/** Prototype: projected horizon runway vs firm runway target (matches default model copy). */
-const LINKED_MODEL_RUNWAY_TARGET_MONTHS = 18;
-
-function linkedModelGoalProgress(m: FinancialScenarioModel): {
-  percent: number;
-  currentText: string;
-  targetText: string;
-} {
-  const rows = m.impact;
-  const last = rows[rows.length - 1];
-  const target = LINKED_MODEL_RUNWAY_TARGET_MONTHS;
-  if (!last) {
-    return { percent: 0, currentText: '—', targetText: `${target} mo` };
-  }
-  const current = last.altRunway;
-  const pct = Math.min(100, Math.max(0, Math.round((current / target) * 100)));
-  return {
-    percent: pct,
-    currentText: `${current} mo`,
-    targetText: `${target} mo`,
-  };
-}
 
 type ModelFramework = 'Default' | 'Aggressive' | 'Conservative';
 
@@ -511,6 +489,13 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
     if (initialPage) setActivePage(initialPage);
   }, [initialPage]);
 
+  /** Financial Goals page removed — send any stale route to Financial Health Overview */
+  useEffect(() => {
+    if (activePage === 'Financial Goals') {
+      setActivePage(FP_FINANCIAL_HEALTH_ID);
+    }
+  }, [activePage]);
+
   useEffect(() => {
     if (!scrollToWidget) return;
     const id = setTimeout(() => {
@@ -568,6 +553,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
   const [dashboardFinancialPins, setDashboardFinancialPins] = useState<DashboardFinancialPin[]>(
     DEFAULT_DASHBOARD_FINANCIAL_PINS,
   );
+  const [fhoViewMode, setFhoViewMode] = useState<FinancialHealthViewMode>('detailed');
   type CustomizerContext = { mode: 'create' } | { mode: 'edit'; pageId: string };
   const [customizerContext, setCustomizerContext] = useState<CustomizerContext | null>(null);
   const [customizerMountId, setCustomizerMountId] = useState(0);
@@ -668,14 +654,6 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
     ],
   );
 
-  const financialGoalsLinkedModels = React.useMemo(
-    () =>
-      financialGoalModelIds
-        .map((id) => allFinancialModels.find((m) => m.id === id))
-        .filter((m): m is FinancialScenarioModel => Boolean(m)),
-    [financialGoalModelIds, allFinancialModels],
-  );
-
   const getCustomizerStrategicRows = React.useCallback(
     (
       previewModelId: string | null,
@@ -699,7 +677,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
       }
       setFinancialGoalModelIds((prev) => [...prev, modelId]);
       toast.success('Model added to Financial Goals');
-      setActivePage('Financial Goals');
+      setActivePage(FP_FINANCIAL_HEALTH_ID);
     },
     [financialGoalModelIds, allFinancialModels],
   );
@@ -747,11 +725,6 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
     }),
     [allFinancialModels, selectedModelId, financialGoalModelIds, openModellingExplorePanel, peerBenchmarkEnabled],
   );
-
-  const removeModelFromFinancialGoals = (modelId: string) => {
-    setFinancialGoalModelIds((prev) => prev.filter((id) => id !== modelId));
-    toast.success('Removed from Financial Goals');
-  };
 
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
   const [navRailWidthPx, setNavRailWidthPx] = useState(readStoredNavRailWidth);
@@ -1139,7 +1112,6 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
             icon: LayoutDashboard,
           })),
           { name: 'Reports', icon: FileText },
-          { name: 'Financial Goals', icon: Target },
           { name: 'Add a custom view', icon: Plus, isAction: true },
         ],
       },
@@ -1221,6 +1193,65 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
     }
     setBriefingPanel({ mode: 'explore', insightId: resolveBriefingInsightId(insightId) });
   };
+
+  const [financeExploreDialogOpen, setFinanceExploreDialogOpen] = useState(false);
+  const [financeExploreDialogWidgetId, setFinanceExploreDialogWidgetId] = useState<string | null>(null);
+  const [teammateExploreNonce, setTeammateExploreNonce] = useState(0);
+  const [teammatePlanFromExplore, setTeammatePlanFromExplore] = useState<FhoTeammatePlan | null>(null);
+
+  const handleFinanceWidgetExplore = useCallback((payload: FinanceWidgetExplorePayload) => {
+    const action = getFinanceWidgetExploreAction(payload.widgetId, { reportName: payload.reportName });
+    switch (action.type) {
+      case 'noop':
+        return;
+      case 'navigate_report':
+        setActivePage('Reports');
+        setSelectedReport(action.reportName);
+        return;
+      case 'navigate_page':
+        setActivePage(action.pageId);
+        setSelectedReport(null);
+        return;
+      case 'open_dialog':
+        setFinanceExploreDialogWidgetId(payload.widgetId);
+        setFinanceExploreDialogOpen(true);
+        return;
+      case 'teammate_prompt': {
+        const plan: FhoTeammatePlan =
+          getFhoTeammatePlan(payload.widgetId) ?? {
+            title: payload.fallbackTitle ?? 'Recommended actions',
+            options: [
+              {
+                id: 'fallback-default',
+                title: 'Recommended path',
+                summary: action.prompt,
+                actions: [
+                  {
+                    id: 'fb-1',
+                    label: action.prompt,
+                  },
+                  {
+                    id: 'fb-2',
+                    label: 'Firm Intelligence expansion',
+                    detail:
+                      'In a live product, Firm Intelligence would add firm-specific data and next steps here.',
+                  },
+                ],
+              },
+            ],
+          };
+        setTeammatePlanFromExplore(plan);
+        setTeammateExploreNonce((n) => n + 1);
+        setTeammateRailOpen(true);
+        return;
+      }
+      case 'briefing_explore':
+        handleBriefingExplore(action.insightId);
+        return;
+      default:
+        return;
+    }
+  }, [handleBriefingExplore]);
 
   const globalSearchResults = React.useMemo(() => {
     if (!chatInput.trim()) return [];
@@ -1592,183 +1623,34 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
               handleDigitalTwinScenario(id);
               setCustomizerContext(null);
             }}
+            onFinanceWidgetExplore={handleFinanceWidgetExplore}
           />
         ) : activePage === 'Dashboard' ? (
           <HomeDashboard
             userFirstName={USER_FIRST_NAME}
             onOpenTeammate={() => setTeammateRailOpen(true)}
-            onReviewGoals={() => setActivePage('Financial Goals')}
+            onReviewGoals={() => setActivePage(FP_FINANCIAL_HEALTH_ID)}
             onOpenFinancialHealthOverview={() => setActivePage(FP_FINANCIAL_HEALTH_ID)}
             financialHealthPins={dashboardFinancialPins}
             reportLibrary={reportLibraryForFinance}
             onUnpinFinancialPinKey={handleUnpinDashboardFinancial}
             onOpenSourceFinancePage={(pageId) => setActivePage(pageId)}
           />
-        ) : activePage === 'Financial Goals' ? (
-          <div className="max-w-6xl mx-auto p-8 pb-32 space-y-8">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Financial Goals</h1>
-              </div>
-              <button 
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-[8px] text-sm font-medium hover:bg-primary/90 transition-colors duration-[var(--motion-duration-sm)] ease-[var(--motion-ease-standard)] flex items-center gap-2"
-                onClick={() => {}}
-              >
-                <Plus className="w-4 h-4" />
-                New Goal
-              </button>
-            </div>
-
-            {financialGoalsLinkedModels.length > 0 && (
-              <div className="space-y-3">
-                <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">
-                  From Modelling
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {financialGoalsLinkedModels.map((m) => {
-                    const prog = linkedModelGoalProgress(m);
-                    return (
-                    <div
-                      key={m.id}
-                      className="bg-white rounded-[8px] shadow-sm border border-emerald-100 p-6 flex flex-col hover:border-emerald-200 transition-colors ring-1 ring-emerald-50"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-start gap-2 min-w-0">
-                          <div className="h-9 w-9 rounded-[8px] bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
-                            <Sparkles className="h-4 w-4 text-emerald-600" />
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="text-base font-bold text-gray-900 leading-tight">{m.name}</h3>
-                            <p className="text-xs text-gray-500 mt-1">{m.description}</p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeModelFromFinancialGoals(m.id)}
-                          className="text-xs font-medium text-gray-400 hover:text-red-600 shrink-0"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                      <div className="space-y-6 flex-1 mt-2">
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center text-[13px]">
-                            <span className="font-semibold text-gray-700">Progress</span>
-                            <span className="font-bold text-gray-900">
-                              {prog.currentText}{' '}
-                              <span className="text-gray-400 font-normal">/ {prog.targetText}</span>
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-100 rounded-[8px] h-2 relative overflow-hidden">
-                            <div
-                              className="bg-emerald-500 h-2 rounded-[8px] transition-all duration-1000"
-                              style={{ width: `${prog.percent}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-[13px] text-gray-600 leading-relaxed flex-1 line-clamp-4 mt-4">
-                        {m.goalImpactAnalysis}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const pid =
-                            financeCustomPages.find((p) => p.id === 'fp_default')?.id ??
-                            financeCustomPages[0]?.id;
-                          if (pid) {
-                            setSelectedModelId(m.id);
-                            setActivePage(pid);
-                          }
-                        }}
-                        className="mt-4 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
-                      >
-                        Open strategic dashboard to preview this model →
-                      </button>
-                    </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <h2 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest px-1">
-                Firm goals
-              </h2>
-              <p className="text-sm text-gray-700 leading-relaxed border-l-4 border-primary/40 pl-4 py-1 bg-primary/5 rounded-r-[8px]">
-                {FIRM_INTELLIGENCE_GOALS_FILTER_NARRATIVE}
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {FIRM_GOAL_DEFINITIONS.map((goal) => {
-                  const Icon =
-                    goal.id === 'net_revenue_yoy'
-                      ? TrendingUp
-                      : goal.id === 'days_to_collect'
-                        ? Clock
-                        : Wallet;
-                  const iconColor =
-                    goal.id === 'net_revenue_yoy'
-                      ? 'text-emerald-600'
-                      : goal.id === 'days_to_collect'
-                        ? 'text-amber-600'
-                        : 'text-blue-600';
-                  return (
-                    <div
-                      key={goal.id}
-                      className="bg-white rounded-[8px] shadow-sm border border-gray-200 p-6 flex flex-col hover:border-gray-300 transition-colors"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex items-start gap-2 min-w-0">
-                          <Icon className={`h-5 w-5 shrink-0 mt-0.5 ${iconColor}`} strokeWidth={2} />
-                          <div className="min-w-0">
-                            <h3 className="text-base font-bold text-gray-900 leading-snug">{goal.title}</h3>
-                            <p className="text-xs text-gray-500 mt-1">{goal.metricHint}</p>
-                          </div>
-                        </div>
-                        <button type="button" className="text-gray-400 hover:text-gray-600 shrink-0" aria-label="Edit goal">
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div
-                        className={`mb-3 inline-flex w-fit rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                          goal.status === 'on_track'
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                            : 'bg-amber-100 text-amber-900 border border-amber-200'
-                        }`}
-                      >
-                        {goal.status === 'on_track' ? 'On track' : 'Behind pace'}
-                      </div>
-                      <div className="space-y-2 flex-1 mt-auto">
-                        <div className="flex justify-between items-center text-[13px] gap-2">
-                          <span className="font-semibold text-gray-700">Progress</span>
-                          <span className="font-bold text-gray-900 text-right">
-                            {goal.progressCurrentLabel}
-                            <span className="text-gray-400 font-normal block sm:inline sm:ml-1 text-[12px]">
-                              → {goal.progressTargetLabel}
-                            </span>
-                          </span>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-[8px] h-2 relative overflow-hidden">
-                          <div
-                            className={`h-2 rounded-[8px] transition-all duration-1000 ${
-                              goal.status === 'on_track' ? 'bg-emerald-500' : 'bg-amber-500'
-                            }`}
-                            style={{ width: `${Math.min(100, goal.progressPct)}%` }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
         ) : isFinanceCustomPageView && activeFinancePage ? (
           <div className="max-w-7xl mx-auto w-full p-8 pb-32 flex flex-col gap-8 animate-in fade-in duration-300">
             {/* Header — full page width */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between w-full shrink-0">
-              <h1 className="text-2xl font-bold text-gray-900">{activeFinancePage.title}</h1>
+              <div className="flex min-w-0 flex-col gap-1.5">
+                <h1 className="text-2xl font-bold text-gray-900">{activeFinancePage.title}</h1>
+                {activePage !== FP_FINANCIAL_HEALTH_ID ? (
+                  <span
+                    className="inline-flex w-fit items-center rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs font-medium leading-none text-gray-700"
+                    data-page-origin="user-created"
+                  >
+                    User created
+                  </span>
+                ) : null}
+              </div>
               <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                 {financePageHeaderAvatars.length > 0 ? (
                   <div className="flex items-center shrink-0">
@@ -2025,8 +1907,37 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
                 }`}
               >
                 {activePage === FP_FINANCIAL_HEALTH_ID && !isCustomizing ? (
-                  <div className="w-full shrink-0">
-                    <FhoPersonalizationBanner />
+                  <div className="w-full shrink-0 space-y-3">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <div
+                        className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5"
+                        role="group"
+                        aria-label="Financial Health widget layout"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setFhoViewMode('detailed')}
+                          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            fhoViewMode === 'detailed'
+                              ? 'bg-background text-foreground shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Detailed
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFhoViewMode('compact')}
+                          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            fhoViewMode === 'compact'
+                              ? 'bg-background text-foreground shadow-sm'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Compact
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 ) : null}
                 <FinancePageWidgetGrid
@@ -2034,6 +1945,12 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
                   mainGridColumns={activeFinancePage.mainGridColumns}
                   modellingUi={modellingUiBridge}
                   reportLibrary={reportLibraryForFinance}
+                  financialHealthViewMode={
+                    activePage === FP_FINANCIAL_HEALTH_ID ? fhoViewMode : undefined
+                  }
+                  financialHealthSourcePageId={
+                    activePage === FP_FINANCIAL_HEALTH_ID ? FP_FINANCIAL_HEALTH_ID : undefined
+                  }
                   pinUi={
                     isFinanceCustomPageView && !isCustomizing
                       ? {
@@ -2067,6 +1984,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
                     handleBriefingExplore(insightId);
                   }}
                   onDigitalTwinScenario={handleDigitalTwinScenario}
+                  onFinanceWidgetExplore={handleFinanceWidgetExplore}
                 />
               </div>
 
@@ -2076,6 +1994,12 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
                     widgets={activeFinancePage.sidebarWidgets}
                     modellingUi={modellingUiBridge}
                     reportLibrary={reportLibraryForFinance}
+                    financialHealthViewMode={
+                      activePage === FP_FINANCIAL_HEALTH_ID ? fhoViewMode : undefined
+                    }
+                    financialHealthSourcePageId={
+                      activePage === FP_FINANCIAL_HEALTH_ID ? FP_FINANCIAL_HEALTH_ID : undefined
+                    }
                     pinUi={
                       isFinanceCustomPageView && !isCustomizing
                         ? {
@@ -2111,6 +2035,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
                       handleBriefingExplore(insightId);
                     }}
                     onDigitalTwinScenario={handleDigitalTwinScenario}
+                    onFinanceWidgetExplore={handleFinanceWidgetExplore}
                   />
                 </aside>
               )}
@@ -2309,9 +2234,9 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
                     </label>
                     <label className="flex items-center justify-between rounded-[8px] border border-gray-200 px-4 py-3">
                       <div>
-                        <p className="text-sm font-semibold text-gray-900">Auto-open Financial Goals</p>
+                        <p className="text-sm font-semibold text-gray-900">Auto-open Financial Health Overview</p>
                         <p className="text-xs text-gray-500">
-                          Jump to Financial Goals after you execute the recommended plan from Modelling Explore.
+                          Jump to Financial Health Overview after you execute the recommended plan from Modelling Explore.
                         </p>
                       </div>
                       <input type="checkbox" defaultChecked className="h-4 w-4 rounded border-gray-300 text-blue-600" />
@@ -2477,11 +2402,38 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
       <SpecializedTeammateRail
         dock
         open={teammateRailOpen}
-        onOpenChange={setTeammateRailOpen}
+        onOpenChange={(open) => {
+          setTeammateRailOpen(open);
+          if (!open) setTeammatePlanFromExplore(null);
+        }}
         chatHistory={chatHistory}
         onUserSend={(text) => handleChatSubmit(text)}
         onClearChat={() => setChatHistory([])}
         brandColor={brandColor}
+        focusPlanTabNonce={teammateExploreNonce}
+        teammatePlan={teammatePlanFromExplore}
+      />
+
+      <FinanceWidgetExploreDialog
+        open={financeExploreDialogOpen}
+        onOpenChange={(o) => {
+          setFinanceExploreDialogOpen(o);
+          if (!o) setFinanceExploreDialogWidgetId(null);
+        }}
+        widgetId={financeExploreDialogWidgetId}
+        fallbackTitle="Widget"
+        onNavigateReport={(reportName) => {
+          setActivePage('Reports');
+          setSelectedReport(reportName);
+          setFinanceExploreDialogOpen(false);
+          setFinanceExploreDialogWidgetId(null);
+        }}
+        onNavigatePage={(pageId) => {
+          setActivePage(pageId);
+          setSelectedReport(null);
+          setFinanceExploreDialogOpen(false);
+          setFinanceExploreDialogWidgetId(null);
+        }}
       />
       </div>
 

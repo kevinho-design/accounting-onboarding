@@ -149,7 +149,7 @@ export const financialKpis: FinancialKpi[] = [
 const _goalsCount = firmGoalsOnTrackCount();
 
 export const goalsSummary = {
-  label: '2026 Firm financial goals',
+  label: 'Firm Financial Goals',
   onTrack: _goalsCount.onTrack,
   total: _goalsCount.total,
   /** Shown next to “X of Y on track” on the home dashboard */

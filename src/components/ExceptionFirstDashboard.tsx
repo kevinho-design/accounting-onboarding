@@ -23,6 +23,8 @@ import { MigrationReportModal } from "./MigrationReportModal";
 import { FinancialGoalsViewModal } from "./FinancialGoalsViewModal";
 import { motion } from "motion/react";
 import { TrustAssignCTA } from "./accounting/TrustAssign";
+import { FirmGoalsCardList } from "./finance-hub/components/FirmGoalsCardList";
+import { firmGoalsOnTrackCount, getFirmGoalDashboardCards, useFirmGoalsState } from "./finance-hub/data/firmGoals";
 
 export const JENNIFER_EXCEPTIONS: Exception[] = [
   {
@@ -143,6 +145,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
   const [showReportModal, setShowReportModal] = React.useState(false);
   const [goalsExpanded, setGoalsExpanded] = React.useState(true);
   const [expandedExceptionId, setExpandedExceptionId] = React.useState<string | null>(null);
+  useFirmGoalsState();
 
   // Migration stats
   const migrationStats = [
@@ -152,41 +155,9 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
     { label: "Items Requiring Review", value: "14", percentage: "", status: "warning" as const },
   ];
 
-  // Financial goals data
-  const financialGoals = [
-    { 
-      goal: "Quarterly Revenue Target", 
-      target: "$1.5M", 
-      current: "$987K", 
-      progress: 65.8,
-      status: "on-track" as const,
-      insight: "12 active matters suggest you'll exceed target by 8%"
-    },
-    { 
-      goal: "Operating Margin", 
-      target: "40%", 
-      current: "37%", 
-      progress: 92.5,
-      status: "behind" as const,
-      insight: "Reduce research expenses by $12K to hit target"
-    },
-    { 
-      goal: "Days Sales Outstanding (DSO)", 
-      target: "≤ 45 days", 
-      current: "52 days", 
-      progress: 86.5,
-      status: "behind" as const,
-      insight: "Speed up 3 high-risk collections to improve by 7 days"
-    },
-    { 
-      goal: "Cash Runway", 
-      target: "≥ 90 days", 
-      current: "74 days", 
-      progress: 82.2,
-      status: "at-risk" as const,
-      insight: "Convert unbilled time faster to add 12 days runway"
-    }
-  ];
+  const financialGoals = getFirmGoalDashboardCards();
+  const goalCounts = firmGoalsOnTrackCount();
+  const atRiskGoals = financialGoals.filter((goal) => goal.status === "at-risk").length;
 
   // Migration items surface first, followed by ongoing operational exceptions
   const exceptions = JENNIFER_EXCEPTIONS;
@@ -321,7 +292,9 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-foreground">Q1 2026 Financial Goals</p>
-                  <p className="text-xs text-muted-foreground">3 of 4 on track • 1 at risk</p>
+                  <p className="text-xs text-muted-foreground">
+                    {goalCounts.onTrack} of {goalCounts.total} on track • {atRiskGoals} at risk
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -342,24 +315,9 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="border-t border-border/60 p-4 grid grid-cols-4 gap-3"
+                className="border-t border-border/60 p-4"
               >
-                {financialGoals.map((goal, idx) => (
-                  <div key={idx} className="p-4 bg-background rounded-xl">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-medium text-foreground/80">{goal.goal}</p>
-                      <div className={`w-2 h-2 rounded-full ${goal.status === 'on-track' ? 'bg-green-500' : goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'}`} />
-                    </div>
-                    <div className="flex items-baseline gap-1.5 mb-2">
-                      <span className="text-xl font-bold text-foreground">{goal.current}</span>
-                      <span className="text-xs text-muted-foreground">of {goal.target}</span>
-                    </div>
-                    <div className="w-full bg-muted rounded-full h-1 mb-2">
-                      <div className={`h-1 rounded-full ${goal.status === 'on-track' ? 'bg-green-500' : goal.status === 'behind' ? 'bg-yellow-500' : 'bg-red-500'}`} style={{ width: `${goal.progress}%` }} />
-                    </div>
-                    <p className="text-xs text-muted-foreground">{goal.insight}</p>
-                  </div>
-                ))}
+                <FirmGoalsCardList goals={financialGoals} />
               </motion.div>
             )}
           </div>

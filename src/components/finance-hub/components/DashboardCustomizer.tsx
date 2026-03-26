@@ -36,6 +36,9 @@ import {
   type ModellingWidgetUiBridge,
   type FinanceWidgetExplorePayload,
   isFinancialHealthOverviewWidgetId,
+  isWidgetDisplayModeToolbarHidden,
+  FHO_WIDGET_BODY_SCROLL_CLASS,
+  FHO_WIDGET_CARD_MIN_CLASS,
 } from './financeWidgetCatalog';
 import { getFinanceWidgetExploreAction } from '../data/financeWidgetDrillDown';
 import type { LucideIcon } from 'lucide-react';
@@ -143,12 +146,14 @@ function SortableCanvasWidget({
       ? 'mb-0 z-10 relative'
       : 'mb-2';
 
+  const isFho = isFinancialHealthOverviewWidgetId(widget.id);
+
   return (
     <div
       ref={ref}
       className={`bg-white rounded-[12px] shadow-sm border border-gray-200 p-5 flex flex-col relative group animate-in zoom-in-95 duration-200 ${spanClass} overflow-hidden ${
         isDragging ? 'opacity-40 ring-2 ring-blue-400 ring-offset-2 z-10' : ''
-      }`}
+      } ${isFho ? FHO_WIDGET_CARD_MIN_CLASS : ''}`}
     >
       <div className={`flex items-start justify-between ${headerGap}`}>
         <div className="flex items-center gap-2 min-w-0">
@@ -228,13 +233,17 @@ function SortableCanvasWidget({
         <p className="text-[11px] text-gray-500 mb-2 -mt-1 pl-7">{widget.desc}</p>
       )}
 
-      <ReportViewToolbar
-        className="mb-2"
-        value={widget.reportView ?? 'chart_compact'}
-        onChange={(v) => onReportViewChange(widget.instanceId, v)}
-      />
+      {!isFho && !isWidgetDisplayModeToolbarHidden(widget.id) ? (
+        <ReportViewToolbar
+          className="mb-2"
+          value={widget.reportView ?? 'chart_compact'}
+          onChange={(v) => onReportViewChange(widget.instanceId, v)}
+        />
+      ) : null}
 
-      <div className="flex-1 text-gray-600 text-sm min-w-0">
+      <div
+        className={`${isFho ? FHO_WIDGET_BODY_SCROLL_CLASS : 'flex-1'} text-gray-600 text-sm min-w-0`}
+      >
         <FinanceWidgetContent
           id={widget.id}
           instanceId={widget.instanceId}

@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "./finance-hub-theme.css";
-@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap');
+/* Font loaded via <link> in index.html — @import url() here breaks PostCSS after Tailwind expands */
 
 @custom-variant dark (&:is(.dark *));
 

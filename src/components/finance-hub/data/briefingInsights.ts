@@ -17,6 +17,17 @@ export type BriefingInsightListItem = {
 /** Single source for This Week's Briefing + Notifications (first item = default expanded + priority chrome) */
 export const BRIEFING_INSIGHT_ITEMS: BriefingInsightListItem[] = [
   {
+    id: 'insight-5',
+    title: 'Payroll Shortfall — Operating Account Gap',
+    todaySourceLabel: 'Ambient CFO',
+    time: 'Just now',
+    description:
+      'Payroll is due in 3 days and your Operating Account is projected to be short by $15,700. Review ranked resolution options now: internal liquidity levers first, then exact-gap financing only if needed.',
+    icon: Wallet,
+    iconBg: 'bg-rose-100',
+    iconColor: 'text-rose-700',
+  },
+  {
     id: 'insight-4',
     title: 'From Alert to Action: The Cash Flow Scenario',
     todaySourceLabel: 'Revenue Forecasting Skill',

@@ -9,10 +9,10 @@ import {
   drillDownRootInsight4,
 } from './drillDownExploreRoots';
 
-export type BriefingInsightId = 'insight-1' | 'insight-2' | 'insight-3' | 'insight-4';
+export type BriefingInsightId = 'insight-1' | 'insight-2' | 'insight-3' | 'insight-4' | 'insight-5';
 
 export function isBriefingInsightId(id: string): id is BriefingInsightId {
-  return id === 'insight-1' || id === 'insight-2' || id === 'insight-3' || id === 'insight-4';
+  return id === 'insight-1' || id === 'insight-2' || id === 'insight-3' || id === 'insight-4' || id === 'insight-5';
 }
 
 export interface BriefingExploreContent {
@@ -85,6 +85,21 @@ export const BRIEFING_EXPLORE_BY_ID: Record<BriefingInsightId, BriefingExploreCo
       `Strategic: If these actions are completed, the projected shortfall closes. Firm Intelligence confirms: “With these actions, your 60-day reserve goal is maintained through Q2.”`,
     ],
   },
+  'insight-5': {
+    title: 'Payroll Shortfall — Operating Account Gap',
+    aiAnalysis: {
+      summary:
+        'Ambient CFO detected payroll due in three days with a projected operating cash gap of $15,700. The system has ranked resolution paths from lowest-friction internal liquidity actions to higher-cost financing.',
+      whySurfacing:
+        'We surface this now because payroll is a fixed-date obligation and timing risk compounds quickly. Addressing the gap now gives you enough runway to use lower-cost levers before drawing on external financing.',
+    },
+    drillDownRoot: drillDownRootInsight4,
+    recommendedActions: [
+      'Start with Internal Liquidity Levers: send draft invoices for bill-ready WIP, run A/R nudge reminders, and defer non-essential AP by 14 days.',
+      'If same-day certainty is still required, draw only the exact shortfall amount from your Clio Capital line of credit.',
+      'Where internal funds exist, use an inter-account transfer to Operating and avoid financing cost.',
+    ],
+  },
 };
 
 export function getBriefingExploreContent(id: string): BriefingExploreContent | null {
@@ -98,6 +113,7 @@ export const BRIEFING_ACTION_HEADLINE: Record<BriefingInsightId, string> = {
   'insight-2': 'Revenue & forecast actions',
   'insight-3': 'Renewal & cost optimization',
   'insight-4': 'Cash Flow Action Plan',
+  'insight-5': 'Payroll shortfall resolution',
 };
 
 /** Progress row in the Take Action “model results” block */

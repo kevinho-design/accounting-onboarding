@@ -31,6 +31,9 @@ export type MergedTodayTodo =
 
 const SUGGESTED_SOURCE = 'Firm Intelligence';
 const MAX_TOTAL_DEFAULT = 12;
+const PRIORITY_BRIEFING_ORDER: Record<string, number> = {
+  'insight-5': 0, // Payroll Shortfall — highest priority in Today
+};
 
 function briefingToMerged(insight: BriefingInsightListItem): MergedTodayTodo {
   return {
@@ -75,7 +78,15 @@ export function buildMergedTodayTodos(
   maxTotal: number = MAX_TOTAL_DEFAULT,
 ): MergedTodayTodo[] {
   const hidden = new Set(executedBriefingInsightIds);
-  const briefings = BRIEFING_INSIGHT_ITEMS.filter((i) => !hidden.has(i.id));
+  const briefings = BRIEFING_INSIGHT_ITEMS
+    .filter((i) => !hidden.has(i.id))
+    .slice()
+    .sort((a, b) => {
+      const aRank = PRIORITY_BRIEFING_ORDER[a.id] ?? Number.MAX_SAFE_INTEGER;
+      const bRank = PRIORITY_BRIEFING_ORDER[b.id] ?? Number.MAX_SAFE_INTEGER;
+      if (aRank !== bRank) return aRank - bRank;
+      return 0;
+    });
   const out: MergedTodayTodo[] = [];
 
   for (const b of briefings) {

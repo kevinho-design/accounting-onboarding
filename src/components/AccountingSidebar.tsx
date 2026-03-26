@@ -72,7 +72,7 @@ export function AccountingSidebar({ onPageChange, currentPage, onBackToClio, onA
         { label: "Strategic Dashboard", route: "fp_default", icon: LayoutDashboard, onClick: () => onPageChange("Finances:fp_default") },
         { label: "Reports", route: "Reports", icon: FileText, onClick: () => onPageChange("Finances:Reports") },
         { label: "Financial Goals", route: "Financial Goals", icon: Target, onClick: () => onPageChange("Finances:Financial Goals") },
-        { label: "Add a new page", icon: Plus, onClick: () => { onPageChange("Finances"); onAddFinancePage?.(); } },
+        { label: "Add a custom view", icon: Plus, onClick: () => { onPageChange("Finances"); onAddFinancePage?.(); } },
       ],
     },
     { 

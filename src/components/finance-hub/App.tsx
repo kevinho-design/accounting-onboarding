@@ -188,9 +188,9 @@ function buildScenarioImpactFromBurnDelta(burnDeltaPercent: number): FinancialSc
 
 const defaultFinancialModels: FinancialScenarioModel[] = [
   {
-    id: 'hire_2',
-    name: 'Hire 2 new associates',
-    description: 'Increases burn by $15k/mo starting May \'26',
+    id: 'payroll_shortfall',
+    name: 'Payroll Shortfall — Operating Account Gap',
+    description: 'Payroll due in 3 days with a $15.7k operating cash gap to resolve',
     impact: [
       { month: "Mar '26", altCash: 1200000, altBurn: 45000, altRunway: 26.6 },
       { month: "Apr '26", altCash: 1155000, altBurn: 48000, altRunway: 24.0 },
@@ -204,16 +204,17 @@ const defaultFinancialModels: FinancialScenarioModel[] = [
       { month: "Dec '26", altCash: 662000, altBurn: 57000, altRunway: 11.6 }
     ],
     aiAnalysis: {
-      trend: "↓ Decreasing (was 78 days last week)",
-      insight: "Based on your current spending patterns and revenue pipeline, your runway is trending downward. You're 16 days short of your Q1 goal of 90 days.",
-      confidence: "High (95%) - Based on 12 months of data"
+      trend: '↓ Immediate liquidity risk in Operating Account',
+      insight:
+        'Ambient CFO detected payroll processing on Friday with a projected operating cash deficit. Prioritized options below are ranked from lowest-friction internal levers to higher-cost financing.',
+      confidence: 'High (94%) - Based on live operating balance and payroll schedule',
     },
     goalImpactAnalysis:
-      'Hiring 2 associates increases near-term burn and pressures your 60-day operating cash reserve. Offsetting collections and billing cadence will matter for staying on pace toward +15% net revenue YoY and the 28-day days-to-collect target.',
+      'Closing this shortfall preserves payroll continuity and protects your 60-day operating reserve objective. Favor internal liquidity levers first to stay aligned with days-to-collect and net revenue goals before adding financing cost.',
     recommendedActions: [
-      { text: "Review upcoming Q2 client retainers before finalizing offers.", type: 'navigate', target: 'Funds In' },
-      { text: "Consider staggered start dates (May and July) to smooth out the cash impact.", type: 'action', actionName: 'Auto-schedule start dates' }
-    ]
+      { text: 'Activate Internal Liquidity Levers first: accelerated billing, A/R nudges, and expense deferral.', type: 'navigate', target: 'Funds In' },
+      { text: 'If same-day coverage is still needed, draw only the exact gap from Clio Capital LOC.', type: 'action', actionName: 'Draw exact shortfall from LOC' },
+    ],
   },
   {
     id: 'reduce_overhead',
@@ -1110,7 +1111,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
     "What's our projected runway?",
     "How can we reduce overhead by 5%?",
     "Which clients have the oldest A/R?",
-    "Model hiring 2 new associates",
+    'Model a payroll shortfall resolution plan',
     "What was last month's profit margin?",
     "What does my payroll look like in comparison to last year?",
     "Digital Twin: what if two senior associates leave—how does runway change?",
@@ -1139,7 +1140,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
           })),
           { name: 'Reports', icon: FileText },
           { name: 'Financial Goals', icon: Target },
-          { name: 'Add a new page', icon: Plus, isAction: true },
+          { name: 'Add a custom view', icon: Plus, isAction: true },
         ],
       },
       { name: 'Chart of Accounts', icon: List },
@@ -1195,6 +1196,31 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
 
   const resolveBriefingInsightId = (id: string): BriefingInsightId =>
     isBriefingInsightId(id) ? id : BRIEFING_DEFAULT_INSIGHT_ID;
+  const isPayrollShortfallInsight = (id: string) => resolveBriefingInsightId(id) === 'insight-5';
+
+  const openPayrollShortfallModelling = () => {
+    const payrollModelId = 'payroll_shortfall';
+    setSelectedModelId(payrollModelId);
+    setBriefingPanel({ mode: 'modellingExplore', modelId: payrollModelId });
+  };
+
+  const handleBriefingTakeAction = (insightId: string) => {
+    setShowMorePlans(false);
+    setHasExecuted(false);
+    if (isPayrollShortfallInsight(insightId)) {
+      openPayrollShortfallModelling();
+      return;
+    }
+    setBriefingPanel({ mode: 'takeAction', insightId: resolveBriefingInsightId(insightId) });
+  };
+
+  const handleBriefingExplore = (insightId: string) => {
+    if (isPayrollShortfallInsight(insightId)) {
+      openPayrollShortfallModelling();
+      return;
+    }
+    setBriefingPanel({ mode: 'explore', insightId: resolveBriefingInsightId(insightId) });
+  };
 
   const globalSearchResults = React.useMemo(() => {
     if (!chatInput.trim()) return [];
@@ -1406,7 +1432,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
                             setSelectedReport(null);
                           }
                           closeMobileNav();
-                        } else if (subItem.name === 'Add a new page') {
+                        } else if (subItem.name === 'Add a custom view') {
                           beginCustomize({ mode: 'create' });
                           closeMobileNav();
                         }
@@ -1555,13 +1581,11 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
               toast.success('Dashboard permanently deleted');
             }}
             onTakeAction={(insightId) => {
-              setShowMorePlans(false);
-              setHasExecuted(false);
-              setBriefingPanel({ mode: 'takeAction', insightId: resolveBriefingInsightId(insightId) });
+              handleBriefingTakeAction(insightId);
               setCustomizerContext(null);
             }}
             onExploreData={(insightId) => {
-              setBriefingPanel({ mode: 'explore', insightId: resolveBriefingInsightId(insightId) });
+              handleBriefingExplore(insightId);
               setCustomizerContext(null);
             }}
             onDigitalTwinScenario={(id) => {
@@ -2037,12 +2061,10 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
                   }}
                   executedBriefingInsightIds={executedBriefingPlans}
                   onTakeAction={(insightId) => {
-                    setShowMorePlans(false);
-                    setHasExecuted(false);
-                    setBriefingPanel({ mode: 'takeAction', insightId: resolveBriefingInsightId(insightId) });
+                    handleBriefingTakeAction(insightId);
                   }}
                   onExploreData={(insightId) => {
-                    setBriefingPanel({ mode: 'explore', insightId: resolveBriefingInsightId(insightId) });
+                    handleBriefingExplore(insightId);
                   }}
                   onDigitalTwinScenario={handleDigitalTwinScenario}
                 />
@@ -2083,12 +2105,10 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
                     }}
                     executedBriefingInsightIds={executedBriefingPlans}
                     onTakeAction={(insightId) => {
-                      setShowMorePlans(false);
-                      setHasExecuted(false);
-                      setBriefingPanel({ mode: 'takeAction', insightId: resolveBriefingInsightId(insightId) });
+                      handleBriefingTakeAction(insightId);
                     }}
                     onExploreData={(insightId) => {
-                      setBriefingPanel({ mode: 'explore', insightId: resolveBriefingInsightId(insightId) });
+                      handleBriefingExplore(insightId);
                     }}
                     onDigitalTwinScenario={handleDigitalTwinScenario}
                   />

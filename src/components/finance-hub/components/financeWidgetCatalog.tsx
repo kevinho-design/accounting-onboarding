@@ -1756,7 +1756,7 @@ export function FinancePageWidgetGrid({
               <p className="text-xs text-gray-500 mt-0.5">{widget.desc}</p>
             </div>
           )}
-          {onUpdateWidget && (
+          {onUpdateWidget && !isFinancialHealthOverviewWidgetId(widget.id) && (
             <ReportViewToolbar
               className="mb-3"
               value={widget.reportView ?? 'chart_compact'}
@@ -1915,7 +1915,7 @@ export function FinancePageSidebarWidgetStack({
               <p className="text-xs text-gray-500 mt-0.5">{widget.desc}</p>
             </div>
           )}
-          {onUpdateWidget && (
+          {onUpdateWidget && !isFinancialHealthOverviewWidgetId(widget.id) && (
             <ReportViewToolbar
               className="mb-3"
               value={widget.reportView ?? 'chart_compact'}

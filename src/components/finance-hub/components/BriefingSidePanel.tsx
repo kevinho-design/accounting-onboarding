@@ -60,6 +60,20 @@ export function BriefingSidePanel({
   onModellingSelectAlternative,
 }: BriefingSidePanelProps) {
   if (!panel) return null;
+  const fmtUsd = (n: number) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(
+      Math.max(0, n),
+    );
+  const [selectedTransferAccount, setSelectedTransferAccount] = React.useState('');
+  const [transferAmount, setTransferAmount] = React.useState(0);
+  const modellingPanelModelId = panel.mode === 'modellingExplore' ? panel.modelId : '';
+
+  React.useEffect(() => {
+    if (panel.mode !== 'modellingExplore' || !modellingExploreContent) return;
+    const nextDefaultAccountId = modellingExploreContent.transferAccounts?.[0]?.id ?? '';
+    setSelectedTransferAccount(nextDefaultAccountId);
+    setTransferAmount(modellingExploreContent.transferDefaultAmount ?? 0);
+  }, [panel.mode, modellingPanelModelId, modellingExploreContent]);
 
   if (panel.mode === 'explore') {
     const explore = getBriefingExploreContent(panel.insightId);
@@ -99,6 +113,10 @@ export function BriefingSidePanel({
   if (panel.mode === 'modellingExplore') {
     if (!modellingExploreContent) return null;
     const mc = modellingExploreContent;
+    const hasPayrollStory = Boolean(mc.problemSurface && mc.resolutionGroups && mc.resolutionGroups.length > 0);
+    const selectedAccount = mc.transferAccounts?.find((a) => a.id === selectedTransferAccount);
+    const safeTransferAmount = Math.max(0, transferAmount || 0);
+    const transferImpactTag = `+${fmtUsd(safeTransferAmount)} | Instant`;
     const riskClass = (tag: string) => {
       const t = tag.toLowerCase();
       if (t.includes('higher')) return 'text-orange-600 bg-orange-50 border-orange-100';
@@ -137,18 +155,111 @@ export function BriefingSidePanel({
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-            <div className="space-y-3">
-              <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Scenario plan</h4>
-              {mc.phases.map((phase) => (
-                <div key={phase.title} className="rounded-[8px] border border-gray-200 bg-white p-4 shadow-sm">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">{phase.title}</p>
-                  <p className="text-[13px] text-gray-800 mt-2 leading-relaxed">{phase.body}</p>
-                  {phase.ctaHint ? (
-                    <p className="text-[12px] font-medium text-blue-600 mt-2 leading-snug">{phase.ctaHint}</p>
-                  ) : null}
+            {hasPayrollStory && mc.problemSurface ? (
+              <div className="space-y-4">
+                <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Problem surface</h4>
+                <div className="rounded-[8px] border border-rose-200 bg-rose-50/40 p-4 shadow-sm">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-rose-700">
+                    {mc.problemSurface.payrollDueLabel}
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div className="rounded-[8px] border border-gray-200 bg-white p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Payroll owed</p>
+                      <p className="mt-1 text-sm font-semibold text-gray-900">{fmtUsd(mc.problemSurface.payrollAmount)}</p>
+                    </div>
+                    <div className="rounded-[8px] border border-gray-200 bg-white p-3">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">Operating balance</p>
+                      <p className="mt-1 text-sm font-semibold text-gray-900">{fmtUsd(mc.problemSurface.operatingBalance)}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 rounded-[8px] border border-rose-200 bg-white p-3">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-rose-700">Projected shortfall</p>
+                    <p className="mt-1 text-sm font-bold text-rose-700">-{fmtUsd(mc.problemSurface.shortfall)}</p>
+                  </div>
+                  <p className="text-[12px] text-gray-700 mt-3 leading-relaxed">{mc.problemSurface.narrative}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Scenario plan</h4>
+                {mc.phases.map((phase) => (
+                  <div key={phase.title} className="rounded-[8px] border border-gray-200 bg-white p-4 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">{phase.title}</p>
+                    <p className="text-[13px] text-gray-800 mt-2 leading-relaxed">{phase.body}</p>
+                    {phase.ctaHint ? (
+                      <p className="text-[12px] font-medium text-blue-600 mt-2 leading-snug">{phase.ctaHint}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {hasPayrollStory && mc.resolutionGroups ? (
+              <div className="space-y-3">
+                <h4 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Resolution options</h4>
+                {mc.resolutionGroups.map((group) => (
+                  <details key={group.id} className="rounded-[8px] border border-gray-200 bg-white" open>
+                    <summary className="cursor-pointer list-none px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-bold text-gray-900">{group.title}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{group.subtitle}</p>
+                    </summary>
+                    <div className="p-4 space-y-3">
+                      {group.options.map((opt) => {
+                        const isTransfer = opt.id === 'inter_account_transfer';
+                        const impactText = isTransfer ? transferImpactTag : opt.impactTag;
+                        return (
+                          <div key={opt.id} className="rounded-[8px] border border-gray-200 bg-gray-50/40 p-3">
+                            <p className="text-[13px] font-semibold text-gray-900">{opt.title}</p>
+                            <p className="text-xs text-gray-600 mt-1 leading-relaxed">{opt.description}</p>
+                            {opt.meta ? <p className="text-[11px] text-gray-500 mt-2">{opt.meta}</p> : null}
+                            {isTransfer && mc.transferAccounts && mc.transferAccounts.length > 0 ? (
+                              <div className="mt-3 grid grid-cols-1 gap-2">
+                                <label className="text-[11px] font-semibold text-gray-600">
+                                  Source account
+                                  <select
+                                    value={selectedTransferAccount}
+                                    onChange={(e) => setSelectedTransferAccount(e.target.value)}
+                                    className="mt-1 w-full rounded-[6px] border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-800"
+                                  >
+                                    {mc.transferAccounts.map((a) => (
+                                      <option key={a.id} value={a.id}>
+                                        {a.name} ({fmtUsd(a.balance)})
+                                      </option>
+                                    ))}
+                                  </select>
+                                </label>
+                                <label className="text-[11px] font-semibold text-gray-600">
+                                  Transfer amount
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    max={selectedAccount?.balance ?? undefined}
+                                    value={safeTransferAmount}
+                                    onChange={(e) => setTransferAmount(Number(e.target.value))}
+                                    className="mt-1 w-full rounded-[6px] border border-gray-300 bg-white px-2 py-1.5 text-xs text-gray-800"
+                                  />
+                                </label>
+                              </div>
+                            ) : null}
+                            <div className="mt-3 flex items-center justify-between gap-2">
+                              <span className="text-[10px] font-bold uppercase tracking-wide text-violet-700 bg-violet-50 border border-violet-100 px-2 py-1 rounded-[6px]">
+                                {impactText}
+                              </span>
+                              <button
+                                type="button"
+                                className="rounded-[6px] border border-gray-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-gray-700 hover:bg-gray-50"
+                              >
+                                {opt.ctaLabel}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            ) : null}
 
             <div className="bg-gray-50/80 rounded-[8px] p-6 border border-gray-200">
               <div className="flex items-center justify-between mb-6 flex-wrap gap-2">

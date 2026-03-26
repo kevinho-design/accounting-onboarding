@@ -12,10 +12,12 @@ import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
 import { WizardProgress } from "./WizardProgress";
+import { AssignTaskModal, type AssignedTask } from "./AssignTaskModal";
 
 interface Screen7Props {
   onComplete: () => void;
   onBack?: () => void;
+  onAssign?: (task: AssignedTask) => void;
 }
 
 interface UserMapping {
@@ -32,7 +34,9 @@ interface UserMapping {
 export function Screen7_UserMapping({
   onComplete,
   onBack,
+  onAssign,
 }: Screen7Props) {
+  const [showAssign, setShowAssign] = React.useState(false);
   const [mode, setMode] = React.useState<
     "suggested" | "advanced"
   >("suggested");
@@ -75,7 +79,7 @@ export function Screen7_UserMapping({
       id: "4",
       clioManageName: "David Thompson",
       email: "david@lawfirm.com",
-      role: "Associate",
+      role: "Accountant",
       status: "auto-mapped",
       accountingRole: "Timekeeper",
       permissions: ["View Own Matters", "Submit Expenses"],
@@ -128,6 +132,7 @@ export function Screen7_UserMapping({
   ).length;
 
   return (
+    <>
     <div className="relative flex-1 min-h-[calc(100vh-140px)]">
       <CloudBackground />
       <div className="absolute inset-0 backdrop-blur-md bg-white/30 z-10" />
@@ -335,9 +340,24 @@ export function Screen7_UserMapping({
             >
               Next: Workflow & Approvals
             </Button>
+            {onAssign && (
+              <Button variant="outline" onClick={() => setShowAssign(true)} className="px-5 py-6 rounded-lg font-medium text-gray-600 border-gray-300 shrink-0">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Assign to someone
+              </Button>
+            )}
           </div>
         </div>
       </div>
     </div>
+
+    {showAssign && onAssign && (
+      <AssignTaskModal
+        taskName="Import Your Team"
+        onAssign={onAssign}
+        onClose={() => setShowAssign(false)}
+      />
+    )}
+    </>
   );
 }

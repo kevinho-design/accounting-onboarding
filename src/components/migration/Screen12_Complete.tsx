@@ -1,12 +1,15 @@
 import * as React from "react";
-import { Sparkles, Eye, Shield, TrendingUp, Zap, Activity } from "lucide-react";
+import { Sparkles, Eye, Shield, TrendingUp, Zap, Activity, Clock, Mail } from "lucide-react";
 import { Button } from "../ui/button";
+import { type AssignedTask } from "./AssignTaskModal";
 
 interface Screen12Props {
   onComplete: () => void;
+  assignedTasks?: AssignedTask[];
 }
 
-export function Screen12_Complete({ onComplete }: Screen12Props) {
+export function Screen12_Complete({ onComplete, assignedTasks = [] }: Screen12Props) {
+  const hasPending = assignedTasks.length > 0;
   const [showConfetti, setShowConfetti] = React.useState(true);
 
   React.useEffect(() => {
@@ -88,9 +91,11 @@ export function Screen12_Complete({ onComplete }: Screen12Props) {
           <h2 className="text-4xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
             Your Teammate is Now Monitoring.
           </h2>
-          
+
           <p className="text-xl text-gray-600 mb-16 max-w-2xl mx-auto">
-            While you focus on practicing law, your AI Teammate is actively watching your finances, learning from every transaction, and ensuring compliance 24/7.
+            {hasPending
+              ? `While you focus on practicing law, your AI Teammate has started monitoring. ${assignedTasks.length} task${assignedTasks.length !== 1 ? "s are" : " is"} pending completion by your team.`
+              : "While you focus on practicing law, your AI Teammate is actively watching your finances, learning from every transaction, and ensuring compliance 24/7."}
           </p>
 
           {/* What AI is Doing Now - Active Monitoring */}
@@ -167,6 +172,46 @@ export function Screen12_Complete({ onComplete }: Screen12Props) {
               </div>
             </div>
           </div>
+
+          {/* Pending Tasks */}
+          {hasPending && (
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-8 text-left shadow-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-amber-900">
+                    {assignedTasks.length} task{assignedTasks.length !== 1 ? "s" : ""} pending
+                  </p>
+                  <p className="text-sm text-amber-700">
+                    Reminders have been sent. Your setup will be fully complete once your team responds.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {assignedTasks.map((task, i) => (
+                  <div key={i} className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-amber-100">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0">
+                        {task.assignee.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{task.taskName}</p>
+                        <p className="text-xs text-gray-500 truncate">Assigned to {task.assignee} · {task.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 ml-4 flex-shrink-0">
+                      <Mail className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                        Reminder sent
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Trust Signal */}
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 mb-12 text-white shadow-xl">

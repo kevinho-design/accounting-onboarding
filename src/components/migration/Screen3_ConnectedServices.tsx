@@ -1,14 +1,17 @@
 import * as React from "react";
-import { CheckCircle, Mail, ChevronLeft } from "lucide-react";
+import { CheckCircle, Mail, ChevronLeft, UserPlus } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
+import { AssignTaskModal, type AssignedTask } from "./AssignTaskModal";
 
 interface Screen3Props {
   onComplete: () => void;
   onBack?: () => void;
+  onAssign?: (task: AssignedTask) => void;
 }
 
-export function Screen3_ConnectedServices({ onComplete, onBack }: Screen3Props) {
+export function Screen3_ConnectedServices({ onComplete, onBack, onAssign }: Screen3Props) {
+  const [showAssign, setShowAssign] = React.useState(false);
   // All services pre-selected (email is optional)
   const [connectedServices, setConnectedServices] = React.useState({
     adp: true,
@@ -73,6 +76,7 @@ export function Screen3_ConnectedServices({ onComplete, onBack }: Screen3Props) 
   ];
 
   return (
+    <>
     <div className="relative flex-1 min-h-[calc(100vh-140px)]">
       <CloudBackground />
       <div className="absolute inset-0 backdrop-blur-md bg-white/30 z-10" />
@@ -269,9 +273,24 @@ export function Screen3_ConnectedServices({ onComplete, onBack }: Screen3Props) 
             >
               Connect Services
             </Button>
+            {onAssign && (
+              <Button variant="outline" onClick={() => setShowAssign(true)} className="px-5 py-6 rounded-lg font-medium text-gray-600 border-gray-300 shrink-0">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Assign to someone
+              </Button>
+            )}
           </div>
         </div>
       </div>
     </div>
+
+    {showAssign && onAssign && (
+      <AssignTaskModal
+        taskName="Connect Financial Tools"
+        onAssign={onAssign}
+        onClose={() => setShowAssign(false)}
+      />
+    )}
+    </>
   );
 }

@@ -13,15 +13,18 @@ import {
   ChevronLeft,
   Users,
   Calendar,
+  UserPlus,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
 import { WizardProgress } from "./WizardProgress";
+import { AssignTaskModal, type AssignedTask } from "./AssignTaskModal";
 
 interface Screen10Props {
   onComplete: () => void;
   onBack?: () => void;
+  onAssign?: (task: AssignedTask) => void;
 }
 
 interface Goal {
@@ -110,7 +113,8 @@ const PRIORITY_STYLES = {
   required: { badge: "bg-green-100 text-green-700", label: "Required · Delaware" },
 };
 
-export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
+export function Screen10_FinancialGoals({ onComplete, onBack, onAssign }: Screen10Props) {
+  const [showAssign, setShowAssign] = React.useState(false);
   const [mode, setMode] = React.useState<"suggested" | "advanced">("suggested");
   const [acceptedGoals, setAcceptedGoals] = React.useState<string[]>(["cashRunway", "reduceAR", "collectionRate", "compliance"]);
   const [expandedGoal, setExpandedGoal] = React.useState<string | null>(null);
@@ -166,6 +170,7 @@ export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
   const reviewDateStr = reviewDate.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
   return (
+    <>
     <div className="relative flex-1 min-h-[calc(100vh-140px)]">
       <CloudBackground />
       <div className="absolute inset-0 backdrop-blur-md bg-white/30 z-10" />
@@ -472,9 +477,24 @@ export function Screen10_FinancialGoals({ onComplete, onBack }: Screen10Props) {
                 ? `Set ${acceptedGoals.length} Goal${acceptedGoals.length !== 1 ? "s" : ""} as Firm North Star`
                 : "Complete Configuration"}
             </Button>
+            {onAssign && (
+              <Button variant="outline" onClick={() => setShowAssign(true)} className="px-5 py-6 rounded-lg font-medium text-gray-600 border-gray-300 shrink-0">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Assign to someone
+              </Button>
+            )}
           </div>
         </div>
       </div>
     </div>
+
+    {showAssign && onAssign && (
+      <AssignTaskModal
+        taskName="Financial Goals"
+        onAssign={onAssign}
+        onClose={() => setShowAssign(false)}
+      />
+    )}
+    </>
   );
 }

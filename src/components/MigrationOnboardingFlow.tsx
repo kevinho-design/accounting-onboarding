@@ -13,6 +13,7 @@ import { Screen10_FinancialGoals } from "./migration/Screen10_FinancialGoals";
 import { Screen11_ConfiguringSystem } from "./migration/Screen11_ConfiguringSystem";
 import { Screen12_Complete } from "./migration/Screen12_Complete";
 import { MigrationStepProgress } from "./migration/MigrationStepProgress";
+import { type AssignedTask } from "./migration/AssignTaskModal";
 
 type MigrationStep = 
   | "upload"
@@ -36,6 +37,12 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
   const [currentStep, setCurrentStep] = React.useState<MigrationStep>("upload");
   const [uploadMode, setUploadMode] = React.useState(false);
   const [uploadStep, setUploadStep] = React.useState<UploadStep>("processing");
+  const [assignedTasks, setAssignedTasks] = React.useState<AssignedTask[]>([]);
+
+  const handleAssign = (task: AssignedTask) => {
+    setAssignedTasks((prev) => [...prev, task]);
+    handleStepComplete();
+  };
 
   const steps: MigrationStep[] = [
     "upload",
@@ -92,7 +99,7 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
       case "intelligence":
         return <Screen2_MigrationIntelligence onComplete={handleStepComplete} onBack={() => setCurrentStep("upload")} />;
       case "services":
-        return <Screen3_ConnectedServices onComplete={handleStepComplete} />;
+        return <Screen3_ConnectedServices onComplete={handleStepComplete} onAssign={handleAssign} />;
       case "training":
         return <Screen4_AITraining onComplete={handleStepComplete} />;
       case "preview":
@@ -100,17 +107,17 @@ export function MigrationOnboardingFlow({ onComplete }: MigrationOnboardingFlowP
       case "wizard-intro":
         return <Screen6_WizardIntro onComplete={handleStepComplete} onSkip={handleSkipConfiguration} onBack={handleStepBack} />;
       case "users":
-        return <Screen7_UserMapping onComplete={handleStepComplete} onBack={handleStepBack} />;
+        return <Screen7_UserMapping onComplete={handleStepComplete} onBack={handleStepBack} onAssign={handleAssign} />;
       case "workflow":
-        return <Screen8_WorkflowApprovals onComplete={handleStepComplete} onBack={handleStepBack} />;
+        return <Screen8_WorkflowApprovals onComplete={handleStepComplete} onBack={handleStepBack} onAssign={handleAssign} />;
       case "reporting":
         return <Screen9_ReportingPreferences onComplete={handleStepComplete} onBack={handleStepBack} />;
       case "goals":
-        return <Screen10_FinancialGoals onComplete={handleStepComplete} onBack={handleStepBack} />;
+        return <Screen10_FinancialGoals onComplete={handleStepComplete} onBack={handleStepBack} onAssign={handleAssign} />;
       case "configuring":
         return <Screen11_ConfiguringSystem onComplete={handleStepComplete} />;
       case "complete":
-        return <Screen12_Complete onComplete={onComplete} />;
+        return <Screen12_Complete onComplete={onComplete} assignedTasks={assignedTasks} />;
       default:
         return null;
     }

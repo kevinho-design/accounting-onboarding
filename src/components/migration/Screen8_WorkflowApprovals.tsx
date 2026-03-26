@@ -1,13 +1,15 @@
 import * as React from "react";
-import { Users, Shield, Bell, Sparkles, Plus, X, Send, Trash2, ChevronLeft } from "lucide-react";
+import { Users, Shield, Bell, Sparkles, Plus, X, Send, Trash2, ChevronLeft, UserPlus } from "lucide-react";
 import { Button } from "../ui/button";
 import { CloudBackground } from "../CloudBackground";
 import { ConfigModeToggle } from "./ConfigModeToggle";
 import { WizardProgress } from "./WizardProgress";
+import { AssignTaskModal, type AssignedTask } from "./AssignTaskModal";
 
 interface Screen8Props {
   onComplete: () => void;
   onBack?: () => void;
+  onAssign?: (task: AssignedTask) => void;
 }
 
 interface Rule {
@@ -29,7 +31,8 @@ const EXAMPLE_PLACEHOLDERS = [
   "Block expense posting on weekends without manager override",
 ];
 
-export function Screen8_WorkflowApprovals({ onComplete, onBack }: Screen8Props) {
+export function Screen8_WorkflowApprovals({ onComplete, onBack, onAssign }: Screen8Props) {
+  const [showAssign, setShowAssign] = React.useState(false);
   const [mode, setMode] = React.useState<"suggested" | "advanced">("suggested");
   const [approvalThreshold, setApprovalThreshold] = React.useState("5000");
   const [dualApproval, setDualApproval] = React.useState(true);
@@ -69,6 +72,7 @@ export function Screen8_WorkflowApprovals({ onComplete, onBack }: Screen8Props) 
   };
 
   return (
+    <>
     <div className="relative flex-1 min-h-[calc(100vh-140px)]">
       <CloudBackground />
       <div className="absolute inset-0 backdrop-blur-md bg-white/30 z-10" />
@@ -368,9 +372,24 @@ export function Screen8_WorkflowApprovals({ onComplete, onBack }: Screen8Props) 
             >
               Next: Reporting Preferences
             </Button>
+            {onAssign && (
+              <Button variant="outline" onClick={() => setShowAssign(true)} className="px-5 py-6 rounded-lg font-medium text-gray-600 border-gray-300 shrink-0">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Assign to someone
+              </Button>
+            )}
           </div>
         </div>
       </div>
     </div>
+
+    {showAssign && onAssign && (
+      <AssignTaskModal
+        taskName="Workflow & Approvals"
+        onAssign={onAssign}
+        onClose={() => setShowAssign(false)}
+      />
+    )}
+    </>
   );
 }

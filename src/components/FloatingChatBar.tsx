@@ -2,7 +2,7 @@ import * as React from "react";
 import { Calendar, Search, Send } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
-const SUGGESTIONS: Record<"jennifer" | "sarah", string[]> = {
+const SUGGESTIONS: Record<"jennifer" | "sarah" | "ryan", string[]> = {
   jennifer: [
     "What's our cash runway looking like this quarter?",
     "Which clients have overdue invoices over 60 days?",
@@ -17,6 +17,13 @@ const SUGGESTIONS: Record<"jennifer" | "sarah", string[]> = {
     "What's the status of the IOLTA three-way reconciliation?",
     "Summarize what AI did overnight",
   ],
+  ryan: [
+    "What's our cash runway and operating cushion this quarter?",
+    "Which approvals are blocking cash or trust movements?",
+    "How are we tracking against firm financial goals?",
+    "Show me trust and IOLTA items that need sign-off",
+    "What's at risk in collections and unbilled time?",
+  ],
 };
 
 interface FloatingChatBarProps {
@@ -24,7 +31,7 @@ interface FloatingChatBarProps {
   onSubmitMessage?: (message: string) => void;
   notificationCount?: number;
   isVisible: boolean;
-  activeUser?: "jennifer" | "sarah";
+  activeUser?: "jennifer" | "sarah" | "ryan";
 }
 
 export function FloatingChatBar({
@@ -38,7 +45,7 @@ export function FloatingChatBar({
   const [isFocused, setIsFocused] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const suggestions = SUGGESTIONS[activeUser];
+  const suggestions = SUGGESTIONS[activeUser] ?? SUGGESTIONS.jennifer;
 
   const handleTodayClick = (e: React.MouseEvent) => {
     e.stopPropagation();

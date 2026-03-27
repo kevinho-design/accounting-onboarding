@@ -55,11 +55,9 @@ import {
 } from './components/ui/dialog';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
-import { cn } from './components/ui/utils';
 import { DashboardCustomizer } from './components/DashboardCustomizer';
 import { BriefingSidePanel, type BriefingPanelState } from './components/BriefingSidePanel';
 import { FloatingChatBar } from './components/clio-teammate/FloatingChatBar';
-import { SpecializedTeammateRail } from './components/clio-teammate/SpecializedTeammateRail';
 import { isBriefingInsightId, type BriefingInsightId } from './data/briefingPanelContent';
 import { buildModellingExplorePanelContent } from './data/modellingExplorePanel';
 import { BRIEFING_DEFAULT_INSIGHT_ID } from './data/briefingInsights';
@@ -96,8 +94,15 @@ import {
   type ModellingWidgetUiBridge,
 } from './components/financeWidgetCatalog';
 import { FinanceWidgetExploreDialog } from './components/FinanceWidgetExploreDialog';
-import { getFinanceWidgetExploreAction } from './data/financeWidgetDrillDown';
-import { getFhoTeammatePlan, type FhoTeammatePlan } from './data/fhoTeammateBreakdowns';
+import {
+  getFinanceWidgetExploreAction,
+  getFinanceWidgetSummaryNavigateActions,
+} from './data/financeWidgetDrillDown';
+import {
+  getFhoTeammatePlan,
+  getPayrollShortfallTeammatePlan,
+  type FhoTeammatePlan,
+} from './data/fhoTeammateBreakdowns';
 import { strategicData } from './data/strategicDashboardSeed';
 import { buildBriefingFinancialSnapshot } from './data/briefingFinancialImpact';
 import {
@@ -187,36 +192,38 @@ function buildScenarioImpactFromBurnDelta(burnDeltaPercent: number): FinancialSc
   });
 }
 
-const defaultFinancialModels: FinancialScenarioModel[] = [
-  {
-    id: 'payroll_shortfall',
-    name: 'Payroll Shortfall — Operating Account Gap',
-    description: 'Payroll due in 3 days with a $15.7k operating cash gap to resolve',
-    impact: [
-      { month: "Mar '26", altCash: 1200000, altBurn: 45000, altRunway: 26.6 },
-      { month: "Apr '26", altCash: 1155000, altBurn: 48000, altRunway: 24.0 },
-      { month: "May '26", altCash: 1092000, altBurn: 57000, altRunway: 19.1 },
-      { month: "Jun '26", altCash: 1027000, altBurn: 65000, altRunway: 15.8 },
-      { month: "Jul '26", altCash: 957000, altBurn: 70000, altRunway: 13.6 },
-      { month: "Aug '26", altCash: 897000, altBurn: 60000, altRunway: 14.9 },
-      { month: "Sep '26", altCash: 842000, altBurn: 55000, altRunway: 15.3 },
-      { month: "Oct '26", altCash: 782000, altBurn: 60000, altRunway: 13.0 },
-      { month: "Nov '26", altCash: 719000, altBurn: 63000, altRunway: 11.4 },
-      { month: "Dec '26", altCash: 662000, altBurn: 57000, altRunway: 11.6 }
-    ],
-    aiAnalysis: {
-      trend: '↓ Immediate liquidity risk in Operating Account',
-      insight:
-        'Ambient CFO detected payroll processing on Friday with a projected operating cash deficit. Prioritized options below are ranked from lowest-friction internal levers to higher-cost financing.',
-      confidence: 'High (94%) - Based on live operating balance and payroll schedule',
-    },
-    goalImpactAnalysis:
-      'Closing this shortfall preserves payroll continuity and protects your 60-day operating reserve objective. Favor internal liquidity levers first to stay aligned with days-to-collect and net revenue goals before adding financing cost.',
-    recommendedActions: [
-      { text: 'Activate Internal Liquidity Levers first: accelerated billing, A/R nudges, and expense deferral.', type: 'navigate', target: 'Funds In' },
-      { text: 'If same-day coverage is still needed, draw only the exact gap from Clio Capital LOC.', type: 'action', actionName: 'Draw exact shortfall from LOC' },
-    ],
+const PAYROLL_SHORTFALL_SCENARIO_MODEL: FinancialScenarioModel = {
+  id: 'payroll_shortfall',
+  name: 'Payroll Shortfall — Operating Account Gap',
+  description: 'Payroll due in 3 days with a $15.7k operating cash gap to resolve',
+  impact: [
+    { month: "Mar '26", altCash: 1200000, altBurn: 45000, altRunway: 26.6 },
+    { month: "Apr '26", altCash: 1155000, altBurn: 48000, altRunway: 24.0 },
+    { month: "May '26", altCash: 1092000, altBurn: 57000, altRunway: 19.1 },
+    { month: "Jun '26", altCash: 1027000, altBurn: 65000, altRunway: 15.8 },
+    { month: "Jul '26", altCash: 957000, altBurn: 70000, altRunway: 13.6 },
+    { month: "Aug '26", altCash: 897000, altBurn: 60000, altRunway: 14.9 },
+    { month: "Sep '26", altCash: 842000, altBurn: 55000, altRunway: 15.3 },
+    { month: "Oct '26", altCash: 782000, altBurn: 60000, altRunway: 13.0 },
+    { month: "Nov '26", altCash: 719000, altBurn: 63000, altRunway: 11.4 },
+    { month: "Dec '26", altCash: 662000, altBurn: 57000, altRunway: 11.6 },
+  ],
+  aiAnalysis: {
+    trend: '↓ Immediate liquidity risk in Operating Account',
+    insight:
+      'Ambient CFO detected payroll processing on Friday with a projected operating cash deficit. Prioritized options below are ranked from lowest-friction internal levers to higher-cost financing.',
+    confidence: 'High (94%) - Based on live operating balance and payroll schedule',
   },
+  goalImpactAnalysis:
+    'Closing this shortfall preserves payroll continuity and protects your 60-day operating reserve objective. Favor internal liquidity levers first to stay aligned with days-to-collect and net revenue goals before adding financing cost.',
+  recommendedActions: [
+    { text: 'Activate Internal Liquidity Levers first: accelerated billing, A/R nudges, and expense deferral.', type: 'navigate', target: 'Funds In' },
+    { text: 'If same-day coverage is still needed, draw only the exact gap from Clio Capital LOC.', type: 'action', actionName: 'Draw exact shortfall from LOC' },
+  ],
+};
+
+/** Starter models listed in the Modelling widget; payroll shortfall is surfaced via Today / Briefing instead */
+const defaultFinancialModels: FinancialScenarioModel[] = [
   {
     id: 'reduce_overhead',
     name: 'Reduce overhead by 5%',
@@ -231,19 +238,19 @@ const defaultFinancialModels: FinancialScenarioModel[] = [
       { month: "Sep '26", altCash: 937000, altBurn: 38000, altRunway: 24.6 },
       { month: "Oct '26", altCash: 894250, altBurn: 42750, altRunway: 20.9 },
       { month: "Nov '26", altCash: 848650, altBurn: 45600, altRunway: 18.6 },
-      { month: "Dec '26", altCash: 808750, altBurn: 39900, altRunway: 20.2 }
+      { month: "Dec '26", altCash: 808750, altBurn: 39900, altRunway: 20.2 },
     ],
     aiAnalysis: {
       trend: "↑ Increasing (was 24.0 months last week)",
       insight: "Trimming software subscriptions and discretionary travel by 5% extends your baseline runway by nearly 2 months by year-end, comfortably keeping you above target.",
-      confidence: "Medium (75%) - Subject to variable travel costs"
+      confidence: "Medium (75%) - Subject to variable travel costs",
     },
     goalImpactAnalysis:
       'Lowering overhead extends your operating cash runway and supports the 60-day minimum reserve goal, while preserving capacity to invest in revenue growth toward the +15% YoY target.',
     recommendedActions: [
       { text: "Audit current SaaS subscriptions for redundant tools by end of March.", type: 'action', actionName: 'Start SaaS audit' },
-      { text: "Implement a revised firm-wide travel policy starting April 1st.", type: 'navigate', target: 'Payroll' }
-    ]
+      { text: "Implement a revised firm-wide travel policy starting April 1st.", type: 'navigate', target: 'Payroll' },
+    ],
   },
   {
     id: 'salary_increase_7pct',
@@ -483,7 +490,30 @@ type NavItem = {
   subItems?: NavSubItem[];
 };
 
-export default function App({ initialPage, scrollToWidget, onAddPageRef }: { initialPage?: string; scrollToWidget?: string; onAddPageRef?: React.MutableRefObject<(() => void) | null> } = {}) {
+export default function App({
+  initialPage,
+  scrollToWidget,
+  onAddPageRef,
+  embeddedInAccountingShell,
+  teammateOpen,
+  onTeammateOpenChange,
+  onTeammateChatHistoryChange,
+  onTeammateExplorePlan,
+  financeChatSubmitRef,
+  onTeammateSparkle,
+}: {
+  initialPage?: string;
+  scrollToWidget?: string;
+  onAddPageRef?: React.MutableRefObject<(() => void) | null>;
+  /** When true, only this floating bar shows on Finances (root shell hides its duplicate). */
+  embeddedInAccountingShell?: boolean;
+  teammateOpen: boolean;
+  onTeammateOpenChange: (open: boolean) => void;
+  onTeammateChatHistoryChange: React.Dispatch<React.SetStateAction<TeammateChatMessage[]>>;
+  onTeammateExplorePlan: (plan: FhoTeammatePlan) => void;
+  financeChatSubmitRef: React.MutableRefObject<((text: string) => void) | null>;
+  onTeammateSparkle: () => void;
+}) {
   const [activePage, setActivePage] = useState(initialPage ?? FP_FINANCIAL_HEALTH_ID);
   useEffect(() => {
     if (initialPage) setActivePage(initialPage);
@@ -516,7 +546,6 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
   const [executedBriefingPlans, setExecutedBriefingPlans] = useState<BriefingInsightId[]>([]);
   const [showMorePlans, setShowMorePlans] = useState(false);
   const [chatInput, setChatInput] = useState("");
-  const [teammateRailOpen, setTeammateRailOpen] = useState(false);
   const [isExecuting, setIsExecuting] = useState(false);
   const [hasExecuted, setHasExecuted] = useState(false);
   const [isFinancesOpen, setIsFinancesOpen] = useState(true);
@@ -531,7 +560,6 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
   const [newModelFramework, setNewModelFramework] = useState<ModelFramework>('Default');
   const [isCreateModelProcessing, setIsCreateModelProcessing] = useState(false);
   const createModelAbortRef = React.useRef(false);
-  const [chatHistory, setChatHistory] = useState<{role: 'user' | 'ai', content: string}[]>([]);
   const [financeCustomPages, setFinanceCustomPages] = useState<FinanceCustomPage[]>([
     {
       id: FP_FINANCIAL_HEALTH_ID,
@@ -617,6 +645,12 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
   }, []);
 
   const allFinancialModels = React.useMemo(
+    () => [...defaultFinancialModels, PAYROLL_SHORTFALL_SCENARIO_MODEL, ...userFinancialModels],
+    [userFinancialModels],
+  );
+
+  /** Modelling sidebar/widget: starters only — payroll shortfall is handled via Today / Briefing */
+  const modellingCatalogModels = React.useMemo(
     () => [...defaultFinancialModels, ...userFinancialModels],
     [userFinancialModels],
   );
@@ -709,7 +743,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
 
   const modellingUiBridge = React.useMemo(
     (): ModellingWidgetUiBridge => ({
-      models: allFinancialModels.map((m) => ({
+      models: modellingCatalogModels.map((m) => ({
         id: m.id,
         name: m.name,
         description: m.description,
@@ -723,7 +757,13 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
       peerBenchmarkEnabled,
       onPeerBenchmarkChange: setPeerBenchmarkEnabled,
     }),
-    [allFinancialModels, selectedModelId, financialGoalModelIds, openModellingExplorePanel, peerBenchmarkEnabled],
+    [
+      modellingCatalogModels,
+      selectedModelId,
+      financialGoalModelIds,
+      openModellingExplorePanel,
+      peerBenchmarkEnabled,
+    ],
   );
 
   const [isNavCollapsed, setIsNavCollapsed] = useState(false);
@@ -796,7 +836,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
 
   /** Docked teammate rail: collapse left nav for space; restore prior collapse state when closed. */
   useEffect(() => {
-    if (teammateRailOpen) {
+    if (teammateOpen) {
       if (!teammateRailWasOpenRef.current) {
         navCollapsedBeforeTeammateRailRef.current = isNavCollapsedRef.current;
         setIsNavCollapsed(true);
@@ -808,7 +848,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
       }
       teammateRailWasOpenRef.current = false;
     }
-  }, [teammateRailOpen]);
+  }, [teammateOpen]);
 
   useEffect(() => {
     try {
@@ -961,15 +1001,15 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
     const textToSubmit = query || chatInput;
     if (!textToSubmit.trim()) return;
 
-    setTeammateRailOpen(true);
+    onTeammateOpenChange(true);
 
     const newUserMsg = { role: 'user' as const, content: textToSubmit };
-    setChatHistory(prev => [...prev, newUserMsg]);
+    onTeammateChatHistoryChange((prev) => [...prev, newUserMsg]);
     setChatInput("");
 
     // Initial loading indicator message
     const loadingMsgId = Date.now().toString();
-    setChatHistory(prev => [...prev, { role: 'ai', content: '...', id: loadingMsgId } as any]);
+    onTeammateChatHistoryChange((prev) => [...prev, { role: 'ai', content: '...', id: loadingMsgId } as any]);
 
     // P&L natural-language → filters + navigate (any page / Reports grid; was gated on already-open P&L only)
     const nl = interpretProfitLossQuery(textToSubmit, profitLossViewState);
@@ -978,7 +1018,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
       setSelectedReport('Profit and Loss');
       setProfitLossViewState(nl.nextState);
       window.setTimeout(() => {
-        setChatHistory((prev) =>
+        onTeammateChatHistoryChange((prev) =>
           prev.map((msg) =>
             (msg as { id?: string }).id === loadingMsgId
               ? { role: 'ai' as const, content: nl.assistantMessage }
@@ -1020,20 +1060,41 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
 
         setAvailableReports(prev => [newReport, ...prev]);
 
-        setChatHistory(prev => prev.map(msg => 
-          (msg as any).id === loadingMsgId 
-            ? { role: 'ai' as const, content: `I've generated a new "${reportName}" for you. You can find it in the Reports tab.` } 
-            : msg
-        ));
+        onTeammateChatHistoryChange((prev) =>
+          prev.map((msg) =>
+            (msg as { id?: string }).id === loadingMsgId
+              ? {
+                  role: 'ai' as const,
+                  content: `I've generated a new "${reportName}" for you. You can find it in the Reports tab.`,
+                }
+              : msg,
+          ),
+        );
       } else {
-        setChatHistory(prev => prev.map(msg => 
-          (msg as any).id === loadingMsgId 
-            ? { role: 'ai' as const, content: `I've analyzed your request regarding "${textToSubmit}". Based on our current financial models, making this adjustment would initially increase operating expenses, but is projected to yield a positive ROI within 4-6 months. Would you like me to create a detailed projection model for this scenario?` } 
-            : msg
-        ));
+        onTeammateChatHistoryChange((prev) =>
+          prev.map((msg) =>
+            (msg as { id?: string }).id === loadingMsgId
+              ? {
+                  role: 'ai' as const,
+                  content: `I've analyzed your request regarding "${textToSubmit}". Based on our current financial models, making this adjustment would initially increase operating expenses, but is projected to yield a positive ROI within 4-6 months. Would you like me to create a detailed projection model for this scenario?`,
+                }
+              : msg,
+          ),
+        );
       }
     }, 1500);
   };
+
+  const handleChatSubmitRef = useRef(handleChatSubmit);
+  handleChatSubmitRef.current = handleChatSubmit;
+  useEffect(() => {
+    financeChatSubmitRef.current = (text: string) => {
+      handleChatSubmitRef.current(text);
+    };
+    return () => {
+      financeChatSubmitRef.current = null;
+    };
+  }, [financeChatSubmitRef]);
 
   const submitCreateFinancialModel = () => {
     const name = newModelName.trim();
@@ -1180,7 +1241,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
     setShowMorePlans(false);
     setHasExecuted(false);
     if (isPayrollShortfallInsight(insightId)) {
-      openPayrollShortfallModelling();
+      onTeammateExplorePlan(getPayrollShortfallTeammatePlan());
       return;
     }
     setBriefingPanel({ mode: 'takeAction', insightId: resolveBriefingInsightId(insightId) });
@@ -1196,10 +1257,41 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
 
   const [financeExploreDialogOpen, setFinanceExploreDialogOpen] = useState(false);
   const [financeExploreDialogWidgetId, setFinanceExploreDialogWidgetId] = useState<string | null>(null);
-  const [teammateExploreNonce, setTeammateExploreNonce] = useState(0);
-  const [teammatePlanFromExplore, setTeammatePlanFromExplore] = useState<FhoTeammatePlan | null>(null);
-
   const handleFinanceWidgetExplore = useCallback((payload: FinanceWidgetExplorePayload) => {
+    if (payload.summarySuggestion) {
+      const navActions = getFinanceWidgetSummaryNavigateActions(payload.widgetId, {
+        reportName: payload.reportName,
+      });
+      const summaryBody =
+        payload.summarySuggestion.planSummary?.trim() || payload.summarySuggestion.headline;
+      const plan: FhoTeammatePlan = {
+        title: payload.summarySuggestion.headline,
+        context:
+          "Suggested from Firm Intelligence on this widget's Summary view. Follow the steps below in Clio Accounting — navigation labels point to where to work next.",
+        options: [
+          {
+            id: 'fi-widget-summary-plan',
+            title: 'Recommended path',
+            summary: summaryBody,
+            actions:
+              navActions.length > 0
+                ? navActions
+                : [
+                    { id: 'fi-sum-fb-1', label: summaryBody },
+                    {
+                      id: 'fi-sum-fb-2',
+                      label: 'Firm Intelligence expansion',
+                      detail:
+                        'In a live product, Firm Intelligence would add firm-specific data, owners, and due dates here.',
+                    },
+                  ],
+          },
+        ],
+      };
+      onTeammateExplorePlan(plan);
+      return;
+    }
+
     const action = getFinanceWidgetExploreAction(payload.widgetId, { reportName: payload.reportName });
     switch (action.type) {
       case 'noop':
@@ -1240,9 +1332,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
               },
             ],
           };
-        setTeammatePlanFromExplore(plan);
-        setTeammateExploreNonce((n) => n + 1);
-        setTeammateRailOpen(true);
+        onTeammateExplorePlan(plan);
         return;
       }
       case 'briefing_explore':
@@ -1251,7 +1341,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
       default:
         return;
     }
-  }, [handleBriefingExplore]);
+  }, [handleBriefingExplore, onTeammateExplorePlan]);
 
   const globalSearchResults = React.useMemo(() => {
     if (!chatInput.trim()) return [];
@@ -1264,13 +1354,18 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
       items.forEach((item) => {
         if (item.subItems) {
           if (item.name.toLowerCase().includes(query)) {
+            const firstRoutable = item.subItems.find((s: { isAction?: boolean }) => !s.isAction);
+            const pageId =
+              firstRoutable != null && typeof firstRoutable.name === 'string'
+                ? firstRoutable.name
+                : FP_FINANCIAL_HEALTH_ID;
             results.push({
               title: item.name,
               subtitle: 'Page',
               type: 'page',
               icon: item.icon,
               action: () => {
-                setActivePage(item.name);
+                setActivePage(pageId);
                 setSelectedReport(null);
               },
             });
@@ -1533,11 +1628,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
       <div className="flex min-h-0 min-w-0 flex-1 flex-row">
       {/* MAIN CONTENT AREA — top padding on small screens for menu button */}
       <main
-        className={cn(
-          'relative min-h-0 min-w-0 flex-1 custom-scrollbar overflow-y-auto bg-background pt-14 md:pt-0 transition-[padding] duration-300 ease-out motion-reduce:transition-none',
-          /* Only reserve space when the column can fit rail + content (28rem pad on narrow md would clip the report) */
-          teammateRailOpen && 'lg:pr-[28rem]',
-        )}
+        className="relative min-h-0 min-w-0 flex-1 custom-scrollbar overflow-y-auto bg-background pt-14 md:pt-0"
       >
         {isCustomizing && customizerContext ? (
           <DashboardCustomizer
@@ -1628,7 +1719,7 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
         ) : activePage === 'Dashboard' ? (
           <HomeDashboard
             userFirstName={USER_FIRST_NAME}
-            onOpenTeammate={() => setTeammateRailOpen(true)}
+            onOpenTeammate={() => onTeammateOpenChange(true)}
             onReviewGoals={() => setActivePage(FP_FINANCIAL_HEALTH_ID)}
             onOpenFinancialHealthOverview={() => setActivePage(FP_FINANCIAL_HEALTH_ID)}
             financialHealthPins={dashboardFinancialPins}
@@ -2399,21 +2490,6 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
         )}
       </main>
 
-      <SpecializedTeammateRail
-        dock
-        open={teammateRailOpen}
-        onOpenChange={(open) => {
-          setTeammateRailOpen(open);
-          if (!open) setTeammatePlanFromExplore(null);
-        }}
-        chatHistory={chatHistory}
-        onUserSend={(text) => handleChatSubmit(text)}
-        onClearChat={() => setChatHistory([])}
-        brandColor={brandColor}
-        focusPlanTabNonce={teammateExploreNonce}
-        teammatePlan={teammatePlanFromExplore}
-      />
-
       <FinanceWidgetExploreDialog
         open={financeExploreDialogOpen}
         onOpenChange={(o) => {
@@ -2454,6 +2530,57 @@ export default function App({ initialPage, scrollToWidget, onAddPageRef }: { ini
         onModellingSelectAlternative={handleModellingSelectAlternative}
       />
 
+      {embeddedInAccountingShell !== false ? (
+        <FloatingChatBar
+          isVisible={!isCustomizing && !teammateOpen}
+          onOpen={() => onTeammateOpenChange(true)}
+          onSubmitMessage={(msg) => {
+            onTeammateOpenChange(true);
+            if (msg === '__sparkle__') {
+              onTeammateSparkle();
+              return;
+            }
+            handleChatSubmit(msg);
+          }}
+          suggestedQuestions={suggestedQuestions}
+          chatInput={chatInput}
+          onChatInputChange={setChatInput}
+          brandColor={brandColor}
+          placeholder="Search the product or ask your Firm Intelligence…"
+          executedBriefingInsightIds={executedBriefingPlans}
+          onBriefingTakeAction={handleBriefingTakeAction}
+          onBriefingExplore={handleBriefingExplore}
+          navigationSection={
+            chatInput.trim() && globalSearchResults.length > 0 ? (
+              <div className="mb-3">
+                <p className="mb-2 px-2 text-xs font-semibold text-gray-500">Navigate to</p>
+                <div className="custom-scrollbar flex max-h-[160px] flex-col gap-1 overflow-y-auto">
+                  {globalSearchResults.map((result, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        setChatInput('');
+                        result.action();
+                      }}
+                      className="group flex w-full items-center gap-3 rounded-[8px] p-2 text-left transition-colors hover:bg-blue-50"
+                    >
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] bg-blue-100 text-blue-600 transition-colors group-hover:bg-blue-200">
+                        <result.icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold leading-tight text-gray-900">{result.title}</div>
+                        <div className="text-xs text-gray-500">{result.subtitle}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null
+          }
+        />
+      ) : null}
 
       {/* Embedded CSS for custom styling */}
       <style dangerouslySetInnerHTML={{ __html: `

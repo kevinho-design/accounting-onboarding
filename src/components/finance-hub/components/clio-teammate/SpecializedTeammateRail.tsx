@@ -7,58 +7,15 @@ import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import {
   getExecuteOutcomeForOption,
+  getPayrollShortfallTeammatePlan,
   type FhoExecuteOutcome,
   type FhoTeammatePlan,
   type FhoWorkflowOption,
 } from '../../data/fhoTeammateBreakdowns';
-import { AgentCard } from './agents/AgentCard';
-import { ExplainableAction } from './agents/ExplainableAction';
-import { AGENTS, type Agent, type AgentAction, type Exception } from './agents/AgentTypes';
+import type { AgentAction, Exception } from '../../../agents/AgentTypes';
+import { TeammateTodayTab } from './TeammateTodayTab';
 
 export type TeammateChatMessage = { role: 'user' | 'ai'; content: string; id?: string };
-
-const MOCK_EXCEPTIONS: Exception[] = [
-  {
-    id: 'ex-1',
-    agentId: 'trust-compliance',
-    severity: 'high',
-    title: 'IOLTA reconciliation variance',
-    description: 'Trust account #4892 shows $2,400 unmatched between bank and ledger this week.',
-    impact: 'May affect compliance attestation for Q1.',
-    suggestedAction: 'Run three-way match and attach supporting transfers.',
-    createdAt: new Date(Date.now() - 3600000 * 5),
-  },
-  {
-    id: 'ex-2',
-    agentId: 'collections',
-    severity: 'medium',
-    title: 'A/R bucket shift',
-    description: 'Three matters moved from 31–60 to 61–90 days past due.',
-    suggestedAction: 'Review collections playbook for Johnson matter cluster.',
-    createdAt: new Date(Date.now() - 3600000 * 28),
-  },
-  {
-    id: 'ex-3',
-    agentId: 'cash-flow',
-    severity: 'low',
-    title: 'Runway cushion tightening',
-    description: 'Projected runway decreased by 6 days vs. last forecast.',
-    createdAt: new Date(Date.now() - 3600000 * 72),
-  },
-];
-
-function severityStyles(severity: Exception['severity']) {
-  switch (severity) {
-    case 'critical':
-      return 'bg-red-100 text-red-800 border-red-200';
-    case 'high':
-      return 'bg-orange-100 text-orange-800 border-orange-200';
-    case 'medium':
-      return 'bg-amber-100 text-amber-900 border-amber-200';
-    default:
-      return 'bg-gray-100 text-gray-700 border-gray-200';
-  }
-}
 
 export interface SpecializedTeammateRailProps {
   open: boolean;
@@ -75,6 +32,13 @@ export interface SpecializedTeammateRailProps {
   focusPlanTabNonce?: number;
   /** Content for Financial Health "Explore actions" — shown on Plan, not as chat. */
   teammatePlan?: FhoTeammatePlan | null;
+  onTeammateExplorePlan?: (plan: FhoTeammatePlan) => void;
+  /** Accounting shell exceptions + agent actions for the Today tab. */
+  exceptions?: Exception[];
+  recentActions?: AgentAction[];
+  /** Injected when opening from the floating bar (e.g. `__sparkle__` → Today tab). */
+  initialMessage?: string;
+  onMessageConsumed?: () => void;
 }
 
 export function SpecializedTeammateRail({
@@ -87,8 +51,13 @@ export function SpecializedTeammateRail({
   dock = false,
   focusPlanTabNonce = 0,
   teammatePlan = null,
+  onTeammateExplorePlan,
+  exceptions = [],
+  recentActions = [],
+  initialMessage,
+  onMessageConsumed,
 }: SpecializedTeammateRailProps) {
-  const [tab, setTab] = React.useState('chat');
+  const [tab, setTab] = React.useState('today');
   const [draft, setDraft] = React.useState('');
   const [expandedOptionId, setExpandedOptionId] = React.useState<string | null>(null);
   const [executingOptionId, setExecutingOptionId] = React.useState<string | null>(null);
@@ -126,6 +95,17 @@ export function SpecializedTeammateRail({
   }, [focusPlanTabNonce]);
 
   React.useEffect(() => {
+    if (!open || !initialMessage) return;
+    if (initialMessage === '__sparkle__') {
+      setTab('today');
+    } else {
+      setTab('chat');
+      onUserSend(initialMessage);
+    }
+    onMessageConsumed?.();
+  }, [initialMessage, open, onUserSend, onMessageConsumed]);
+
+  React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onOpenChange(false);
@@ -152,7 +132,7 @@ export function SpecializedTeammateRail({
             <h2 id="teammate-rail-title" className="text-sm font-bold text-gray-900">
               Clio Teammate
             </h2>
-            <p className="text-xs text-gray-500">Attention · Chat · Plan</p>
+            <p className="text-xs text-gray-500">Today · Chat · Plan</p>
           </div>
         </div>
         <button
@@ -167,8 +147,8 @@ export function SpecializedTeammateRail({
 
       <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 min-w-0 flex-1 flex-col gap-0 px-4 pt-3">
         <TabsList className="mb-3 h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-gray-100 p-1">
-          <TabsTrigger value="attention" className="flex-1 text-xs sm:text-sm">
-            Attention
+          <TabsTrigger value="today" className="flex-1 text-xs sm:text-sm">
+            Today
           </TabsTrigger>
           <TabsTrigger value="chat" className="flex-1 text-xs sm:text-sm">
             Chat
@@ -178,39 +158,23 @@ export function SpecializedTeammateRail({
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="attention" className="min-h-0 flex-1 overflow-y-auto custom-scrollbar pb-4">
-          <div className="space-y-3">
-            {MOCK_EXCEPTIONS.map((ex) => {
-              const agent = AGENTS[ex.agentId];
-              return (
-                <div key={ex.id} className="rounded-xl border border-gray-200 bg-gray-50/80 p-4">
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span
-                      className={cn(
-                        'rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
-                        severityStyles(ex.severity),
-                      )}
-                    >
-                      {ex.severity}
-                    </span>
-                    <span className="text-xs text-gray-500">{agent.name}</span>
-                  </div>
-                  <h3 className="text-sm font-semibold text-gray-900">{ex.title}</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-gray-600">{ex.description}</p>
-                  {ex.impact ? (
-                    <p className="mt-2 text-xs text-gray-500">
-                      <span className="font-medium text-gray-700">Impact:</span> {ex.impact}
-                    </p>
-                  ) : null}
-                  {ex.suggestedAction ? (
-                    <p className="mt-2 text-xs text-blue-700">
-                      <span className="font-semibold">Suggested:</span> {ex.suggestedAction}
-                    </p>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
+        <TabsContent value="today" className="min-h-0 flex-1 overflow-y-auto custom-scrollbar pb-4">
+          <TeammateTodayTab
+            exceptions={exceptions}
+            recentActions={recentActions}
+            onAskAboutException={(title) => {
+              setTab('chat');
+              onUserSend(`Help me with: "${title}"`);
+            }}
+            onExceptionPrimaryAction={(ex) => {
+              if (ex.id === 'payroll-shortfall-gap') {
+                onTeammateExplorePlan?.(getPayrollShortfallTeammatePlan());
+                return;
+              }
+              setTab('chat');
+              onUserSend(`Help me with: "${ex.title}"`);
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="chat" className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden pb-4">

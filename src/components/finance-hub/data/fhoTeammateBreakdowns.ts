@@ -461,7 +461,715 @@ const PLANS: Record<string, FhoTeammatePlan> = {
       },
     ],
   },
+
+  strat_cash: {
+    title: 'Operating cash — strategic view',
+    context: 'Scenario modelling overlays and goal context on the Strategic Dashboard.',
+    options: [
+      {
+        id: 'sc-1',
+        title: 'Reconcile cash vs. billing cadence',
+        summary: 'Projected cash should tie to collections and known outflows.',
+        actions: [
+          {
+            id: 'sc-1a',
+            label: 'Compare projected cash to last-month actuals',
+            detail: 'Flag timing shifts (payroll, rent, distributions) that explain variance.',
+            ctaLabel: 'View variance note',
+            ctaKind: 'toast',
+          },
+          {
+            id: 'sc-1b',
+            label: 'Overlay active scenario model if preview is on',
+            detail: 'Confirm which stress case leadership is looking at.',
+          },
+        ],
+      },
+      {
+        id: 'sc-2',
+        title: 'Committee-ready takeaway',
+        summary: 'One sentence on cushion vs. goal.',
+        actions: [
+          {
+            id: 'sc-2a',
+            label: 'Draft a one-line cash posture for leadership',
+            detail: 'Cushion vs. policy, one risk, one decision.',
+            ctaLabel: 'Draft takeaway',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  strat_burn: {
+    title: 'Operating burn — strategic view',
+    context: 'Monthly burn with modelling overlay when a scenario is selected.',
+    options: [
+      {
+        id: 'sb-1',
+        title: 'Tighten or explain burn spikes',
+        summary: 'Separate recurring vs. one-off drivers.',
+        actions: [
+          {
+            id: 'sb-1a',
+            label: 'List top three expense drivers vs. prior month',
+            detail: 'So the burn story is defensible in partner conversation.',
+          },
+          {
+            id: 'sb-1b',
+            label: 'Pair burn trend with runway widget',
+            detail: 'Burn + runway together avoids conflicting narratives.',
+            ctaLabel: 'Open runway context',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+      {
+        id: 'sb-2',
+        title: 'Scenario check',
+        summary: 'If modelling preview is active.',
+        actions: [
+          {
+            id: 'sb-2a',
+            label: 'Confirm which scenario assumptions moved burn',
+            detail: 'Headcount, rates, or OpEx — single owner per assumption.',
+          },
+        ],
+      },
+    ],
+  },
+  strat_runway: {
+    title: 'Runway — strategic view',
+    context: 'Months of runway with optional digital-twin / modelling context.',
+    options: [
+      {
+        id: 'sr-1',
+        title: 'Runway vs. firm policy',
+        summary: 'Policy buffer and triggers.',
+        actions: [
+          {
+            id: 'sr-1a',
+            label: 'Compare runway months to declared cash-reserve goal',
+            detail: 'If below policy, list top three cash levers (collect, defer, reduce).',
+          },
+        ],
+      },
+      {
+        id: 'sr-2',
+        title: 'Stress path',
+        summary: 'Before leadership asks “what if.”',
+        actions: [
+          {
+            id: 'sr-2a',
+            label: 'Outline a lightweight stress (e.g. delayed collections)',
+            detail: 'Use Digital Twin or modelling when you need numeric proof.',
+            ctaLabel: 'Open scenario ideas',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  runway: {
+    title: 'Runway trend — chart',
+    context: 'Six-month (or similar) runway trajectory on a custom or default page.',
+    options: [
+      {
+        id: 'rw-ch-1',
+        title: 'Explain the slope',
+        summary: 'Improvement vs. deterioration.',
+        actions: [
+          {
+            id: 'rw-ch-1a',
+            label: 'Narrate what changed month over month',
+            detail: 'Tie to billing, collections, or expense events you already see elsewhere.',
+          },
+        ],
+      },
+      {
+        id: 'rw-ch-2',
+        title: 'Next step',
+        summary: 'If the trend turns down.',
+        actions: [
+          {
+            id: 'rw-ch-2a',
+            label: 'Recommend one cash or collection action for this week',
+            detail: 'Goal-linked where possible.',
+            ctaLabel: 'Suggest action',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  cash_flow: {
+    title: 'Cash flow chart — actions',
+    context: 'Operating cash flow vs. target.',
+    options: [
+      {
+        id: 'cf-1',
+        title: 'Close the gap to target',
+        summary: 'When actuals trail the line.',
+        actions: [
+          {
+            id: 'cf-1a',
+            label: 'Identify whether gap is timing vs. structural',
+            detail: 'Timing: payroll or client payment dates. Structural: run rate.',
+          },
+        ],
+      },
+      {
+        id: 'cf-2',
+        title: 'Report drill-down',
+        summary: 'When you need proof.',
+        actions: [
+          {
+            id: 'cf-2a',
+            label: 'Use Cash Flow Statement for transaction-level backup',
+            detail: 'For committee or lender questions.',
+            ctaLabel: 'Open cash flow report',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  profitability_margin: {
+    title: 'Operating margin — actions',
+    context: 'Revenue vs. OpEx and margin % trend.',
+    options: [
+      {
+        id: 'pm-1',
+        title: 'Margin movers',
+        summary: 'Revenue dip vs. expense creep.',
+        actions: [
+          {
+            id: 'pm-1a',
+            label: 'Split the last move in margin between revenue and OpEx',
+            detail: 'So partners hear a single causal story.',
+          },
+        ],
+      },
+      {
+        id: 'pm-2',
+        title: 'P&L backup',
+        summary: 'Fee and category detail.',
+        actions: [
+          {
+            id: 'pm-2a',
+            label: 'Open Profit and Loss for category-level follow-up',
+            detail: 'Align with billing health and expense widgets when needed.',
+            ctaLabel: 'Open P&L',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  ar_aging: {
+    title: 'A/R aging — collections actions',
+    options: [
+      {
+        id: 'ar-1',
+        title: 'Prioritize buckets',
+        summary: '60+ and 90+ first.',
+        actions: [
+          {
+            id: 'ar-1a',
+            label: 'List top clients by overdue balance',
+            detail: 'Match tone and cadence to historical payment behavior.',
+          },
+        ],
+      },
+      {
+        id: 'ar-2',
+        title: 'Playbook',
+        summary: 'Reminders, plans, escalation.',
+        actions: [
+          {
+            id: 'ar-2a',
+            label: 'Draft a collections cadence for the worst bucket',
+            detail: 'Include partner touchpoints for sensitive matters.',
+            ctaLabel: 'Draft cadence',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  ambient_cfo: {
+    title: "This Week's Briefing — explore",
+    context: 'Automated insights surfaced on the dashboard.',
+    options: [
+      {
+        id: 'acf-1',
+        title: 'Take action on a highlighted insight',
+        summary: 'Execute or delegate from the briefing card.',
+        actions: [
+          {
+            id: 'acf-1a',
+            label: 'Pick one insight and confirm owner + due date',
+            detail: 'Keeps the briefing from becoming background noise.',
+            ctaLabel: 'Mark in briefing',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+      {
+        id: 'acf-2',
+        title: 'Explore data behind an insight',
+        summary: 'Deeper context before deciding.',
+        actions: [
+          {
+            id: 'acf-2a',
+            label: 'Open the related chart or report from the insight',
+            detail: 'Use Explore on the briefing row where available.',
+          },
+        ],
+      },
+    ],
+  },
+  digital_twin: {
+    title: 'Digital Twin — scenarios',
+    options: [
+      {
+        id: 'dt-1',
+        title: 'Run a leadership scenario',
+        summary: 'Staffing, rates, or runway.',
+        actions: [
+          {
+            id: 'dt-1a',
+            label: 'Pick one scenario preset and read the runway impact',
+            detail: 'Use as input to partner discussion, not as final policy.',
+          },
+        ],
+      },
+      {
+        id: 'dt-2',
+        title: 'Compare to live strategic charts',
+        summary: 'Twin vs. actuals.',
+        actions: [
+          {
+            id: 'dt-2a',
+            label: 'Note deltas between twin output and strat_cash / strat_runway',
+            detail: 'Resolve conflicts before presenting upward.',
+            ctaLabel: 'Compare summary',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  suggested_modelling: {
+    title: 'Suggested modelling — next steps',
+    context: 'Scenario models, previews on charts, and linking to firm goals.',
+    options: [
+      {
+        id: 'sm-1',
+        title: 'Build or refine a model',
+        summary: 'From a stated stress or opportunity.',
+        actions: [
+          {
+            id: 'sm-1a',
+            label: 'Create a named model from a concrete question',
+            detail: 'Example: payroll shortfall, rate increase, two seniors leave.',
+            ctaLabel: 'Open create flow',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+      {
+        id: 'sm-2',
+        title: 'Link to goals',
+        summary: 'After the model looks right.',
+        actions: [
+          {
+            id: 'sm-2a',
+            label: 'Add the model to Financial Goals when leadership agrees',
+            detail: 'So Firm Intelligence prioritizes recommendations through that lens.',
+          },
+        ],
+      },
+    ],
+  },
+  expense_rep: {
+    title: 'Expense breakdown — actions',
+    options: [
+      {
+        id: 'er-1',
+        title: 'Category focus',
+        summary: 'Largest movers.',
+        actions: [
+          {
+            id: 'er-1a',
+            label: 'Name the top two categories vs. budget or prior period',
+            detail: 'Decide investigate vs. accept.',
+          },
+        ],
+      },
+      {
+        id: 'er-2',
+        title: 'Report depth',
+        actions: [
+          {
+            id: 'er-2a',
+            label: 'Open Expense by Category for line detail',
+            detail: 'When the chart raises questions.',
+            ctaLabel: 'Open expense report',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  expense_stacked_trend: {
+    title: 'Expenses over time — actions',
+    options: [
+      {
+        id: 'est-1',
+        title: 'Trend narrative',
+        summary: 'Stacked months.',
+        actions: [
+          {
+            id: 'est-1a',
+            label: 'Describe which layers grew or shrank last month',
+            detail: 'Tie to hiring, vendors, or one-offs.',
+          },
+        ],
+      },
+      {
+        id: 'est-2',
+        title: 'Follow-up',
+        actions: [
+          {
+            id: 'est-2a',
+            label: 'Set a watch on a category if it crossed a threshold',
+            detail: 'Optional alert for next close.',
+            ctaLabel: 'Set watch',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  rev_target: {
+    title: 'Revenue target — actions',
+    options: [
+      {
+        id: 'rt-1',
+        title: 'Gap to goal',
+        summary: 'Quarter or period.',
+        actions: [
+          {
+            id: 'rt-1a',
+            label: 'Quantify remaining gap and weeks left in period',
+            detail: 'Convert to needed run rate or pipeline.',
+          },
+        ],
+      },
+      {
+        id: 'rt-2',
+        title: 'Levers',
+        actions: [
+          {
+            id: 'rt-2a',
+            label: 'List billing, rates, and matter mix levers',
+            detail: 'One recommended focus for partners this week.',
+            ctaLabel: 'Summarize levers',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  revenue_streams_trend: {
+    title: 'Revenue streams — actions',
+    options: [
+      {
+        id: 'rst-1',
+        title: 'Stream balance',
+        summary: 'Hourly vs. flat vs. other.',
+        actions: [
+          {
+            id: 'rst-1a',
+            label: 'Call out which stream diverged from firm strategy mix',
+            detail: 'Align with practice area and goals widgets.',
+          },
+        ],
+      },
+      {
+        id: 'rst-2',
+        title: 'P&L tie-out',
+        actions: [
+          {
+            id: 'rst-2a',
+            label: 'Use P&L for recognized revenue detail',
+            detail: 'When the stream chart needs backup.',
+            ctaLabel: 'Open P&L',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  billing_health: {
+    title: 'Billing health — actions',
+    options: [
+      {
+        id: 'bh-1',
+        title: 'WIP and realization',
+        summary: 'Signals in one place.',
+        actions: [
+          {
+            id: 'bh-1a',
+            label: 'Identify matters with high WIP and stale billing',
+            detail: 'Prioritize invoices that improve cash and reduce write-off risk.',
+          },
+        ],
+      },
+      {
+        id: 'bh-2',
+        title: 'Partner loop',
+        actions: [
+          {
+            id: 'bh-2a',
+            label: 'Share one billing-health takeaway with responsible partners',
+            detail: 'Keep it to one metric and one ask.',
+            ctaLabel: 'Draft note',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  partner_realization: {
+    title: 'Partner realization — actions',
+    options: [
+      {
+        id: 'pr-1',
+        title: 'Below-target partners',
+        summary: 'Coaching before write-downs stack.',
+        actions: [
+          {
+            id: 'pr-1a',
+            label: 'List partners under realization target with matter examples',
+            detail: 'Focus on fixable patterns (scope, rates, write-offs).',
+          },
+        ],
+      },
+      {
+        id: 'pr-2',
+        title: 'Positive reinforcement',
+        actions: [
+          {
+            id: 'pr-2a',
+            label: 'Highlight partners at or above target',
+            detail: 'Use in practice group or comp conversations.',
+            ctaLabel: 'Summarize leaders',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  financial_goals: {
+    title: 'Firm goals — dashboard strip',
+    context: 'Net revenue, days to collect, cash reserve — how Firm Intelligence filters work.',
+    options: [
+      {
+        id: 'fg-1',
+        title: 'Refresh goal relevance',
+        summary: 'Strategy vs. targets.',
+        actions: [
+          {
+            id: 'fg-1a',
+            label: 'Confirm each goal still matches leadership priorities',
+            detail: 'Update timelines or targets if the firm’s strategy moved.',
+          },
+        ],
+      },
+      {
+        id: 'fg-2',
+        title: 'Deep dive',
+        actions: [
+          {
+            id: 'fg-2a',
+            label: 'Open Financial Health Overview for goal detail widgets',
+            detail: 'Same goals, richer narratives and drill-downs.',
+            ctaLabel: 'Go to FHO',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  practice_areas: {
+    title: 'Practice areas — actions',
+    options: [
+      {
+        id: 'pa-1',
+        title: 'Mix vs. goal',
+        summary: 'Revenue concentration.',
+        actions: [
+          {
+            id: 'pa-1a',
+            label: 'Flag practice areas over or under firm target mix',
+            detail: 'Decide growth vs. capacity vs. pricing.',
+          },
+        ],
+      },
+      {
+        id: 'pa-2',
+        title: 'Report backup',
+        actions: [
+          {
+            id: 'pa-2a',
+            label: 'Open Revenue by Practice Area report',
+            detail: 'Matter- or timekeeper-level when needed.',
+            ctaLabel: 'Open report',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  collection_trends: {
+    title: 'Collection trends — actions',
+    options: [
+      {
+        id: 'ct-1',
+        title: 'DSO-style trend',
+        summary: 'Improving or slipping.',
+        actions: [
+          {
+            id: 'ct-1a',
+            label: 'Narrate the last three months in one sentence',
+            detail: 'Connect to AR aging and goals.',
+          },
+        ],
+      },
+      {
+        id: 'ct-2',
+        title: 'Cash flow link',
+        actions: [
+          {
+            id: 'ct-2a',
+            label: 'Tie collection trend to operating cash outlook',
+            detail: 'Use Cash Flow Statement if leadership wants proof.',
+            ctaLabel: 'Open cash flow report',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+    ],
+  },
+  embedded_report: {
+    title: 'Embedded report — next steps',
+    context: 'Full report lives in Reports; this tile is a snapshot.',
+    options: [
+      {
+        id: 'emb-1',
+        title: 'Validate the snapshot',
+        summary: 'Before acting on numbers.',
+        actions: [
+          {
+            id: 'emb-1a',
+            label: 'Open the full report for filters and drill-down',
+            detail: 'Confirm period, basis, and any excluded entities.',
+            ctaLabel: 'Open full report',
+            ctaKind: 'toast',
+          },
+        ],
+      },
+      {
+        id: 'emb-2',
+        title: 'Turn insight into action',
+        actions: [
+          {
+            id: 'emb-2a',
+            label: 'Ask Firm Intelligence for recommended follow-ups',
+            detail: 'Use Chat on the same topic after you have the full picture.',
+          },
+        ],
+      },
+    ],
+  },
+  payroll_shortfall_gap_plan: {
+    title: 'Payroll shortfall — ranked resolution options',
+    context:
+      'Payroll is due soon and your Operating Account is projected short (prototype: $15.7k gap). Ambient CFO ranks paths from lowest-friction internal liquidity through external financing and partner-level moves. Expand each track for what Firm Intelligence can run or model next.',
+    options: [
+      {
+        id: 'payroll-internal-liquidity',
+        title: 'Internal Liquidity Levers',
+        summary: 'Pull forward cash already in the firm before adding financing cost.',
+        actions: [
+          {
+            id: 'payroll-il-wip',
+            label: 'Accelerated Billing (WIP liquidation)',
+            detail:
+              'Instantly generate and send draft invoices for all unbilled Work-in-Progress (WIP) that has reached a defined bill-ready threshold, so collections can start immediately.',
+          },
+          {
+            id: 'payroll-il-ar',
+            label: 'A/R "Nudge" campaign',
+            detail:
+              'Trigger automated, polite email/SMS reminders for clients with invoices 15+ days past due, including a pay-now link and optional short-term incentive (e.g. 2% discount for immediate settlement).',
+          },
+          {
+            id: 'payroll-il-ap',
+            label: 'Expense deferral',
+            detail:
+              'Identify non-essential Accounts Payable (software renewals, office supplies, discretionary marketing) and model pushing those payments out by ~14 days to free operating cash for payroll.',
+          },
+        ],
+      },
+      {
+        id: 'payroll-external-financing',
+        title: 'External Financing',
+        summary: 'When internal levers are not enough on the timeline you have.',
+        actions: [
+          {
+            id: 'payroll-ex-loc',
+            label: 'Draw on line of credit (LOC)',
+            detail:
+              'If the firm has a pre-approved bank LOC, Ambient CFO can propose a one-click transfer of the exact amount needed to cover the payroll gap, with paydown timing tied to incoming collections.',
+          },
+          {
+            id: 'payroll-ex-factoring',
+            label: 'Invoice factoring / legal funding',
+            detail:
+              "For firms with large contingency matters or aged receivables, evaluate selling a portion of an outstanding invoice or a settled case's expected payout to a third party for immediate cash (cost and eligibility surfaced upfront).",
+          },
+        ],
+      },
+      {
+        id: 'payroll-capital-mgmt',
+        title: 'Capital Management',
+        summary: 'Structural moves that protect staff payroll when liquidity is tight.',
+        actions: [
+          {
+            id: 'payroll-cm-draw',
+            label: 'Partner capital call (draw adjustment)',
+            detail:
+              'Model a temporary reduction or deferral of partner draws for the current cycle so associate and staff payroll stays fully funded while the firm closes the operating gap.',
+          },
+          {
+            id: 'payroll-cm-transfer',
+            label: 'Inter-account transfer',
+            detail:
+              'If the firm maintains a rainy-day or tax reserve account, execute or model a transfer to the Operating Account sized to the payroll shortfall, with a replenishment schedule.',
+          },
+        ],
+      },
+    ],
+  },
 };
+
+/** Clio Teammate → Plan when user chooses Review plan / Take action on payroll shortfall (any entry point). */
+export function getPayrollShortfallTeammatePlan(): FhoTeammatePlan {
+  return PLANS.payroll_shortfall_gap_plan;
+}
 
 export function getFhoTeammatePlan(widgetId: string): FhoTeammatePlan | null {
   return PLANS[widgetId] ?? null;

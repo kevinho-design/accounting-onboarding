@@ -254,6 +254,8 @@ function SortableCanvasWidget({
           reportView={widget.reportView}
           onDigitalTwinScenario={onDigitalTwinScenario}
           modellingUi={widget.id === 'suggested_modelling' ? modellingUi : undefined}
+          onFinanceWidgetExplore={onFinanceWidgetExplore}
+          exploreFallbackTitle={widget.title}
         />
       </div>
       {onFinanceWidgetExplore ? (() => {

@@ -56,15 +56,17 @@ function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
 import { SimplifiedSidebar } from "./components/SimplifiedSidebar";
 import { EmptyWorkspace } from "./components/EmptyWorkspace";
 import { ContextAwareTeammateRail } from "./components/ContextAwareTeammateRail";
+import type { TeammateChatMessage } from "./components/finance-hub/components/clio-teammate/SpecializedTeammateRail";
+import type { FhoTeammatePlan } from "./components/finance-hub/data/fhoTeammateBreakdowns";
 import { AccountingDashboard } from "./components/AccountingDashboard";
 import { MigrationOnboardingFlow } from "./components/MigrationOnboardingFlow";
 import { BookkeeperOnboardingFlow } from "./components/BookkeeperOnboardingFlow";
 import { AccountingApp } from "./components/AccountingApp";
 import { Screen10_FinancialGoals } from "./components/migration/Screen10_FinancialGoals";
 import { Toaster } from "./components/ui/sonner";
-import { FloatingChatBar } from "./components/FloatingChatBar";
 import { AgentAction, Exception } from "./components/agents/AgentTypes";
 import { AccountingVisionPortal } from "./components/AccountingVisionPortal";
+import { cn } from "./components/ui/utils";
 
 export default function App() {
   const [unlocked, setUnlocked] = React.useState(
@@ -80,10 +82,22 @@ export default function App() {
   const [recentAgentActions, setRecentAgentActions] = React.useState<AgentAction[]>([]);
   const [exceptions, setExceptions] = React.useState<Exception[]>([]);
 
-  // Badge count derives from live exceptions; resets to 0 when rail opens
-  const [railSeen, setRailSeen] = React.useState(false);
-  const teammateNotificationCount = railSeen ? 0 : exceptions.length;
   const [initialChatMessage, setInitialChatMessage] = React.useState<string | undefined>();
+  const [teammateChatHistory, setTeammateChatHistory] = React.useState<TeammateChatMessage[]>([]);
+  const [teammatePlan, setTeammatePlan] = React.useState<FhoTeammatePlan | null>(null);
+  const [teammatePlanTabNonce, setTeammatePlanTabNonce] = React.useState(0);
+  const financeChatSubmitRef = React.useRef<((text: string) => void) | null>(null);
+
+  const onTeammateExplorePlan = React.useCallback((plan: FhoTeammatePlan) => {
+    setTeammatePlan(plan);
+    setTeammatePlanTabNonce((n) => n + 1);
+    setIsTeammateRailOpen(true);
+    setIsChatBarVisible(false);
+  }, []);
+
+  const onTeammateSparkle = React.useCallback(() => {
+    setInitialChatMessage("__sparkle__");
+  }, []);
   const [isChatBarVisible, setIsChatBarVisible] = React.useState(true);
   const [activeUser, setActiveUser] = React.useState<"jennifer" | "sarah" | "ryan">("jennifer");
   const [showPortal, setShowPortal] = React.useState(true);
@@ -93,7 +107,6 @@ export default function App() {
     setInMigrationFlow(false);
     setInAccountingApp(true);
     setShowValueProp(false);
-    setRailSeen(false); // Show badge as soon as exceptions populate
   };
 
   const handleReviewFinancialGoals = () => {
@@ -118,7 +131,6 @@ export default function App() {
   const startSarahFlow = React.useCallback(() => {
     setExceptions([]);
     setRecentAgentActions([]);
-    setRailSeen(false);
     setCurrentPage("Accounting");
     setShowValueProp(false);
     setShowPortal(false);
@@ -191,7 +203,6 @@ export default function App() {
               setCurrentPage("Accounting");
               setInitialPage("Dashboard");
               setInAccountingApp(true);
-              setRailSeen(false);
             }}
           />
         </div>
@@ -223,7 +234,7 @@ export default function App() {
 
       {/* Main Content Area */}
       {currentPage === "Accounting" ? (
-        <>
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {inMigrationFlow ? (
             <MigrationOnboardingFlow onComplete={handleMigrationComplete} />
           ) : inBookkeeperFlow ? (
@@ -235,25 +246,40 @@ export default function App() {
           ) : showGoalSetting ? (
             <Screen10_FinancialGoals onComplete={handleGoalsComplete} />
           ) : inAccountingApp ? (
-            <AccountingApp 
-              onBackToClio={handleBackToClio}
-              onReviewFinancialGoals={handleReviewFinancialGoals}
-              onRecentActionsChange={setRecentAgentActions}
-              onExceptionsChange={setExceptions}
-              activeUser={activeUser}
-              initialPage={initialPage}
-              onAskTeammate={(msg) => {
-                setInitialChatMessage(msg);
-                setIsTeammateRailOpen(true);
-                setIsChatBarVisible(false);
-                setRailSeen(true);
-              }}
-              onOpenRail={() => {
-                setIsTeammateRailOpen(true);
-                setIsChatBarVisible(false);
-                setRailSeen(true);
-              }}
-            />
+            <div
+              className={cn(
+                "flex min-h-0 min-w-0 flex-1 overflow-hidden transition-[padding] duration-300 ease-out motion-reduce:transition-none",
+                isTeammateRailOpen && "lg:pr-[28rem]",
+              )}
+            >
+              <AccountingApp
+                isChatBarVisible={isChatBarVisible}
+                onBackToClio={handleBackToClio}
+                onReviewFinancialGoals={handleReviewFinancialGoals}
+                onRecentActionsChange={setRecentAgentActions}
+                onExceptionsChange={setExceptions}
+                activeUser={activeUser}
+                initialPage={initialPage}
+                onAskTeammate={(msg) => {
+                  setInitialChatMessage(msg);
+                  setIsTeammateRailOpen(true);
+                  setIsChatBarVisible(false);
+                }}
+                onOpenRail={() => {
+                  setIsTeammateRailOpen(true);
+                  setIsChatBarVisible(false);
+                }}
+                teammateOpen={isTeammateRailOpen}
+                onTeammateOpenChange={(open) => {
+                  setIsTeammateRailOpen(open);
+                  setIsChatBarVisible(!open);
+                }}
+                onTeammateChatHistoryChange={setTeammateChatHistory}
+                onTeammateExplorePlan={onTeammateExplorePlan}
+                financeChatSubmitRef={financeChatSubmitRef}
+                onTeammateSparkle={onTeammateSparkle}
+              />
+            </div>
           ) : (
             <AccountingDashboard
               showValueProp={showValueProp}
@@ -261,49 +287,31 @@ export default function App() {
               onDismiss={() => setShowValueProp(false)}
             />
           )}
-        </>
+        </div>
       ) : (
         <EmptyWorkspace />
       )}
 
       {/* Column 3: Teammate Rail - Only in Accounting App */}
       {inAccountingApp && !inMigrationFlow && !showGoalSetting && (
-        <ContextAwareTeammateRail 
+        <ContextAwareTeammateRail
           isOpen={isTeammateRailOpen}
           onToggle={() => {
             setIsTeammateRailOpen(false);
             setIsChatBarVisible(true);
-            setRailSeen(true);
           }}
           context={inAccountingApp ? "accounting" : "clio"}
           recentActions={recentAgentActions}
           exceptions={exceptions}
           initialMessage={initialChatMessage}
           onMessageConsumed={() => setInitialChatMessage(undefined)}
-        />
-      )}
-
-      {/* Floating Chat Bar - Only in Accounting App */}
-      {inAccountingApp && !inMigrationFlow && !showGoalSetting && (
-        <FloatingChatBar
-          isVisible={isChatBarVisible}
-          notificationCount={teammateNotificationCount}
-          activeUser={activeUser}
-          onOpen={() => {
-            setIsTeammateRailOpen(true);
-            setIsChatBarVisible(false);
-            setRailSeen(true);
-          }}
-          onSubmitMessage={(msg) => {
-            if (msg === "__sparkle__") {
-              setIsChatBarVisible(false);
-            } else {
-              setInitialChatMessage(msg);
-              setIsChatBarVisible(false);
-            }
-            setIsTeammateRailOpen(true);
-            setRailSeen(true);
-          }}
+          chatHistory={teammateChatHistory}
+          onChatHistoryChange={setTeammateChatHistory}
+          teammatePlan={teammatePlan}
+          onTeammatePlanChange={setTeammatePlan}
+          focusPlanTabNonce={teammatePlanTabNonce}
+          onTeammateExplorePlan={onTeammateExplorePlan}
+          financeChatSubmitRef={financeChatSubmitRef}
         />
       )}
 

@@ -39,20 +39,35 @@ function TodoRow({
       ? 'bg-orange-500 text-white'
       : 'bg-amber-500 text-white';
 
+  const isCritical = task.kind === 'briefing' && task.insightId === 'insight-5';
+
   return (
-    <Collapsible className="rounded-[8px] border border-gray-200 bg-white shadow-sm">
+    <Collapsible
+      className={
+        isCritical
+          ? 'rounded-[8px] border border-rose-200 bg-rose-50/40 shadow-sm ring-1 ring-rose-200/80'
+          : 'rounded-[8px] border border-gray-200 bg-white shadow-sm'
+      }
+    >
       <CollapsibleTrigger className="flex w-full items-center gap-3 px-3 py-2.5 text-left outline-none transition-colors hover:bg-gray-50/80 data-[state=open]:border-b data-[state=open]:border-gray-100 [&[data-state=open]_svg]:rotate-180">
         <span
           className={cn(
             'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold leading-none',
-            circleClass,
+            isCritical ? 'bg-rose-600 text-white' : circleClass,
           )}
           aria-hidden
         >
           {n}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold leading-snug text-gray-900 line-clamp-2">{task.headline}</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="text-xs font-semibold leading-snug text-gray-900 line-clamp-2">{task.headline}</p>
+            {isCritical ? (
+              <span className="shrink-0 rounded bg-rose-600 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white">
+                High priority
+              </span>
+            ) : null}
+          </div>
           <p className="mt-0.5 text-[11px] text-gray-500">{task.sourceLabel}</p>
         </div>
         <ChevronDown

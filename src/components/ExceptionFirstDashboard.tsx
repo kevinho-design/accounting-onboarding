@@ -25,8 +25,21 @@ import { motion } from "motion/react";
 import { TrustAssignCTA } from "./accounting/TrustAssign";
 import { FirmGoalsCardList } from "./finance-hub/components/FirmGoalsCardList";
 import { firmGoalsOnTrackCount, getFirmGoalDashboardCards, useFirmGoalsState } from "./finance-hub/data/firmGoals";
+import { getPayrollShortfallTeammatePlan, type FhoTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
 
 export const JENNIFER_EXCEPTIONS: Exception[] = [
+  {
+    id: "payroll-shortfall-gap",
+    agentId: "revenue-forecasting",
+    severity: "critical",
+    title: "Payroll Shortfall — Operating Account Gap",
+    description:
+      "Payroll is due in 3 days and your Operating Account is projected to be short by $15,700 — the highest-impact item on your financial health right now.",
+    impact:
+      "Payroll continuity and your operating reserve goal are at risk until you close this gap. Firm Intelligence recommends internal liquidity levers first, then exact-gap financing only if needed.",
+    suggestedAction: "Review scenario plan",
+    createdAt: new Date(Date.now() - 1 * 60 * 1000),
+  },
   {
     id: "sys-bank-disconnect",
     agentId: "matching",
@@ -128,11 +141,47 @@ export const JENNIFER_EXCEPTIONS: Exception[] = [
   }
 ];
 
+/** Recent agent actions shown on Jennifer's dashboard and pushed to Clio Teammate → Today */
+export const JENNIFER_AGENT_ACTIONS: AgentAction[] = [
+  {
+    id: "1",
+    agentId: "matching",
+    timestamp: new Date(Date.now() - 15 * 60 * 1000),
+    action: "Auto-matched 127 transactions to 'Office Supplies'",
+    reasoning:
+      "Vendor name 'Staples' appears in 47 previous transactions to account 6100 (Office Supplies). Transaction amount ($234.56) falls within typical range ($50-$500). Confidence: 98.4%",
+    isEditable: true,
+    isReversible: true,
+  },
+  {
+    id: "2",
+    agentId: "trust-compliance",
+    timestamp: new Date(Date.now() - 45 * 60 * 1000),
+    action: "Verified three-way reconciliation for TD Bank IOLTA",
+    reasoning:
+      "Bank balance ($89,234.67) matches sum of client ledgers exactly. All trust transactions posted to correct client matters. Massachusetts bar compliance verified.",
+    isEditable: false,
+    isReversible: false,
+  },
+  {
+    id: "3",
+    agentId: "revenue-forecasting",
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    action: "Updated cash runway forecast to 74 days",
+    reasoning:
+      "Based on current burn rate ($1,930/day), AR aging (52 days DSO), and pipeline conversion (67% historical rate). Factored in your 90-day runway goal.",
+    isEditable: false,
+    isReversible: false,
+  },
+];
+
 interface ExceptionFirstDashboardProps {
   onReviewFinancialGoals?: () => void;
   onRecentActionsChange?: (actions: AgentAction[]) => void;
   onExceptionsChange?: (exceptions: Exception[]) => void;
   onAskTeammate?: (message: string) => void;
+  /** Opens Clio Teammate Plan tab with ranked payroll shortfall options */
+  onTeammateExplorePlan?: (plan: FhoTeammatePlan) => void;
   onOpenRail?: () => void;
   onNavigateToTransactions?: () => void;
   onNavigateToTransactionsFiltered?: (filter: string, month?: string) => void;
@@ -140,7 +189,7 @@ interface ExceptionFirstDashboardProps {
   onNavigateToFinancialHealth?: (scrollTo?: string) => void;
 }
 
-export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onOpenRail, onNavigateToTransactions, onNavigateToTransactionsFiltered, onNavigateToConnections, onNavigateToFinancialHealth }: ExceptionFirstDashboardProps) {
+export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onTeammateExplorePlan, onOpenRail, onNavigateToTransactions, onNavigateToTransactionsFiltered, onNavigateToConnections, onNavigateToFinancialHealth }: ExceptionFirstDashboardProps) {
   const [showMigrationBanner, setShowMigrationBanner] = React.useState(true);
   const [showReportModal, setShowReportModal] = React.useState(false);
   const [goalsExpanded, setGoalsExpanded] = React.useState(true);
@@ -162,41 +211,10 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
   // Migration items surface first, followed by ongoing operational exceptions
   const exceptions = JENNIFER_EXCEPTIONS;
 
-  // Mock recent agent actions
-  const recentActions: AgentAction[] = [
-    {
-      id: "1",
-      agentId: "matching",
-      timestamp: new Date(Date.now() - 15 * 60 * 1000),
-      action: "Auto-matched 127 transactions to 'Office Supplies'",
-      reasoning: "Vendor name 'Staples' appears in 47 previous transactions to account 6100 (Office Supplies). Transaction amount ($234.56) falls within typical range ($50-$500). Confidence: 98.4%",
-      isEditable: true,
-      isReversible: true
-    },
-    {
-      id: "2",
-      agentId: "trust-compliance",
-      timestamp: new Date(Date.now() - 45 * 60 * 1000),
-      action: "Verified three-way reconciliation for TD Bank IOLTA",
-      reasoning: "Bank balance ($89,234.67) matches sum of client ledgers exactly. All trust transactions posted to correct client matters. Massachusetts bar compliance verified.",
-      isEditable: false,
-      isReversible: false
-    },
-    {
-      id: "3",
-      agentId: "revenue-forecasting",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      action: "Updated cash runway forecast to 74 days",
-      reasoning: "Based on current burn rate ($1,930/day), AR aging (52 days DSO), and pipeline conversion (67% historical rate). Factored in your 90-day runway goal.",
-      isEditable: false,
-      isReversible: false
-    }
-  ];
-
   // Pass recent actions to AI rail via callback
   React.useEffect(() => {
     if (onRecentActionsChange) {
-      onRecentActionsChange(recentActions);
+      onRecentActionsChange(JENNIFER_AGENT_ACTIONS);
     }
   }, [onRecentActionsChange]);
 
@@ -347,12 +365,14 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                       "cash-flow": Waves,
                     };
                     const ICON_OVERRIDES: Record<string, React.ComponentType<{ className?: string }>> = {
+                      "payroll-shortfall-gap": AlertTriangle,
                       "sys-bank-disconnect": AlertTriangle,
                       "sys-trust-balance": AlertTriangle,
                       "sys-feb-recon-blocker": AlertTriangle,
                       "sys-pending-approvals": ShieldCheck,
                     };
                     const COLOR_OVERRIDES: Record<string, string> = {
+                      "payroll-shortfall-gap": "from-rose-600 to-red-600",
                       "sys-bank-disconnect": "from-amber-500 to-orange-500",
                       "sys-feb-recon-blocker": "from-amber-500 to-orange-500",
                       "sys-pending-approvals": "from-blue-500 to-blue-600",
@@ -363,7 +383,10 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                     const isExpanded = expandedExceptionId === exception.id;
 
                     return (
-                      <div key={exception.id} className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                      <div
+                        key={exception.id}
+                        className={`bg-card rounded-xl border shadow-sm overflow-hidden ${exception.id === "payroll-shortfall-gap" ? "border-rose-300 ring-1 ring-rose-200" : "border-border"}`}
+                      >
                         {/* Collapsed header */}
                         <button
                           className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-background transition-colors cursor-pointer"
@@ -403,7 +426,9 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                                   className="bg-primary hover:bg-primary/90 text-white text-xs cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (exception.id === "sys-bank-disconnect") {
+                                    if (exception.id === "payroll-shortfall-gap") {
+                                      onTeammateExplorePlan?.(getPayrollShortfallTeammatePlan());
+                                    } else if (exception.id === "sys-bank-disconnect") {
                                       onNavigateToConnections?.();
                                     } else if (exception.id === "sys-feb-recon-blocker") {
                                       onNavigateToTransactionsFiltered?.("missing_info", "feb");

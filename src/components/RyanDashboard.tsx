@@ -18,11 +18,14 @@ import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { motion } from "motion/react";
 import { AgentAction } from "./agents/AgentTypes";
 import { TrustAssignCTA } from "./accounting/TrustAssign";
+import type { FhoTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
+import { getPayrollShortfallTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
 
 interface RyanDashboardProps {
   onRecentActionsChange?: (actions: AgentAction[]) => void;
   onExceptionsChange?: (exceptions: unknown[]) => void;
   onAskTeammate?: (message: string) => void;
+  onTeammateExplorePlan?: (plan: FhoTeammatePlan) => void;
   onOpenRail?: () => void;
   onNavigateToTransactions?: () => void;
   onNavigateToTransactionsFiltered?: (filter: string, month?: string) => void;
@@ -35,6 +38,8 @@ type TodayItemKind = "approval" | "assigned";
 interface TodayItem {
   id: string;
   kind: TodayItemKind;
+  /** Critical financial health item (e.g. payroll shortfall) */
+  priority?: "critical";
   title: string;
   description: string;
   impact?: string;
@@ -43,6 +48,17 @@ interface TodayItem {
 }
 
 const TODAY_ITEMS: TodayItem[] = [
+  {
+    id: "payroll-shortfall-critical",
+    kind: "approval",
+    priority: "critical",
+    title: "Payroll Shortfall — Operating Account Gap",
+    description:
+      "Payroll is due in 3 days with a $15.7k operating cash gap — the highest-impact risk to firm financial health right now.",
+    impact:
+      "Posting payroll on time and protecting your operating reserve depend on closing this gap. Firm Intelligence ranked internal liquidity options first.",
+    meta: "Critical",
+  },
   {
     id: "ap1",
     kind: "approval",
@@ -124,6 +140,7 @@ const financialGoals = [
 
 export function RyanDashboard({
   onAskTeammate,
+  onTeammateExplorePlan,
   onOpenRail,
   onNavigateToTransactionsFiltered,
   onNavigateToFinancialHealth,
@@ -238,7 +255,14 @@ export function RyanDashboard({
                     const isApproval = item.kind === "approval";
 
                     return (
-                      <div key={item.id} className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                      <div
+                        key={item.id}
+                        className={`bg-card rounded-xl border shadow-sm overflow-hidden ${
+                          item.priority === "critical"
+                            ? "border-rose-300 ring-1 ring-rose-200"
+                            : "border-border"
+                        }`}
+                      >
                         <button
                           className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-background transition-colors cursor-pointer"
                           onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
@@ -253,7 +277,15 @@ export function RyanDashboard({
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="text-sm font-medium text-foreground leading-snug">{item.title}</p>
                               {isApproval && item.meta && (
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 flex-shrink-0">{item.meta}</span>
+                                <span
+                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded flex-shrink-0 ${
+                                    item.priority === "critical"
+                                      ? "bg-rose-100 text-rose-800"
+                                      : "bg-blue-100 text-blue-700"
+                                  }`}
+                                >
+                                  {item.meta}
+                                </span>
                               )}
                               {!isApproval && (
                                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 flex-shrink-0">Assigned to you</span>
@@ -292,7 +324,9 @@ export function RyanDashboard({
                                     className="bg-primary hover:bg-primary/90 text-white text-xs cursor-pointer"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      if (item.id === "ap1") {
+                                      if (item.id === "payroll-shortfall-critical") {
+                                        onTeammateExplorePlan?.(getPayrollShortfallTeammatePlan());
+                                      } else if (item.id === "ap1") {
                                         onNavigateToTransactionsFiltered?.("approval");
                                       } else {
                                         setApprovedIds((prev) => new Set([...prev, item.id]));
@@ -301,7 +335,7 @@ export function RyanDashboard({
                                     }}
                                   >
                                     <CheckCircle className="w-3 h-3 mr-1" />
-                                    Approve
+                                    {item.id === "payroll-shortfall-critical" ? "Review plan" : "Approve"}
                                   </Button>
                                   <TrustAssignCTA
                                     compact

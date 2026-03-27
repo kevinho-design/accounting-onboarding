@@ -69,7 +69,11 @@ import {
   collectionTrendSeries,
   partnerRealizationRows,
 } from '../data/dashboardMetricSeed';
-import { getCatalogWidgetFullRows, getCatalogWidgetSummary } from '../data/widgetViewSummaries';
+import {
+  getCatalogWidgetFullRows,
+  getCatalogWidgetSummary,
+  type CatalogWidgetSummary,
+} from '../data/widgetViewSummaries';
 import { getFinanceWidgetExploreAction } from '../data/financeWidgetDrillDown';
 import { DIGITAL_TWIN_CATALOG_DESC } from '../data/prototypePersona';
 import { DigitalTwinWidget, type DigitalTwinScenarioId } from './DigitalTwinWidget';
@@ -321,6 +325,8 @@ export type FinanceWidgetExplorePayload = {
   widgetId: string;
   reportName?: string;
   fallbackTitle?: string;
+  /** Opens Clio Teammate Plan with a suggestion-specific breakdown (Summary mode taps) */
+  summarySuggestion?: { headline: string; planSummary?: string };
 };
 
 export function defaultLayoutSizeForWidgetId(widgetId: string): WidgetLayoutSize {
@@ -540,10 +546,21 @@ function DashboardPinEmbeddedReportSummary({
 function CatalogTriSummaryPanel({
   kpis,
   insight,
+  suggestions,
+  widgetId,
+  reportName,
+  exploreFallbackTitle,
+  onFinanceWidgetExplore,
 }: {
-  kpis: { label: string; value: string }[];
+  kpis: CatalogWidgetSummary['kpis'];
   insight: string;
+  suggestions?: CatalogWidgetSummary['suggestions'];
+  widgetId?: string;
+  reportName?: string;
+  exploreFallbackTitle?: string;
+  onFinanceWidgetExplore?: (payload: FinanceWidgetExplorePayload) => void;
 }) {
+  const canOpenPlan = Boolean(onFinanceWidgetExplore && widgetId);
   return (
     <div className="mt-2 space-y-3">
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -558,6 +575,48 @@ function CatalogTriSummaryPanel({
         ))}
       </ul>
       <p className="text-[11px] text-gray-600 leading-snug border-t border-gray-100 pt-2">{insight}</p>
+      {suggestions && suggestions.length > 0 ? (
+        <div className="rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-2.5">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-blue-900/90">Firm Intelligence suggests</p>
+          {canOpenPlan ? (
+            <p className="mt-1 text-[10px] text-blue-900/70">
+              Tap an action to open Clio Teammate with a step-by-step plan.
+            </p>
+          ) : null}
+          <ul className="mt-2 space-y-1.5 pl-0 list-none text-[11px] leading-snug text-gray-800">
+            {suggestions.map((s, i) => (
+              <li key={i} className="pl-0">
+                {canOpenPlan ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onFinanceWidgetExplore!({
+                        widgetId: widgetId!,
+                        reportName,
+                        fallbackTitle: exploreFallbackTitle,
+                        summarySuggestion: { headline: s.text, planSummary: s.planSummary },
+                      })
+                    }
+                    className="group flex w-full items-start gap-2 rounded-md border border-transparent px-2 py-1.5 text-left transition-colors hover:border-blue-200/80 hover:bg-blue-100/40"
+                  >
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600/80" aria-hidden />
+                    <span className="min-w-0 flex-1 font-medium text-gray-900">{s.text}</span>
+                    <ChevronRight
+                      className="mt-1 size-4 shrink-0 text-primary opacity-70 group-hover:opacity-100"
+                      aria-hidden
+                    />
+                  </button>
+                ) : (
+                  <div className="flex items-start gap-2 px-2 py-1.5">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600/50" aria-hidden />
+                    <span>{s.text}</span>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -583,10 +642,27 @@ function CatalogFullDetailTable({ rows }: { rows: { label: string; value: string
 function catalogTriMode(
   rv: ReportWidgetView,
   chart: React.ReactNode,
-  summary: { kpis: { label: string; value: string }[]; insight: string },
+  summary: CatalogWidgetSummary,
   full: React.ReactNode,
+  summaryExplore?: {
+    widgetId: string;
+    reportName?: string;
+    exploreFallbackTitle?: string;
+    onFinanceWidgetExplore?: (payload: FinanceWidgetExplorePayload) => void;
+  } | null,
 ): React.ReactNode {
-  if (rv === 'summary') return <CatalogTriSummaryPanel {...summary} />;
+  if (rv === 'summary')
+    return (
+      <CatalogTriSummaryPanel
+        kpis={summary.kpis}
+        insight={summary.insight}
+        suggestions={summary.suggestions}
+        widgetId={summaryExplore?.widgetId}
+        reportName={summaryExplore?.reportName}
+        exploreFallbackTitle={summaryExplore?.exploreFallbackTitle}
+        onFinanceWidgetExplore={summaryExplore?.onFinanceWidgetExplore}
+      />
+    );
   if (rv === 'full') {
     return (
       <div className="w-full min-h-[200px] max-h-[min(70vh,520px)] overflow-y-auto rounded-lg border border-gray-100 bg-white -mx-1 p-2 space-y-4">
@@ -619,6 +695,9 @@ type FinanceWidgetContentProps = {
   /** Pinned-from page (generic + embedded summaries) */
   sourcePageId?: string;
   reportLibrary?: readonly ReportLibraryEntry[];
+  /** Summary suggestions + footer Explore actions → Clio Teammate Plan */
+  onFinanceWidgetExplore?: (payload: FinanceWidgetExplorePayload) => void;
+  exploreFallbackTitle?: string;
 };
 
 function FinanceWidgetBody({
@@ -637,6 +716,8 @@ function FinanceWidgetBody({
   onOpenSourceFinancePage,
   sourcePageId,
   reportLibrary,
+  onFinanceWidgetExplore,
+  exploreFallbackTitle,
 }: FinanceWidgetContentProps) {
   const reportView = normalizeReportView(reportViewProp);
   const chartCtx = useStrategicDashboardCharts();
@@ -668,11 +749,24 @@ function FinanceWidgetBody({
   const chartId = instanceId || Math.random().toString(36).substr(2, 9);
   const gradientId = `color-${id}-${chartId}`;
   const lastStrategicRow = chartData[chartData.length - 1];
+  const strategicPrev = chartData.length >= 2 ? chartData[chartData.length - 2] : undefined;
 
   const tri = (widgetKey: string, chartEl: React.ReactNode) => {
-    const s = getCatalogWidgetSummary(widgetKey, briefingSnapshot, lastStrategicRow);
+    const s = getCatalogWidgetSummary(widgetKey, briefingSnapshot, lastStrategicRow, {
+      strategicPrev,
+      reportName,
+    });
     if (!s) return chartEl;
     const fullRows = getCatalogWidgetFullRows(widgetKey, briefingSnapshot, lastStrategicRow);
+    const summaryExplore =
+      onFinanceWidgetExplore != null
+        ? {
+            widgetId: widgetKey,
+            reportName,
+            exploreFallbackTitle,
+            onFinanceWidgetExplore,
+          }
+        : null;
     return catalogTriMode(
       reportView,
       chartEl,
@@ -681,6 +775,7 @@ function FinanceWidgetBody({
         <div className="min-h-[140px]">{chartEl}</div>
         <CatalogFullDetailTable rows={fullRows} />
       </>,
+      summaryExplore,
     );
   };
 
@@ -987,9 +1082,18 @@ function FinanceWidgetBody({
         ),
       );
     case 'ambient_cfo': {
-      const ac = getCatalogWidgetSummary('ambient_cfo', briefingSnapshot, lastStrategicRow);
+      const ac = getCatalogWidgetSummary('ambient_cfo', briefingSnapshot, lastStrategicRow, { strategicPrev });
       if (reportView === 'summary' && ac) {
-        return <CatalogTriSummaryPanel {...ac} />;
+        return (
+          <CatalogTriSummaryPanel
+            kpis={ac.kpis}
+            insight={ac.insight}
+            suggestions={ac.suggestions}
+            widgetId="ambient_cfo"
+            exploreFallbackTitle={"This week's briefing"}
+            onFinanceWidgetExplore={onFinanceWidgetExplore}
+          />
+        );
       }
       if (reportView === 'full') {
         return (
@@ -1269,21 +1373,20 @@ function FinanceWidgetBody({
         );
       }
       if (reportView === 'summary') {
+        const fiEmbedded = getCatalogWidgetSummary(EMBEDDED_REPORT_WIDGET_ID, briefingSnapshot, lastStrategicRow, {
+          strategicPrev,
+          reportName,
+        });
         return (
-          <div className="mt-2 space-y-3">
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {summary.kpis.map((k) => (
-                <li
-                  key={k.label}
-                  className="flex justify-between gap-2 text-[11px] rounded-md border border-gray-100 bg-gray-50/80 px-2.5 py-1.5"
-                >
-                  <span className="text-gray-500">{k.label}</span>
-                  <span className="font-semibold text-gray-900">{k.value}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="text-[11px] text-gray-600 leading-snug border-t border-gray-100 pt-2">{summary.insight}</p>
-          </div>
+          <CatalogTriSummaryPanel
+            kpis={summary.kpis}
+            insight={summary.insight}
+            suggestions={fiEmbedded?.suggestions}
+            widgetId={EMBEDDED_REPORT_WIDGET_ID}
+            reportName={reportName}
+            exploreFallbackTitle={rn}
+            onFinanceWidgetExplore={onFinanceWidgetExplore}
+          />
         );
       }
       return (
@@ -1836,6 +1939,8 @@ export function FinancePageWidgetGrid({
               surface={fhoSurface}
               sourcePageId={isCompactFho && fhoSurface ? financialHealthSourcePageId : undefined}
               reportLibrary={reportLibrary}
+              onFinanceWidgetExplore={onFinanceWidgetExplore}
+              exploreFallbackTitle={widget.title}
             />
           </div>
           {onFinanceWidgetExplore ? (() => {
@@ -2010,6 +2115,8 @@ export function FinancePageSidebarWidgetStack({
               surface={fhoSurface}
               sourcePageId={isCompactFho && fhoSurface ? financialHealthSourcePageId : undefined}
               reportLibrary={reportLibrary}
+              onFinanceWidgetExplore={onFinanceWidgetExplore}
+              exploreFallbackTitle={widget.title}
             />
           </div>
           {onFinanceWidgetExplore ? (() => {

@@ -494,7 +494,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {recentActions.map((action) => {
+                  {JENNIFER_AGENT_ACTIONS.map((action) => {
                     const timeDiff = Date.now() - action.timestamp.getTime();
                     const mins = Math.floor(timeDiff / 60000);
                     const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;

@@ -18,7 +18,7 @@ export const FINANCE_WIDGET_EXPLORE_COPY: Record<string, FinanceWidgetExploreCop
     subtitle: 'Progress bars tie to net revenue, collections, and reserve targets.',
     bullets: [
       'Alerts and recommendations elsewhere in the product are filtered through these declared goals.',
-      'When a goal slips, Firm Intelligence prioritizes actions that move the metric—not noise.',
+      'When a goal slips, Clio Accounting prioritizes actions that move the metric—not noise.',
       'Adjust goals from Financial Health Overview when strategy shifts.',
     ],
     followUp: { label: 'Open Financial Health Overview', pageId: 'fp_financial_health' },
@@ -82,7 +82,7 @@ export const FINANCE_WIDGET_EXPLORE_COPY: Record<string, FinanceWidgetExploreCop
     subtitle: 'Stress-test hiring, rates, and departures against your baseline model.',
     bullets: [
       'Pick a starter scenario to jump to the strategic dashboard with modelling in context.',
-      'Firm Intelligence interprets narrative scenarios into burn and runway paths.',
+      'Clio Accounting interprets narrative scenarios into burn and runway paths.',
     ],
     followUp: { label: 'Open strategic dashboard', pageId: 'fp_default' },
   },
@@ -92,7 +92,7 @@ export const FINANCE_WIDGET_EXPLORE_COPY: Record<string, FinanceWidgetExploreCop
     bullets: [
       'Preview toggles an overlay on strategic charts; peer benchmark adds a composite band.',
       'Explore opens a scenario plan with modelled outcomes and alternatives before you commit.',
-      'Execute recommended plan promotes the model for ongoing tracking with Firm Intelligence.',
+      'Execute recommended plan promotes the model for ongoing tracking with Clio Accounting.',
     ],
     followUp: { label: 'Open Financial Health Overview', pageId: 'fp_financial_health' },
   },

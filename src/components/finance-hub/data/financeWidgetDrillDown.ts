@@ -31,7 +31,7 @@ export function getFinanceWidgetExploreAction(
     const rn = options?.reportName?.trim();
     if (!rn) return { type: 'noop' };
     return teammateExplore(
-      `Explore recommended next steps for the "${rn}" report and how Firm Intelligence can help.`,
+      `Explore recommended next steps for the "${rn}" report and how Clio Accounting can help.`,
     );
   }
 
@@ -87,15 +87,14 @@ export function getFinanceWidgetExploreAction(
         'Explore Digital Twin scenarios: runway, rates, and staffing — what should I model next?',
       );
 
+    /** Modelling: Preview / Explore / Create are inline — no footer teammate CTA. */
     case 'suggested_modelling':
-      return teammateExplore(
-        'How should I use scenario modelling, previews, and firm goals together on this dashboard?',
-      );
+      return { type: 'noop' };
 
     case 'expense_rep':
     case 'expense_stacked_trend':
       return teammateExplore(
-        'What expense and category trends matter here, and what should I ask Firm Intelligence to watch?',
+        'What expense and category trends matter here, and what should I ask Clio Accounting to watch?',
       );
 
     case 'rev_target':
@@ -140,7 +139,7 @@ export function getFinanceWidgetExploreAction(
 }
 
 /**
- * Where-to-go steps for Clio Teammate Plan when the user taps a Firm Intelligence summary suggestion.
+ * Where-to-go steps for Clio Teammate Plan when the user taps a Clio Accounting summary suggestion.
  */
 export function getFinanceWidgetSummaryNavigateActions(
   widgetId: string,
@@ -428,7 +427,7 @@ export function getFinanceWidgetSummaryNavigateActions(
         {
           id: 'fi-fg-1',
           label: 'Edit goals inline on this widget',
-          detail: 'When strategy shifts, update targets so Firm Intelligence prioritizes the right alerts.',
+          detail: 'When strategy shifts, update targets so Clio Accounting prioritizes the right alerts.',
         },
         {
           id: 'fi-fg-2',

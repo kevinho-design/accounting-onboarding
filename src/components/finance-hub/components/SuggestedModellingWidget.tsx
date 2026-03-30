@@ -38,22 +38,37 @@ export function SuggestedModellingWidget({ bridge }: SuggestedModellingWidgetPro
 
   return (
     <div className="flex flex-col gap-4 w-full min-w-0">
-      <div className="rounded-lg border border-teal-100 bg-teal-50/40 p-3">
-        <label className="flex items-start gap-2.5 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            className="mt-0.5 rounded border-gray-300 text-teal-600 focus:ring-teal-500/30"
-            checked={peerBenchmarkEnabled}
-            onChange={(e) => onPeerBenchmarkChange(e.target.checked)}
-          />
-          <span className="min-w-0">
-            <span className="text-sm font-semibold text-gray-900">Benchmark against peers</span>
-            <span className="block text-[11px] text-gray-600 mt-0.5 leading-snug">
-              Overlay a synthetic peer composite shaped by your dashboard metrics and widgets—on Cash, Burn, and Runway,
-              including when you Preview a scenario.
-            </span>
+      <div
+        className={`text-left p-4 rounded-[8px] border transition-all ${
+          peerBenchmarkEnabled
+            ? 'border-emerald-600 bg-emerald-50/70 ring-1 ring-emerald-200/90'
+            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+        }`}
+      >
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <span
+            className={`font-semibold text-sm min-w-0 ${
+              peerBenchmarkEnabled ? 'text-emerald-700' : 'text-gray-900'
+            }`}
+          >
+            Benchmark against peers
           </span>
-        </label>
+          {peerBenchmarkEnabled ? (
+            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" aria-hidden />
+          ) : null}
+        </div>
+        <p className="text-xs text-gray-500 mb-3">
+          Show a synthetic peer composite on Cash, Burn, and Runway—shaped by your dashboard metrics and widgets. You can
+          turn this on anytime, even without a scenario.
+        </p>
+        <button
+          type="button"
+          aria-pressed={peerBenchmarkEnabled}
+          onClick={() => onPeerBenchmarkChange(!peerBenchmarkEnabled)}
+          className="w-full bg-white border border-gray-200 text-gray-700 py-1.5 rounded-[6px] text-xs font-medium hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30"
+        >
+          {peerBenchmarkEnabled ? 'Hide benchmark' : 'Benchmark'}
+        </button>
       </div>
 
       <div className="flex flex-col gap-3 flex-1">
@@ -92,7 +107,11 @@ export function SuggestedModellingWidget({ bridge }: SuggestedModellingWidgetPro
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => onTogglePreview(model.id)}
+                onClick={() => {
+                  const activating = selectedModelId !== model.id;
+                  if (activating) onPeerBenchmarkChange(true);
+                  onTogglePreview(model.id);
+                }}
                 className="flex-1 bg-white border border-gray-200 text-gray-700 py-1.5 rounded-[6px] text-xs font-medium hover:bg-gray-50 transition-colors"
               >
                 {selectedModelId === model.id ? 'Hide Preview' : 'Preview'}
@@ -123,8 +142,9 @@ export function SuggestedModellingWidget({ bridge }: SuggestedModellingWidgetPro
           <div>
             <h4 className="text-sm font-semibold text-gray-900">How modelling works</h4>
             <p className="text-xs text-gray-600 mt-1 leading-relaxed">
-              Create models or use starters below. Preview overlays scenarios on the charts; peer benchmarking adds a
-              comparison band. Explore opens a scenario plan with results and a path to link the model to Financial Goals.
+              Create models or use starters below. Benchmark toggles the peer comparison band on Cash, Burn, and Runway.
+              Preview overlays a scenario on those charts and turns benchmarking on for that preview. Explore opens a
+              scenario plan with results and a path to link the model to Financial Goals.
             </p>
           </div>
         </div>

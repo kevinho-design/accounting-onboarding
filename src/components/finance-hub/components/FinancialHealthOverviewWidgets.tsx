@@ -188,7 +188,7 @@ export function FhoPersonalizationBanner(props?: {
       <div className="flex items-start gap-2">
         <Sparkles className="h-4 w-4 shrink-0 text-blue-600 mt-0.5" strokeWidth={2} aria-hidden />
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-blue-800 dark:text-blue-200">Firm Intelligence</p>
+          <p className="text-[10px] font-bold uppercase tracking-wide text-blue-800 dark:text-blue-200">Clio Accounting</p>
           <p className="mt-0.5 text-xs font-semibold text-foreground">
             {USER_FIRST_NAME}, this Financial Health strip is personalized for you—open Finances for full breakdowns.
           </p>
@@ -212,7 +212,7 @@ export function FhoPersonalizationBanner(props?: {
           <Sparkles className="h-5 w-5" strokeWidth={2} aria-hidden />
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-blue-800 dark:text-blue-200">Firm Intelligence</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-blue-800 dark:text-blue-200">Clio Accounting</p>
           <p className="mt-1 text-sm font-semibold leading-snug text-gray-900 dark:text-gray-100">
             Your personalized Financial Health Overview
           </p>

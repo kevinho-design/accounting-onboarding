@@ -29,7 +29,7 @@ export function MigrationMappingScreen({ onApprove, onManualReview }: MigrationM
             </div>
           </div>
           <div className="text-lg font-medium text-gray-900">
-            Firm Intelligence is auto-mapping <span className="text-[#0057FF] font-semibold">124 accounts</span> based on Clio best practices
+            Clio Accounting is auto-mapping <span className="text-[#0057FF] font-semibold">124 accounts</span> based on Clio best practices
           </div>
         </div>
 

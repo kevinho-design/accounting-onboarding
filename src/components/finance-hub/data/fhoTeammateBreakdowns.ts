@@ -10,7 +10,7 @@ import {
 
 export type FhoWorkflowActionCtaKind = 'toast' | 'none';
 
-/** Shown after the user clicks Execute — what Firm Intelligence did (prototype). */
+/** Shown after the user clicks Execute — what Clio Accounting did (prototype). */
 export type FhoExecuteOutcome = {
   summary: string;
   bullets: string[];
@@ -101,7 +101,7 @@ export type FhoTeammatePlan = {
 
 const PLANS: Record<string, FhoTeammatePlan> = {
   fho_firm_goals_detail: {
-    title: 'Firm goals — actions Firm Intelligence can help with',
+    title: 'Firm goals — actions Clio Accounting can help with',
     options: [
       {
         id: 'review-strategy',
@@ -118,7 +118,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
           {
             id: 'a2',
             label: 'Confirm with leadership whether the goal still matches firm strategy',
-            detail: 'If strategy shifted, update the goal or timeline so Firm Intelligence prioritizes the right work.',
+            detail: 'If strategy shifted, update the goal or timeline so Clio Accounting prioritizes the right work.',
           },
         ],
       },
@@ -306,7 +306,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
           {
             id: 'ar4',
             label: 'Document agreed payment plans in billing settings',
-            detail: 'Keeps collections and Firm Intelligence aligned on expectations.',
+            detail: 'Keeps collections and Clio Accounting aligned on expectations.',
             ctaLabel: 'Record payment plan',
             ctaKind: 'toast',
           },
@@ -367,7 +367,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
         title: 'Goal link',
         summary: 'Tighten days-to-collect in firm goals.',
         executeOutcome: {
-          summary: 'Financial Goals were aligned so Firm Intelligence can prioritize collection alerts (prototype).',
+          summary: 'Financial Goals were aligned so Clio Accounting can prioritize collection alerts (prototype).',
           bullets: [
             'Synced days-to-collect intent with alert routing for at-risk AR (prototype).',
             'Drafted a suggested goal note if cash timing no longer matches the target (prototype).',
@@ -377,7 +377,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
           {
             id: 'ar8',
             label: 'Update days-to-collect or AR goal in Financial Goals',
-            detail: 'Firm Intelligence will reprioritize alerts toward these accounts.',
+            detail: 'Clio Accounting will reprioritize alerts toward these accounts.',
             ctaLabel: 'Open Financial Goals',
             ctaKind: 'toast',
           },
@@ -500,7 +500,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
           {
             id: 'u2',
             label: 'Tie high WIP matters to collection goals on the firm goals strip',
-            detail: 'So collections and Firm Intelligence stay aligned on what to chase first.',
+            detail: 'So collections and Clio Accounting stay aligned on what to chase first.',
             ctaLabel: 'Open firm goals',
             ctaKind: 'toast',
           },
@@ -847,7 +847,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
           {
             id: 'sm-2a',
             label: 'Add the model to Financial Goals when leadership agrees',
-            detail: 'So Firm Intelligence prioritizes recommendations through that lens.',
+            detail: 'So Clio Accounting prioritizes recommendations through that lens.',
           },
         ],
       },
@@ -1035,7 +1035,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
   },
   financial_goals: {
     title: 'Firm goals — dashboard strip',
-    context: 'Net revenue, days to collect, cash reserve — how Firm Intelligence filters work.',
+    context: 'Net revenue, days to collect, cash reserve — how Clio Accounting filters work.',
     options: [
       {
         id: 'fg-1',
@@ -1148,7 +1148,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
         actions: [
           {
             id: 'emb-2a',
-            label: 'Ask Firm Intelligence for recommended follow-ups',
+            label: 'Ask Clio Accounting for recommended follow-ups',
             detail: 'Use Chat on the same topic after you have the full picture.',
           },
         ],
@@ -1163,16 +1163,16 @@ const PLANS: Record<string, FhoTeammatePlan> = {
     options: [
       {
         id: 'payroll-collection-opportunities',
-        title: 'Collection opportunities',
+        title: 'Collection Opportunities',
         summary: 'Pull forward cash through accelerated billing and collections before adding financing cost.',
         actions: [
           {
             variant: 'dual_action',
             id: 'payroll-col-ai-triage',
-            title: 'AI Triage for Velocity',
+            title: 'Bill Reminders',
             description:
               'Isolate and contact past-due clients who have stored payment methods and no active dispute flags.',
-            aiCta: 'Auto-Run Triage & Send',
+            aiCta: 'Triage and Send',
             manualCta: 'Review Eligible Accounts',
           },
           {
@@ -1181,31 +1181,22 @@ const PLANS: Record<string, FhoTeammatePlan> = {
             title: 'Trust Account Sweep',
             description:
               'Reconcile ledgers and instantly transfer all legally earned fees from client Trust accounts to the Operating account.',
-            aiCta: 'Execute Sweep ($12.4k Available)',
+            aiCta: 'Sweep',
             manualCta: 'Go to Trust Ledger',
           },
           {
             variant: 'dual_action',
             id: 'payroll-col-wip-liquidation',
-            title: 'Accelerated WIP Liquidation',
+            title: 'WIP Liquidation',
             description:
               'Generate and issue interim invoices for matters with high unbilled Work-In-Progress and strong payment histories.',
-            aiCta: 'Auto-Draft & Issue Invoices',
+            aiCta: 'Draft and Issue Invoices',
             manualCta: 'View Unbilled WIP',
           },
           {
             variant: 'dual_action',
-            id: 'payroll-col-urgency',
-            title: 'Deploy Urgency Incentives',
-            description:
-              'Send targeted SMS/emails offering a temporary 5% early-settlement discount for payments made within 48 hours on 60+ day A/R.',
-            aiCta: 'Deploy Discount Campaign',
-            manualCta: 'Select Accounts Manually',
-          },
-          {
-            variant: 'dual_action',
             id: 'payroll-col-partial-pay',
-            title: 'Secure Immediate Partial Payments',
+            title: 'Offer Payment Plans',
             description:
               'Offer structured payment plans to delinquent accounts that require an immediate, same-day down payment to activate.',
             aiCta: 'Send Plan Offers',
@@ -1224,7 +1215,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
             id: 'payroll-ex-clio-capital',
             title: 'Clio Capital financing',
             description:
-              'Pre-qualification is based on your Clio Payments volume and history. On the Capital page in Clio Manage (administrators), review any offer, choose an amount sized to your payroll shortfall with terms and flat fee shown upfront, and—if approved—receive funds into your operating account in as little as two business days. Repayment is a fixed weekly debit from operating; Firm Intelligence can surface eligibility signals and a recommended amount for this gap (prototype).',
+              'Pre-qualification is based on your Clio Payments volume and history. On the Capital page in Clio Manage (administrators), review any offer, choose an amount sized to your payroll shortfall with terms and flat fee shown upfront, and—if approved—receive funds into your operating account in as little as two business days. Repayment is a fixed weekly debit from operating; Clio Accounting can surface eligibility signals and a recommended amount for this gap (prototype).',
             aiCta: 'Pre-check eligibility & amount',
             manualCta: 'Read more about Clio Capital',
             manualHref: 'https://www.clio.com/features/payments/law-firm-financing/',
@@ -1299,7 +1290,7 @@ export function getExecuteOutcomeForOption(opt: FhoWorkflowOption): FhoExecuteOu
       ? derived
       : [`Ran the “${opt.title}” workflow against your firm data (prototype).`];
   return {
-    summary: `Firm Intelligence finished the “${opt.title}” workflow on your behalf (prototype).`,
+    summary: `Clio Accounting finished the “${opt.title}” workflow on your behalf (prototype).`,
     bullets,
   };
 }

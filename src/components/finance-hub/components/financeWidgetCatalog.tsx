@@ -96,12 +96,13 @@ export type WidgetLayoutSize = 'compact' | 'expanded';
 /** Main Finances grid column count on md+ breakpoints */
 export type MainGridColumns = 2 | 3;
 
-/** Embedded report widget display mode */
-export type ReportWidgetView = 'full' | 'chart_compact' | 'summary';
+/** Embedded report widget display mode (Full was merged into Chart) */
+export type ReportWidgetView = 'chart_compact' | 'summary';
 
-/** Map legacy or unknown values (e.g. removed `chart_expanded`) to a valid mode */
+/** Map legacy or unknown values (e.g. removed `full`, `chart_expanded`) to a valid mode */
 export function normalizeReportView(raw?: string | null): ReportWidgetView {
-  if (raw === 'full' || raw === 'summary' || raw === 'chart_compact') return raw;
+  if (raw === 'full') return 'chart_compact';
+  if (raw === 'summary' || raw === 'chart_compact') return raw;
   return 'chart_compact';
 }
 
@@ -176,7 +177,7 @@ export const WIDGET_CATALOG = [
     title: 'Firm goals (detail)',
     category: 'Financial Health',
     icon: Target,
-    desc: 'Dashboard goals strip expanded — progress and Firm Intelligence narrative',
+    desc: 'Dashboard goals strip expanded — progress and Clio Accounting narrative',
   },
   {
     id: 'fho_operating_cash_detail',
@@ -236,7 +237,7 @@ export const WIDGET_CATALOG = [
     title: 'Suggested Modelling',
     category: 'Modelling',
     icon: Sparkles,
-    desc: 'Scenario models, preview overlay on charts, and Explore to review plans before linking models to firm goals',
+    desc: '',
   },
   { id: 'expense_rep', title: 'Expense Breakdown', category: 'Reports', icon: FileText, desc: 'Monthly expenses by category' },
   { id: 'rev_target', title: 'Revenue Target', category: 'Reports', icon: FileText, desc: 'Progress towards quarterly goals' },
@@ -245,7 +246,7 @@ export const WIDGET_CATALOG = [
     title: 'Firm goals',
     category: 'Goals',
     icon: Target,
-    desc: 'Net revenue YoY, days-to-collect, and 60-day cash reserve—how Firm Intelligence filters recommendations',
+    desc: 'Net revenue YoY, days-to-collect, and 60-day cash reserve—how Clio Accounting filters recommendations',
   },
   {
     id: 'strat_cash',
@@ -440,7 +441,6 @@ export function hydrateSidebarPlacedWidgets(
 }
 
 const REPORT_VIEW_OPTIONS: { id: ReportWidgetView; label: string }[] = [
-  { id: 'full', label: 'Full' },
   { id: 'summary', label: 'Summary' },
   { id: 'chart_compact', label: 'Chart' },
 ];
@@ -544,6 +544,7 @@ function DashboardPinEmbeddedReportSummary({
 }
 
 function CatalogTriSummaryPanel({
+  positionBrief,
   kpis,
   insight,
   suggestions,
@@ -552,6 +553,7 @@ function CatalogTriSummaryPanel({
   exploreFallbackTitle,
   onFinanceWidgetExplore,
 }: {
+  positionBrief?: string;
   kpis: CatalogWidgetSummary['kpis'];
   insight: string;
   suggestions?: CatalogWidgetSummary['suggestions'];
@@ -563,6 +565,9 @@ function CatalogTriSummaryPanel({
   const canOpenPlan = Boolean(onFinanceWidgetExplore && widgetId);
   return (
     <div className="mt-2 space-y-3">
+      {positionBrief?.trim() ? (
+        <p className="text-[11px] leading-snug text-gray-800 font-medium">{positionBrief.trim()}</p>
+      ) : null}
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {kpis.map((k) => (
           <li
@@ -577,13 +582,13 @@ function CatalogTriSummaryPanel({
       <p className="text-[11px] text-gray-600 leading-snug border-t border-gray-100 pt-2">{insight}</p>
       {suggestions && suggestions.length > 0 ? (
         <div className="rounded-lg border border-blue-100 bg-blue-50/50 px-3 py-2.5">
-          <p className="text-[10px] font-bold uppercase tracking-wide text-blue-900/90">Firm Intelligence suggests</p>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-blue-900/90">Clio Accounting suggests</p>
           {canOpenPlan ? (
-            <p className="mt-1 text-[10px] text-blue-900/70">
+            <p className="mt-1 text-[13px] leading-snug text-blue-900/75">
               Tap an action to open Clio Teammate with a step-by-step plan.
             </p>
           ) : null}
-          <ul className="mt-2 space-y-1.5 pl-0 list-none text-[11px] leading-snug text-gray-800">
+          <ul className="mt-2 space-y-1.5 pl-0 list-none text-[13px] leading-snug text-gray-800">
             {suggestions.map((s, i) => (
               <li key={i} className="pl-0">
                 {canOpenPlan ? (
@@ -594,22 +599,29 @@ function CatalogTriSummaryPanel({
                         widgetId: widgetId!,
                         reportName,
                         fallbackTitle: exploreFallbackTitle,
-                        summarySuggestion: { headline: s.text, planSummary: s.planSummary },
+                        ...(s.openFullTeammatePlan
+                          ? {}
+                          : { summarySuggestion: { headline: s.text, planSummary: s.planSummary } }),
                       })
                     }
-                    className="group flex w-full items-start gap-2 rounded-md border border-transparent px-2 py-1.5 text-left transition-colors hover:border-blue-200/80 hover:bg-blue-100/40"
+                    className="group flex w-full items-start gap-2 rounded-md border border-transparent px-2 py-1.5 text-left text-[13px] transition-colors hover:border-blue-200/80 hover:bg-blue-100/40"
                   >
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600/80" aria-hidden />
-                    <span className="min-w-0 flex-1 font-medium text-gray-900">{s.text}</span>
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600/80" aria-hidden />
+                    <span className="min-w-0 flex-1 flex flex-col items-start gap-1">
+                      <span className="font-medium text-gray-900 leading-snug">{s.text}</span>
+                      {s.detail ? (
+                        <span className="text-[13px] font-normal text-gray-600 leading-snug">{s.detail}</span>
+                      ) : null}
+                    </span>
                     <ChevronRight
-                      className="mt-1 size-4 shrink-0 text-primary opacity-70 group-hover:opacity-100"
+                      className="mt-1.5 size-4 shrink-0 text-primary opacity-70 group-hover:opacity-100"
                       aria-hidden
                     />
                   </button>
                 ) : (
-                  <div className="flex items-start gap-2 px-2 py-1.5">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600/50" aria-hidden />
-                    <span>{s.text}</span>
+                  <div className="flex items-start gap-2 px-2 py-1.5 text-[13px] leading-snug text-gray-800">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600/50" aria-hidden />
+                    <span className="font-medium text-gray-900">{s.text}</span>
                   </div>
                 )}
               </li>
@@ -643,7 +655,7 @@ function catalogTriMode(
   rv: ReportWidgetView,
   chart: React.ReactNode,
   summary: CatalogWidgetSummary,
-  full: React.ReactNode,
+  chartWithDetail: React.ReactNode,
   summaryExplore?: {
     widgetId: string;
     reportName?: string;
@@ -654,6 +666,7 @@ function catalogTriMode(
   if (rv === 'summary')
     return (
       <CatalogTriSummaryPanel
+        positionBrief={summary.positionBrief}
         kpis={summary.kpis}
         insight={summary.insight}
         suggestions={summary.suggestions}
@@ -663,14 +676,11 @@ function catalogTriMode(
         onFinanceWidgetExplore={summaryExplore?.onFinanceWidgetExplore}
       />
     );
-  if (rv === 'full') {
-    return (
-      <div className="w-full min-h-[200px] max-h-[min(70vh,520px)] overflow-y-auto rounded-lg border border-gray-100 bg-white -mx-1 p-2 space-y-4">
-        {full}
-      </div>
-    );
-  }
-  return chart;
+  return (
+    <div className="w-full min-h-[200px] max-h-[min(70vh,520px)] overflow-y-auto rounded-lg border border-gray-100 bg-white -mx-1 p-2 space-y-4">
+      {chartWithDetail}
+    </div>
+  );
 }
 
 type FinanceWidgetContentProps = {
@@ -1086,6 +1096,7 @@ function FinanceWidgetBody({
       if (reportView === 'summary' && ac) {
         return (
           <CatalogTriSummaryPanel
+            positionBrief={ac.positionBrief}
             kpis={ac.kpis}
             insight={ac.insight}
             suggestions={ac.suggestions}
@@ -1095,25 +1106,15 @@ function FinanceWidgetBody({
           />
         );
       }
-      if (reportView === 'full') {
-        return (
-          <div className="w-full min-h-[200px] max-h-[min(70vh,520px)] overflow-y-auto rounded-lg border border-gray-100 bg-white -mx-1 p-2">
-            <ThisWeeksBriefing
-              onTakeAction={onTakeAction}
-              onExploreData={onExploreData}
-              isCompact={false}
-              executedInsightIds={executedBriefingInsightIds}
-            />
-          </div>
-        );
-      }
       return (
-        <ThisWeeksBriefing
-          onTakeAction={onTakeAction}
-          onExploreData={onExploreData}
-          isCompact={thisWeeksBriefingCompact}
-          executedInsightIds={executedBriefingInsightIds}
-        />
+        <div className="w-full min-h-[200px] max-h-[min(70vh,520px)] overflow-y-auto rounded-lg border border-gray-100 bg-white -mx-1 p-2">
+          <ThisWeeksBriefing
+            onTakeAction={onTakeAction}
+            onExploreData={onExploreData}
+            isCompact={false}
+            executedInsightIds={executedBriefingInsightIds}
+          />
+        </div>
       );
     }
     case 'digital_twin':
@@ -1136,7 +1137,7 @@ function FinanceWidgetBody({
         (
         <div className="h-full w-full flex flex-col mt-1">
           <p className="text-[11px] text-gray-500 mb-3">
-            Firm Intelligence filters insights through these firm goals (aligned with your Dashboard strip).
+            Clio Accounting filters insights through these firm goals (aligned with your Dashboard strip).
           </p>
           <div className="grid grid-cols-1 gap-2.5">
             {FIRM_GOAL_DEFINITIONS.map((goal) => {
@@ -1365,13 +1366,6 @@ function FinanceWidgetBody({
       const series = getReportChartSeries(rn);
       const chartH = 160;
 
-      if (reportView === 'full') {
-        return (
-          <div className="w-full min-h-[200px] max-h-[min(70vh,520px)] overflow-y-auto rounded-lg border border-gray-100 bg-white -mx-1">
-            <ReportDocumentTable rows={rows} compact />
-          </div>
-        );
-      }
       if (reportView === 'summary') {
         const fiEmbedded = getCatalogWidgetSummary(EMBEDDED_REPORT_WIDGET_ID, briefingSnapshot, lastStrategicRow, {
           strategicPrev,
@@ -1379,6 +1373,7 @@ function FinanceWidgetBody({
         });
         return (
           <CatalogTriSummaryPanel
+            positionBrief={fiEmbedded?.positionBrief}
             kpis={summary.kpis}
             insight={summary.insight}
             suggestions={fiEmbedded?.suggestions}
@@ -1390,25 +1385,28 @@ function FinanceWidgetBody({
         );
       }
       return (
-        <div className="w-full mt-2" style={{ height: chartH, minHeight: chartH }}>
-          <ResponsiveContainer width="100%" height={chartH}>
-            <AreaChart data={series} margin={{ top: 6, right: 8, left: -18, bottom: 0 }}>
-              <defs>
-                <linearGradient id={`${gradientId}-rep`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--chart-ocean)" stopOpacity={0.2} />
-                  <stop offset="95%" stopColor="var(--chart-ocean)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: 'var(--chart-tick)' }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: 'var(--chart-tick)' }} width={36} />
-              <Tooltip
-                contentStyle={{ borderRadius: '8px', fontSize: '11px', border: '1px solid var(--border)' }}
-                formatter={(v: number) => [v, rn]}
-              />
-              <Area type="monotone" dataKey="value" stroke="var(--chart-ocean)" strokeWidth={2} fillOpacity={1} fill={`url(#${gradientId}-rep)`} />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className="w-full min-h-[200px] max-h-[min(70vh,520px)] overflow-y-auto rounded-lg border border-gray-100 bg-white -mx-1 p-2 space-y-3">
+          <div className="w-full mt-2" style={{ height: chartH, minHeight: chartH }}>
+            <ResponsiveContainer width="100%" height={chartH}>
+              <AreaChart data={series} margin={{ top: 6, right: 8, left: -18, bottom: 0 }}>
+                <defs>
+                  <linearGradient id={`${gradientId}-rep`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--chart-ocean)" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="var(--chart-ocean)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid)" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: 'var(--chart-tick)' }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: 'var(--chart-tick)' }} width={36} />
+                <Tooltip
+                  contentStyle={{ borderRadius: '8px', fontSize: '11px', border: '1px solid var(--border)' }}
+                  formatter={(v: number) => [v, rn]}
+                />
+                <Area type="monotone" dataKey="value" stroke="var(--chart-ocean)" strokeWidth={2} fillOpacity={1} fill={`url(#${gradientId}-rep)`} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <ReportDocumentTable rows={rows} compact />
         </div>
       );
     }
@@ -1783,6 +1781,20 @@ export const DEFAULT_NEW_PAGE_SIDEBAR_WIDGETS: FinancePageWidget[] = [
   { instanceId: 'sb_modelling', widgetId: 'suggested_modelling', layoutSize: 'compact' },
 ];
 
+/** Custom Finances page applied after “Yes” on the hire-attorney NQL demo (peer benchmark toggled in app state). */
+export const FP_HEADCOUNT_HIRE_READINESS_PAGE_ID = 'fp_headcount_hire_readiness' as const;
+
+export const HIRE_READINESS_FINANCE_WIDGETS: FinancePageWidget[] = [
+  { instanceId: 'hire_w_cash', widgetId: 'strat_cash', layoutSize: 'expanded' },
+  { instanceId: 'hire_w_burn', widgetId: 'strat_burn', layoutSize: 'expanded' },
+  { instanceId: 'hire_w_runway', widgetId: 'strat_runway', layoutSize: 'expanded' },
+  { instanceId: 'hire_w_margin', widgetId: 'profitability_margin', layoutSize: 'expanded' },
+];
+
+export const HIRE_READINESS_FINANCE_SIDEBAR_WIDGETS: FinancePageWidget[] = [
+  { instanceId: 'hire_sb_modelling', widgetId: 'suggested_modelling', layoutSize: 'compact' },
+];
+
 type FinancePageWidgetGridProps = {
   widgets: FinancePageWidget[];
   onTakeAction?: (insightId: string) => void;
@@ -1910,7 +1922,6 @@ export function FinancePageWidgetGrid({
                 <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
                 Modelling
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5">{widget.desc}</p>
             </div>
           )}
           {onUpdateWidget &&
@@ -2086,7 +2097,6 @@ export function FinancePageSidebarWidgetStack({
                 <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
                 Modelling
               </h3>
-              <p className="text-xs text-gray-500 mt-0.5">{widget.desc}</p>
             </div>
           )}
           {onUpdateWidget &&

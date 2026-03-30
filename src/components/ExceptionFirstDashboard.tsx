@@ -39,7 +39,7 @@ export const JENNIFER_EXCEPTIONS: Exception[] = [
     title: PAYROLL_SHORTFALL_EXCEPTION_TITLE,
     description: PAYROLL_SHORTFALL_EXCEPTION_DESCRIPTION,
     impact:
-      "Payroll continuity and your operating reserve goal are at risk until you close this gap. Firm Intelligence recommends internal liquidity levers first, then exact-gap financing only if needed.",
+      "Payroll continuity and your operating reserve goal are at risk until you close this gap. Clio Accounting recommends internal liquidity levers first, then exact-gap financing only if needed.",
     suggestedAction: "View suggestions",
     createdAt: new Date(Date.now() - 1 * 60 * 1000),
   },
@@ -497,7 +497,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {recentActions.map((action) => {
+                  {JENNIFER_AGENT_ACTIONS.map((action) => {
                     const timeDiff = Date.now() - action.timestamp.getTime();
                     const mins = Math.floor(timeDiff / 60000);
                     const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;

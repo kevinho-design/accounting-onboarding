@@ -174,7 +174,7 @@ export function TodayPanel({
             <div className="rounded-[8px] border border-emerald-100 bg-emerald-50/50 px-3 py-4 text-center">
               <p className="text-xs font-semibold text-gray-900">You&apos;re caught up</p>
               <p className="mt-1 text-[11px] leading-snug text-gray-600">
-                Nothing needs your attention right now. New tasks will show up here when Firm Intelligence or your agents find
+                Nothing needs your attention right now. New tasks will show up here when Clio Accounting or your agents find
                 something to review.
               </p>
             </div>

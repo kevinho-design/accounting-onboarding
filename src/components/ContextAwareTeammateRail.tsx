@@ -7,6 +7,12 @@ import {
 import type { FhoTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
 import { AgentAction, Exception } from "./agents/AgentTypes";
 import { getSimulatedAccountingChatResponse } from "./clio-teammate/accountingChatSimulated";
+import {
+  getHireAttorneyNarrativeResponse,
+  getHireViewConfirmationResponse,
+  isAffirmativeHireViewReply,
+  matchHireAttorneyIntent,
+} from "./clio-teammate/headcountHireChatScript";
 
 interface ContextAwareTeammateRailProps {
   isOpen: boolean;
@@ -24,6 +30,8 @@ interface ContextAwareTeammateRailProps {
   /** e.g. payroll shortfall → Plan tab with ranked options */
   onTeammateExplorePlan?: (plan: FhoTeammatePlan) => void;
   financeChatSubmitRef: React.MutableRefObject<((text: string) => void) | null>;
+  /** Hire NQL demo: after user confirms, parent bumps nonce + navigates shell to Finances. */
+  onNavigateToHeadcountHireView?: () => void;
 }
 
 export function ContextAwareTeammateRail({
@@ -41,7 +49,10 @@ export function ContextAwareTeammateRail({
   focusPlanTabNonce,
   onTeammateExplorePlan,
   financeChatSubmitRef,
+  onNavigateToHeadcountHireView,
 }: ContextAwareTeammateRailProps) {
+  const pendingHireViewOfferRef = React.useRef(false);
+
   const onUserSend = React.useCallback(
     (text: string) => {
       if (financeChatSubmitRef.current) {
@@ -50,17 +61,56 @@ export function ContextAwareTeammateRail({
       }
       const trimmed = text.trim();
       if (!trimmed) return;
+
+      if (pendingHireViewOfferRef.current) {
+        if (isAffirmativeHireViewReply(trimmed)) {
+          pendingHireViewOfferRef.current = false;
+          onChatHistoryChange((prev) => [...prev, { role: "user", content: trimmed }]);
+          const loadingMsgId = `loading-${Date.now()}`;
+          onChatHistoryChange((prev) => [...prev, { role: "ai", content: "...", id: loadingMsgId }]);
+          window.setTimeout(() => {
+            onChatHistoryChange((prev) =>
+              prev.map((msg) =>
+                (msg as { id?: string }).id === loadingMsgId
+                  ? { role: "ai", content: getHireViewConfirmationResponse() }
+                  : msg,
+              ),
+            );
+            onNavigateToHeadcountHireView?.();
+          }, 900);
+          return;
+        }
+        pendingHireViewOfferRef.current = false;
+      }
+
+      if (matchHireAttorneyIntent(trimmed)) {
+        onChatHistoryChange((prev) => [...prev, { role: "user", content: trimmed }]);
+        const loadingMsgId = `loading-${Date.now()}`;
+        onChatHistoryChange((prev) => [...prev, { role: "ai", content: "...", id: loadingMsgId }]);
+        window.setTimeout(() => {
+          pendingHireViewOfferRef.current = true;
+          onChatHistoryChange((prev) =>
+            prev.map((msg) =>
+              (msg as { id?: string }).id === loadingMsgId
+                ? { role: "ai", content: getHireAttorneyNarrativeResponse() }
+                : msg,
+            ),
+          );
+        }, 1200);
+        return;
+      }
+
       onChatHistoryChange((prev) => [...prev, { role: "user", content: trimmed }]);
       const loadingMsgId = `loading-${Date.now()}`;
       onChatHistoryChange((prev) => [...prev, { role: "ai", content: "...", id: loadingMsgId }]);
       window.setTimeout(() => {
         const reply = getSimulatedAccountingChatResponse(trimmed);
         onChatHistoryChange((prev) =>
-          prev.map((msg) => (msg.id === loadingMsgId ? { role: "ai", content: reply } : msg)),
+          prev.map((msg) => ((msg as { id?: string }).id === loadingMsgId ? { role: "ai", content: reply } : msg)),
         );
       }, 1200);
     },
-    [financeChatSubmitRef, onChatHistoryChange],
+    [financeChatSubmitRef, onChatHistoryChange, onNavigateToHeadcountHireView],
   );
 
   if (context === "accounting") {
@@ -76,7 +126,10 @@ export function ContextAwareTeammateRail({
         }}
         chatHistory={chatHistory}
         onUserSend={onUserSend}
-        onClearChat={() => onChatHistoryChange([])}
+        onClearChat={() => {
+          pendingHireViewOfferRef.current = false;
+          onChatHistoryChange([]);
+        }}
         brandColor="#0069D1"
         focusPlanTabNonce={focusPlanTabNonce}
         teammatePlan={teammatePlan}

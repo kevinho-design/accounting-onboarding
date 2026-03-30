@@ -15,6 +15,7 @@ import {
 } from '../../data/fhoTeammateBreakdowns';
 import type { AgentAction, Exception } from '../../../agents/AgentTypes';
 import { TrustAssignCTA, TRUST_ASSIGN_COMPACT_TRIGGER_CLASS } from '../../../accounting/TrustAssign';
+import { TeammateAiMessageContent } from '../../../clio-teammate/teammateChatRichText';
 import { TeammateTodayTab } from './TeammateTodayTab';
 
 function PlanOperatingTransferCard({
@@ -250,7 +251,7 @@ export function SpecializedTeammateRail({
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto rounded-xl border border-gray-100 bg-gray-50/50 p-3 custom-scrollbar">
             {chatHistory.length === 0 ? (
               <p className="py-8 text-center text-sm text-gray-500">
-                Ask Firm Intelligence anything — messages appear here.
+                Ask Clio Accounting anything — messages appear here.
               </p>
             ) : (
               chatHistory.map((msg, i) => (
@@ -268,7 +269,7 @@ export function SpecializedTeammateRail({
                       'max-w-[85%] rounded-[16px] p-3 text-[13px] leading-relaxed shadow-sm',
                       msg.role === 'user'
                         ? 'rounded-br-[4px] bg-blue-600 text-white'
-                        : 'rounded-bl-[4px] border border-gray-200 bg-white text-gray-800 whitespace-pre-wrap break-words',
+                        : 'rounded-bl-[4px] border border-gray-200 bg-white text-gray-800 break-words',
                     )}
                   >
                     {msg.role === 'ai' && i === chatHistory.length - 1 && msg.content === '...' ? (
@@ -283,6 +284,8 @@ export function SpecializedTeammateRail({
                           style={{ animationDelay: '0.3s' }}
                         />
                       </div>
+                    ) : msg.role === 'ai' ? (
+                      <TeammateAiMessageContent content={msg.content} />
                     ) : (
                       msg.content
                     )}
@@ -302,8 +305,8 @@ export function SpecializedTeammateRail({
                   sendDraft();
                 }
               }}
-              placeholder="Message Firm Intelligence…"
-              className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              placeholder="Message Clio Accounting…"
+              className="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2 text-[13px] leading-relaxed focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
             />
             <Button
               type="button"
@@ -429,7 +432,7 @@ export function SpecializedTeammateRail({
                                             style={{ backgroundColor: brandColor }}
                                             onClick={() =>
                                               toast.message(
-                                                `${action.aiCta} — prototype: Firm Intelligence would run this workflow on your behalf.`,
+                                                `${action.aiCta} — prototype: Clio Accounting would run this workflow on your behalf.`,
                                               )
                                             }
                                           >

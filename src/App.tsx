@@ -87,6 +87,7 @@ export default function App() {
   const [teammatePlan, setTeammatePlan] = React.useState<FhoTeammatePlan | null>(null);
   const [teammatePlanTabNonce, setTeammatePlanTabNonce] = React.useState(0);
   const financeChatSubmitRef = React.useRef<((text: string) => void) | null>(null);
+  const [headcountHireApplyNonce, setHeadcountHireApplyNonce] = React.useState(0);
 
   const onTeammateExplorePlan = React.useCallback((plan: FhoTeammatePlan) => {
     setTeammatePlan(plan);
@@ -206,7 +207,7 @@ export default function App() {
             }}
           />
         </div>
-        <Toaster />
+        <Toaster position="bottom-right" richColors />
       </>
     );
   }
@@ -258,6 +259,7 @@ export default function App() {
                 onReviewFinancialGoals={handleReviewFinancialGoals}
                 onRecentActionsChange={setRecentAgentActions}
                 onExceptionsChange={setExceptions}
+                exceptions={exceptions}
                 activeUser={activeUser}
                 initialPage={initialPage}
                 onAskTeammate={(msg) => {
@@ -278,6 +280,7 @@ export default function App() {
                 onTeammateExplorePlan={onTeammateExplorePlan}
                 financeChatSubmitRef={financeChatSubmitRef}
                 onTeammateSparkle={onTeammateSparkle}
+                headcountHireApplyNonce={headcountHireApplyNonce}
               />
             </div>
           ) : (
@@ -312,11 +315,14 @@ export default function App() {
           focusPlanTabNonce={teammatePlanTabNonce}
           onTeammateExplorePlan={onTeammateExplorePlan}
           financeChatSubmitRef={financeChatSubmitRef}
+          onNavigateToHeadcountHireView={() => {
+            setHeadcountHireApplyNonce((n) => n + 1);
+          }}
         />
       )}
 
       {/* Toast Notifications */}
-      <Toaster />
+      <Toaster position="bottom-right" richColors />
     </div>
   );
 }

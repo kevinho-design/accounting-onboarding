@@ -158,6 +158,31 @@ export function attachPeerBenchmarkToRows<T extends StrategicMonthRow>(
 type ScenarioImpactSlice = Pick<StrategicMonthRow, 'altCash' | 'altBurn' | 'altRunway'>;
 
 /**
+ * Scenario overlay: burn lifts by `burnDeltaPercent` vs each month's firm baseline burn;
+ * cash is reduced by cumulative incremental burn vs baseline (extra payroll / opex through that month);
+ * runway = altCash / altBurn (months of coverage), clamped like baseline runway.
+ */
+export function buildBurnDeltaScenarioOverlay(
+  rows: readonly StrategicMonthRow[],
+  burnDeltaPercent: number,
+): ScenarioImpactSlice[] {
+  let cumulativeExtraBurn = 0;
+  return rows.map((row) => {
+    const altBurn = Math.max(35000, Math.round(row.burn * (1 + burnDeltaPercent / 100)));
+    const extraBurn = altBurn - row.burn;
+    cumulativeExtraBurn += extraBurn;
+    const altCash = Math.round(row.cash - cumulativeExtraBurn);
+    const rawRunway = altBurn > 0 ? altCash / altBurn : row.runway;
+    const altRunway = Number(Math.min(30, Math.max(8, rawRunway)).toFixed(1));
+    return {
+      altCash: Math.max(250000, altCash),
+      altBurn,
+      altRunway,
+    };
+  });
+}
+
+/**
  * Baseline → optional peer overlay (from firm baseline only) → optional scenario alt* merge.
  */
 export function mergeStrategicRowsWithModelling(
@@ -166,6 +191,8 @@ export function mergeStrategicRowsWithModelling(
     peerBenchmarkEnabled: boolean;
     selectedModelId: string | null;
     getScenarioImpact: (modelId: string, index: number) => ScenarioImpactSlice | undefined;
+    /** When set, scenario alt* series are derived from current firm rows (after peer) — aligns Preview with Your firm. */
+    getBurnDeltaPercent?: (modelId: string) => number | undefined;
     /** When set, peer composite reflects practice-mix + widget-set signals from this page. */
     peerPageContext?: PeerBenchmarkPageContext | null;
   },
@@ -176,10 +203,16 @@ export function mergeStrategicRowsWithModelling(
   }
   if (options.selectedModelId) {
     const mid = options.selectedModelId;
-    rows = rows.map((data, index) => {
-      const modelData = options.getScenarioImpact(mid, index);
-      return modelData ? { ...data, ...modelData } : data;
-    });
+    const burnPct = options.getBurnDeltaPercent?.(mid);
+    if (burnPct != null) {
+      const overlay = buildBurnDeltaScenarioOverlay(rows, burnPct);
+      rows = rows.map((data, index) => ({ ...data, ...overlay[index]! }));
+    } else {
+      rows = rows.map((data, index) => {
+        const modelData = options.getScenarioImpact(mid, index);
+        return modelData ? { ...data, ...modelData } : data;
+      });
+    }
   }
   return rows;
 }

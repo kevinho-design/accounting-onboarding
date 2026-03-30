@@ -73,7 +73,7 @@ export const BRIEFING_EXPLORE_BY_ID: Record<BriefingInsightId, BriefingExploreCo
   'insight-4': {
     title: 'Cash Flow Action Plan',
     aiAnalysis: {
-      summary: `Firm Intelligence projects a 47-day operating cash shortfall against your policy reserve. Instead of only flagging a red indicator, ${USER_FIRST_NAME} sees a phased Cash Flow Action Plan: overdue collections, billable WIP ready to invoice, a payroll-week bridge option, and a clear line of sight to restoring the 60-day reserve through Q2.`,
+      summary: `Clio Accounting projects a 47-day operating cash shortfall against your policy reserve. Instead of only flagging a red indicator, ${USER_FIRST_NAME} sees a phased Cash Flow Action Plan: overdue collections, billable WIP ready to invoice, a payroll-week bridge option, and a clear line of sight to restoring the 60-day reserve through Q2.`,
       whySurfacing:
         'We surface this now because (1) the model ties the gap to concrete receivables and WIP you can act on this week, (2) payroll is a fixed date that makes timing risk non-optional, and (3) executing the bundled plan historically closes similar shortfalls without deferring compensation—provided reminders and invoices go out immediately.',
     },
@@ -82,14 +82,14 @@ export const BRIEFING_EXPLORE_BY_ID: Record<BriefingInsightId, BriefingExploreCo
       `Immediate: Four invoices totaling $47,200 are 30+ days overdue. Send collection reminders now? One click sends personalized, professional follow-up emails to each client.`,
       `This week: $23,800 of unbilled time across 3 matters is ready to invoice. Generate and send invoices? One click drafts invoices for attorney review.`,
       `Mid-month: Payroll runs on Thursday but cash balances are low—get a line of credit with Clio Capital to cover payroll while we work on collections. One click submits the firm’s application.`,
-      `Strategic: If these actions are completed, the projected shortfall closes. Firm Intelligence confirms: “With these actions, your 60-day reserve goal is maintained through Q2.”`,
+      `Strategic: If these actions are completed, the projected shortfall closes. Clio Accounting confirms: “With these actions, your 60-day reserve goal is maintained through Q2.”`,
     ],
   },
   'insight-5': {
     title: 'Payroll Shortfall — Operating Account Gap',
     aiAnalysis: {
       summary:
-        'Firm Intelligence detected payroll due in three days with a projected operating cash gap of $15,700. The system has ranked resolution paths from lowest-friction internal liquidity actions to higher-cost financing.',
+        'Clio Accounting detected payroll due in three days with a projected operating cash gap of $15,700. The system has ranked resolution paths from lowest-friction internal liquidity actions to higher-cost financing.',
       whySurfacing:
         'We surface this now because payroll is a fixed-date obligation and timing risk compounds quickly. Addressing the gap now gives you enough runway to use lower-cost levers before drawing on external financing.',
     },
@@ -169,7 +169,7 @@ export const BRIEFING_TAKE_ACTION_BY_ID: Partial<Record<BriefingInsightId, Brief
       },
     ],
     strategicClosing:
-      'Firm Intelligence: “With these actions, your 60-day reserve goal is maintained through Q2.”',
+      'Clio Accounting: “With these actions, your 60-day reserve goal is maintained through Q2.”',
   },
 };
 

@@ -185,8 +185,6 @@ export function RyanDashboard({
                   <Target className="w-4 h-4 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Firm's Financial Goals</p>
-                  <p className="text-xs text-muted-foreground">3 of 4 on track • 1 at risk</p>
                   <p className="text-sm font-semibold text-foreground">Q1 2026 Financial Goals</p>
                   <p className="text-xs text-muted-foreground">{goalCounts.onTrack} of {goalCounts.total} on track • {goalCounts.total - goalCounts.onTrack} at risk</p>
                 </div>

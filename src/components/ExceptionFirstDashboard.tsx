@@ -1,6 +1,6 @@
 import * as React from "react";
-import { 
-  CheckCircle, 
+import {
+  CheckCircle,
   Sparkles,
   TrendingUp,
   Target,
@@ -8,19 +8,11 @@ import {
   Info,
   AlertTriangle,
   ChevronDown,
-  WifiOff,
-  Shield,
-  GitMerge,
-  DollarSign,
-  BarChart3,
-  Waves,
-  ShieldCheck,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
-import { AGENTS, Exception, AgentAction } from "./agents/AgentTypes";
+import { Exception, AgentAction } from "./agents/AgentTypes";
 import { MigrationReportModal } from "./MigrationReportModal";
-import { FinancialGoalsViewModal } from "./FinancialGoalsViewModal";
 import { motion } from "motion/react";
 import { TrustAssignCTA, TRUST_ASSIGN_COMPACT_TRIGGER_CLASS } from "./accounting/TrustAssign";
 import { FirmGoalsCardList } from "./finance-hub/components/FirmGoalsCardList";
@@ -185,18 +177,17 @@ interface ExceptionFirstDashboardProps {
   onAskTeammate?: (message: string) => void;
   /** Opens Clio Teammate Plan tab with ranked payroll shortfall options */
   onTeammateExplorePlan?: (plan: FhoTeammatePlan) => void;
-  onOpenRail?: () => void;
   onNavigateToTransactions?: () => void;
   onNavigateToTransactionsFiltered?: (filter: string, month?: string) => void;
   onNavigateToConnections?: () => void;
   onNavigateToFinancialHealth?: (scrollTo?: string) => void;
 }
 
-export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onTeammateExplorePlan, onOpenRail, onNavigateToTransactions, onNavigateToTransactionsFiltered, onNavigateToConnections, onNavigateToFinancialHealth }: ExceptionFirstDashboardProps) {
+export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentActionsChange, onExceptionsChange, onAskTeammate, onTeammateExplorePlan, onNavigateToTransactions, onNavigateToTransactionsFiltered, onNavigateToConnections, onNavigateToFinancialHealth }: ExceptionFirstDashboardProps) {
   const [showMigrationBanner, setShowMigrationBanner] = React.useState(true);
   const [showReportModal, setShowReportModal] = React.useState(false);
   const [goalsExpanded, setGoalsExpanded] = React.useState(true);
-  const [expandedExceptionId, setExpandedExceptionId] = React.useState<string | null>(null);
+  const [payrollCriticalExpanded, setPayrollCriticalExpanded] = React.useState(false);
   useFirmGoalsState();
 
   // Migration stats
@@ -228,12 +219,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
     }
   }, [onExceptionsChange, exceptions]);
 
-  // Check if we have any exceptions
-  const hasExceptions = exceptions.length > 0;
-  const criticalCount = exceptions.filter(e => e.severity === "critical").length;
-  const highCount = exceptions.filter(e => e.severity === "high").length;
-  const mediumCount = exceptions.filter(e => e.severity === "medium").length;
-  const totalAttentionCount = criticalCount + highCount + mediumCount;
+  const payrollShortfallCritical = JENNIFER_EXCEPTIONS[0];
 
   return (
     <div className="flex-1 h-screen overflow-hidden relative">
@@ -343,182 +329,8 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
             )}
           </div>
 
-          {/* 2-column layout */}
-          <div className="grid grid-cols-12 gap-8">
-
-            {/* LEFT COLUMN — System of Action */}
-            <div className="col-span-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-white" />
-                </div>
-                <h2 className="text-base font-semibold text-foreground">Today</h2>
-                <span className="text-xs text-muted-foreground/60 font-normal">— {exceptions.length} items need your input</span>
-              </div>
-
-              {hasExceptions ? (
-                <div className="space-y-2">
-                  {exceptions.slice(0, 5).map((exception) => {
-                    const AGENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-                      "trust-compliance": Shield,
-                      "matching": GitMerge,
-                      "revenue-forecasting": TrendingUp,
-                      "matter-profitability": BarChart3,
-                      "collections": DollarSign,
-                      "cash-flow": Waves,
-                    };
-                    const ICON_OVERRIDES: Record<string, React.ComponentType<{ className?: string }>> = {
-                      "payroll-shortfall-gap": AlertTriangle,
-                      "sys-bank-disconnect": AlertTriangle,
-                      "sys-trust-balance": AlertTriangle,
-                      "sys-feb-recon-blocker": AlertTriangle,
-                      "sys-pending-approvals": ShieldCheck,
-                    };
-                    const COLOR_OVERRIDES: Record<string, string> = {
-                      "payroll-shortfall-gap": "from-rose-600 to-red-600",
-                      "sys-bank-disconnect": "from-amber-500 to-orange-500",
-                      "sys-feb-recon-blocker": "from-amber-500 to-orange-500",
-                      "sys-pending-approvals": "from-blue-500 to-blue-600",
-                      "sys-trust-balance": "from-amber-500 to-orange-500",
-                    };
-                    const AgentIcon = ICON_OVERRIDES[exception.id] ?? AGENT_ICONS[exception.agentId] ?? Sparkles;
-                    const agentColor = COLOR_OVERRIDES[exception.id] ?? AGENTS[exception.agentId]?.color ?? "from-blue-500 to-blue-600";
-                    const isExpanded = expandedExceptionId === exception.id;
-
-                    return (
-                      <div
-                        key={exception.id}
-                        className={`bg-card rounded-xl border shadow-sm overflow-hidden ${exception.id === "payroll-shortfall-gap" ? "border-rose-300 ring-1 ring-rose-200" : "border-border"}`}
-                      >
-                        {/* Collapsed header */}
-                        <button
-                          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-background transition-colors cursor-pointer"
-                          onClick={() => setExpandedExceptionId(isExpanded ? null : exception.id)}
-                        >
-                          <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${agentColor} flex items-center justify-center flex-shrink-0`}>
-                            <AgentIcon className="w-3 h-3 text-white" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground leading-snug">{exception.title}</p>
-                            <p className="text-xs text-muted-foreground truncate mt-0.5">{exception.description}</p>
-                          </div>
-                          <ChevronDown className={`w-4 h-4 text-muted-foreground/60 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {/* Expanded detail */}
-                        {isExpanded && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="px-4 pb-4 pt-1 border-t border-border/60"
-                          >
-                            {exception.impact && (
-                              <div className="flex items-start gap-1.5 p-2.5 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
-                                <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                                <span>{exception.impact}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-2">
-                              {exception.id === "sys-trust-balance" ? (
-                                <TrustAssignCTA compact buttonClassName={TRUST_ASSIGN_COMPACT_TRIGGER_CLASS} />
-                              ) : exception.suggestedAction && (
-                                <Button
-                                  size="sm"
-                                  className="bg-primary hover:bg-primary/90 text-white text-xs cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (exception.id === "payroll-shortfall-gap") {
-                                      onTeammateExplorePlan?.(getPayrollShortfallTeammatePlan());
-                                    } else if (exception.id === "sys-bank-disconnect") {
-                                      onNavigateToConnections?.();
-                                    } else if (exception.id === "sys-feb-recon-blocker") {
-                                      onNavigateToTransactionsFiltered?.("missing_info", "feb");
-                                    } else if (exception.id === "sys-pending-approvals") {
-                                      onNavigateToTransactionsFiltered?.("approval");
-                                    } else {
-                                      onNavigateToTransactionsFiltered?.("all");
-                                    }
-                                  }}
-                                >
-                                  {exception.suggestedAction}
-                                  <ChevronRight className="w-3 h-3 ml-1" />
-                                </Button>
-                              )}
-                              {onAskTeammate && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-border text-muted-foreground hover:bg-background text-xs cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onAskTeammate(`Help me with: "${exception.title}"`);
-                                  }}
-                                >
-                                  <Sparkles className="w-3 h-3 mr-1 text-primary/70" />
-                                  Ask Clio
-                                </Button>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </div>
-                    );
-                  })}
-
-                  {exceptions.length > 3 && onOpenRail && (
-                    <button
-                      onClick={onOpenRail}
-                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-primary/20 text-primary text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
-                    >
-                      See all {exceptions.length} items in Today
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div className="bg-card rounded-xl border border-border shadow-sm p-8 text-center">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mx-auto mb-3">
-                    <CheckCircle className="w-6 h-6 text-white" />
-                  </div>
-                  <p className="text-sm font-semibold text-foreground mb-1">You're all caught up!</p>
-                  <p className="text-xs text-muted-foreground">Your financial team is actively monitoring.</p>
-                </div>
-              )}
-
-              {/* Handled for you */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide text-xs">Handled for you</h3>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span>3 agents active</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {JENNIFER_AGENT_ACTIONS.map((action) => {
-                    const timeDiff = Date.now() - action.timestamp.getTime();
-                    const mins = Math.floor(timeDiff / 60000);
-                    const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
-                    return (
-                      <div key={action.id} className="bg-card rounded-xl border border-border shadow-sm px-4 py-3 flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <CheckCircle className="w-3 h-3 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-foreground leading-snug">{action.action}</p>
-                          <p className="text-[11px] text-muted-foreground/60 mt-0.5">{timeLabel}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* RIGHT COLUMN — System of Record */}
-            <div className="col-span-7">
+          {/* Financial Health — full width */}
+          <div>
               <div className="flex items-center justify-between gap-2 mb-4">
                 <div className="flex items-center gap-2">
                   <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
@@ -527,12 +339,82 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   <h2 className="text-base font-semibold text-foreground">Financial Health</h2>
                 </div>
                 <button
+                  type="button"
                   onClick={() => onNavigateToFinancialHealth?.()}
                   className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
                 >
                   View full analysis
                   <ChevronRight className="w-3 h-3" />
                 </button>
+              </div>
+
+              <div className="mb-4 bg-card rounded-xl border border-rose-300 ring-1 ring-rose-200 shadow-sm overflow-hidden">
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-background transition-colors cursor-pointer"
+                  onClick={() => setPayrollCriticalExpanded((e) => !e)}
+                >
+                  <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-red-600">
+                    <AlertTriangle className="h-3 w-3 text-white" strokeWidth={2} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-medium text-foreground leading-snug">{payrollShortfallCritical.title}</p>
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 bg-rose-100 text-rose-800">
+                        Critical
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{payrollShortfallCritical.description}</p>
+                  </div>
+                  <ChevronDown className={`w-4 h-4 text-muted-foreground/60 shrink-0 transition-transform ${payrollCriticalExpanded ? "rotate-180" : ""}`} />
+                </button>
+
+                {payrollCriticalExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="px-4 pb-4 pt-1 border-t border-border/60"
+                  >
+                    {payrollShortfallCritical.impact ? (
+                    <div className="flex items-start gap-1.5 p-2.5 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
+                      <Info className="w-3 h-3 mt-0.5 shrink-0" />
+                      <span>{payrollShortfallCritical.impact}</span>
+                    </div>
+                    ) : null}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-primary hover:bg-primary/90 text-white text-xs cursor-pointer"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTeammateExplorePlan?.(getPayrollShortfallTeammatePlan());
+                        }}
+                      >
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        View suggestions
+                      </Button>
+                      <TrustAssignCTA compact buttonClassName={TRUST_ASSIGN_COMPACT_TRIGGER_CLASS} />
+                      {onAskTeammate && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          type="button"
+                          className="border-border text-muted-foreground hover:bg-background text-xs cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onAskTeammate(`Help me with: "${payrollShortfallCritical.title}"`);
+                          }}
+                        >
+                          <Sparkles className="w-3 h-3 mr-1 text-primary/70" />
+                          Ask Teammate
+                        </Button>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
               </div>
 
               {/* 2x2 metric cards */}
@@ -688,9 +570,8 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   </div>
                 </div>
               </div>
-            </div>
-
           </div>
+
         </div>
       </div>
 

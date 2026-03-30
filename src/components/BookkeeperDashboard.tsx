@@ -2,38 +2,20 @@ import * as React from "react";
 import {
   CheckCircle,
   CircleAlert,
-  Sparkles,
   ChevronRight,
-  ChevronDown,
-  Info,
   ArrowUpRight,
   ArrowDownLeft,
   Receipt,
-  WifiOff,
-  AlertTriangle,
-  Shield,
-  GitMerge,
-  TrendingUp,
-  DollarSign,
-  BarChart3,
-  Waves,
-  ShieldCheck,
 } from "lucide-react";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
-import { motion } from "motion/react";
-import { Exception, AgentAction, AGENTS } from "./agents/AgentTypes";
-import { Button } from "./ui/button";
-import { TrustAssignCTA, TRUST_ASSIGN_COMPACT_TRIGGER_CLASS } from "./accounting/TrustAssign";
+import { Exception, AgentAction } from "./agents/AgentTypes";
 import { AI_PROCESSED, INITIAL_FLAGGED_COUNT } from "./accounting/UnifiedTransactionInbox";
 
 interface BookkeeperDashboardProps {
-  onAskTeammate?: (message: string) => void;
-  onOpenRail?: () => void;
   onExceptionsChange?: (exceptions: Exception[]) => void;
   onRecentActionsChange?: (actions: AgentAction[]) => void;
   onNavigateToTransactions?: () => void;
   onNavigateToTransactionsFiltered?: (filter: string, month?: string) => void;
-  onNavigateToConnections?: () => void;
 }
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -144,14 +126,6 @@ export const SARAH_AGENT_ACTIONS: AgentAction[] = [
   },
 ];
 
-const EXCEPTION_ASK_PROMPTS: Record<string, string> = {
-  s1: "Walk me through the 2 duplicate ACH transactions held on Mar 15 — what should I look for before dismissing one?",
-  s2: "Help me categorize the 14 Brex transactions blocking March reconciliation. What's the fastest way to resolve these?",
-  s3: "A $12,000 inbound transfer needs a client matter before it can post to IOLTA. How do I find and assign the right matter?",
-  s4: "I have 3 expense reports totalling $4,380 pending approval. Can you summarize what each one is for?",
-  s5: "There's a 6-hour Bank of America feed gap on Mar 16. How do I identify which transactions are missing and add them?",
-};
-
 const RECENT_TRANSACTIONS = [
   { date: "Mar 17", vendor: "Westfield & Partners", amount: -3400.00, account: "6200 · Operating Exp", type: "debit" as const },
   { date: "Mar 17", vendor: "Chen & Associates", amount: 18400.00, account: "1100 · AR", type: "credit" as const },
@@ -165,19 +139,14 @@ const RECENT_TRANSACTIONS = [
   { date: "Mar 13", vendor: "Comcast Business", amount: -215.00, account: "6300 · Utilities", type: "debit" as const },
 ];
 
-const severityColors: Record<string, string> = {
-  critical: "from-red-500 to-red-600",
-  high: "from-orange-500 to-orange-600",
-  medium: "from-yellow-500 to-yellow-600",
-  low: "from-blue-500 to-blue-600",
-};
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsChange, onRecentActionsChange, onNavigateToTransactions, onNavigateToTransactionsFiltered, onNavigateToConnections }: BookkeeperDashboardProps) {
-  const [expandedExceptionId, setExpandedExceptionId] = React.useState<string | null>(null);
-  const [resolved, setResolved] = React.useState<Set<string>>(new Set());
-
+export function BookkeeperDashboard({
+  onExceptionsChange,
+  onRecentActionsChange,
+  onNavigateToTransactions,
+  onNavigateToTransactionsFiltered,
+}: BookkeeperDashboardProps) {
   React.useEffect(() => { onExceptionsChange?.(SARAH_EXCEPTIONS); }, [onExceptionsChange, SARAH_EXCEPTIONS]);
   React.useEffect(() => { onRecentActionsChange?.(SARAH_AGENT_ACTIONS); }, [onRecentActionsChange]);
 
@@ -199,339 +168,164 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
             <p className="text-muted-foreground text-sm">Tuesday, March 18, 2026</p>
           </div>
 
-          {/* 2-column layout */}
-          <div className="grid grid-cols-12 gap-8">
-
-            {/* LEFT COLUMN — System of Action */}
-            <div className="col-span-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-white" />
-                </div>
-                <h2 className="text-base font-semibold text-foreground">Today</h2>
-                <span className="text-xs text-muted-foreground/60 font-normal">— {SARAH_EXCEPTIONS.length} items need your input</span>
+          {/* Transactions — full width */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-blue-500 flex items-center justify-center shadow-sm">
+                <Receipt className="w-3.5 h-3.5 text-white" />
               </div>
+              <h2 className="text-base font-semibold text-foreground">Transactions</h2>
+            </div>
 
-              <div className="space-y-2">
-                {SARAH_EXCEPTIONS.slice(0, 5).map((exc) => {
-                  const AGENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-                    "trust-compliance": Shield,
-                    "matching": GitMerge,
-                    "revenue-forecasting": TrendingUp,
-                    "matter-profitability": BarChart3,
-                    "collections": DollarSign,
-                    "cash-flow": Waves,
-                  };
-                  const ICON_OVERRIDES: Record<string, React.ComponentType<{ className?: string }>> = {
-                    "sys-bank-disconnect": AlertTriangle,
-                    "sys-trust-balance": AlertTriangle,
-                    "sys-feb-recon-blocker": AlertTriangle,
-                    "sys-pending-approvals": ShieldCheck,
-                  };
-                  const COLOR_OVERRIDES: Record<string, string> = {
-                    "sys-bank-disconnect": "from-amber-500 to-orange-500",
-                    "sys-feb-recon-blocker": "from-amber-500 to-orange-500",
-                    "sys-pending-approvals": "from-blue-500 to-blue-600",
-                    "sys-trust-balance": "from-amber-500 to-orange-500",
-                  };
-                  const AgentIcon = ICON_OVERRIDES[exc.id] ?? AGENT_ICONS[exc.agentId] ?? Sparkles;
-                  const agentColor = COLOR_OVERRIDES[exc.id] ?? AGENTS[exc.agentId]?.color ?? "from-blue-500 to-blue-600";
-                  const isExpanded = expandedExceptionId === exc.id;
-                  const isResolved = resolved.has(exc.id);
-                  const askPrompt = EXCEPTION_ASK_PROMPTS[exc.id];
-
-                  return (
-                    <div
-                      key={exc.id}
-                      className={`bg-card rounded-xl border border-border shadow-sm overflow-hidden ${isResolved ? "opacity-60" : ""}`}
-                    >
+            {/* Reconciliation status card */}
+            {(() => {
+              const trustAtRisk = 2;
+              const ioltaMatters = 12;
+              const pct = Math.round(((AI_PROCESSED - INITIAL_FLAGGED_COUNT) / AI_PROCESSED) * 100);
+              const isReady = INITIAL_FLAGGED_COUNT === 0;
+              return (
+                <div className="mt-3 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/60 mb-0.5">March 2026</p>
+                        <p className="text-sm font-semibold text-foreground">Reconciliation Status</p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        {isReady ? (
+                          <button
+                            type="button"
+                            onClick={() => onNavigateToTransactionsFiltered?.("all")}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] transition-all hover:opacity-90 shadow-sm"
+                            style={{ background: "linear-gradient(135deg, #16A34A, #15803D)", color: "#FFFFFF", fontWeight: 600 }}
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            Close March
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => onNavigateToTransactionsFiltered?.("missing_info")}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] transition-all hover:opacity-90"
+                            style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", color: "#B45309", fontWeight: 600 }}
+                          >
+                            Review flagged
+                          </button>
+                        )}
+                        <div className="text-right">
+                          <p className="text-2xl font-bold leading-none" style={{ color: isReady ? "#16A34A" : "#17181C" }}>{pct}%</p>
+                          <p className="text-[10px] text-muted-foreground/60 mt-0.5">readiness</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#10B981" }} />
+                        <span className="text-[11px] text-muted-foreground"><span className="font-semibold text-foreground">{AI_PROCESSED.toLocaleString()}</span> auto-processed</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: INITIAL_FLAGGED_COUNT > 0 ? "#F59E0B" : "#10B981" }} />
+                        <span className="text-[11px] text-muted-foreground"><span className="font-semibold text-foreground">{INITIAL_FLAGGED_COUNT}</span> need review</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: trustAtRisk > 0 ? "#EF4444" : "#14B8A6" }} />
+                        <span className="text-[11px] text-muted-foreground">
+                          <span className="font-semibold text-foreground">{trustAtRisk > 0 ? `${trustAtRisk} at risk` : `${ioltaMatters} compliant`}</span> IOLTA
+                        </span>
+                      </div>
+                    </div>
+                    {pct < 86 && (
                       <button
-                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-background transition-colors cursor-pointer"
-                        onClick={() => setExpandedExceptionId(isExpanded ? null : exc.id)}
+                        type="button"
+                        onClick={() => onNavigateToTransactionsFiltered?.("missing_info")}
+                        className="flex items-center gap-1 hover:underline"
+                        style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
                       >
-                        <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${agentColor} flex items-center justify-center flex-shrink-0`}>
-                          {isResolved
-                            ? <CheckCircle className="w-3 h-3 text-white" />
-                            : <AgentIcon className="w-3 h-3 text-white" />
+                        <CircleAlert className="w-3 h-3 flex-shrink-0 text-amber-500" />
+                        <span className="text-[11px] font-semibold text-amber-600">Not close-ready</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className="h-1.5 w-full bg-muted">
+                    <div className="h-1.5 bg-emerald-500 transition-all duration-700" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })()}
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="bg-card rounded-xl border border-border shadow-sm px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-1">Bank Feed</p>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs font-medium text-foreground">Live · 2 min ago</span>
+                </div>
+              </div>
+              <div className="bg-card rounded-xl border border-border shadow-sm px-4 py-3">
+                <p className="text-xs text-muted-foreground mb-1">Auto-coded today</p>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-medium text-foreground">89 transactions</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                Recent transactions
+              </h3>
+
+              <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                <div className="grid grid-cols-12 px-4 py-2.5 border-b border-border/60 bg-background">
+                  <span className="col-span-2 text-xs font-medium text-muted-foreground">Date</span>
+                  <span className="col-span-4 text-xs font-medium text-muted-foreground">Vendor / Description</span>
+                  <span className="col-span-3 text-xs font-medium text-muted-foreground text-right">Amount</span>
+                  <span className="col-span-3 text-xs font-medium text-muted-foreground text-right">Account</span>
+                </div>
+
+                <div className="divide-y divide-gray-50">
+                  {RECENT_TRANSACTIONS.map((tx, i) => (
+                    <div
+                      key={i}
+                      className={`grid grid-cols-12 items-center px-4 py-3 hover:bg-background transition-colors cursor-pointer ${tx.flagged ? 'bg-amber-50/40' : ''}`}
+                    >
+                      <span className="col-span-2 text-xs text-muted-foreground">{tx.date}</span>
+                      <div className="col-span-4 flex items-center gap-2 min-w-0">
+                        <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          tx.type === 'credit' ? 'bg-emerald-100' : 'bg-muted'
+                        }`}>
+                          {tx.type === 'credit'
+                            ? <ArrowDownLeft className="w-3 h-3 text-emerald-600" />
+                            : <ArrowUpRight className="w-3 h-3 text-muted-foreground" />
                           }
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground leading-snug">{exc.title}</p>
-                          <p className="text-xs text-muted-foreground truncate mt-0.5">{exc.description}</p>
-                        </div>
-                        <ChevronDown className={`w-4 h-4 text-muted-foreground/60 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      {isExpanded && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="px-4 pb-4 pt-1 border-t border-border/60"
-                        >
-                          {exc.impact && (
-                            <div className="flex items-start gap-1.5 p-2.5 bg-amber-50 rounded-lg text-xs text-amber-800 mb-3">
-                              <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                              <span>{exc.impact}</span>
-                            </div>
-                          )}
-                          {isResolved ? (
-                            <div className="flex items-center gap-2 text-green-700 text-sm">
-                              <CheckCircle className="w-4 h-4" />
-                              <span className="font-medium">Resolved</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              {exc.id === "sys-trust-balance" ? (
-                                <TrustAssignCTA compact buttonClassName={TRUST_ASSIGN_COMPACT_TRIGGER_CLASS} />
-                              ) : (
-                              <Button
-                                size="sm"
-                                className="bg-primary hover:bg-primary/90 text-white text-xs cursor-pointer"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (exc.id === "sys-bank-disconnect") {
-                                    onNavigateToConnections?.();
-                                  } else if (exc.id === "sys-feb-recon-blocker") {
-                                    onNavigateToTransactionsFiltered?.("missing_info", "feb");
-                                  } else if (exc.id === "sys-pending-approvals") {
-                                    onNavigateToTransactionsFiltered?.("approval");
-                                  } else {
-                                    onNavigateToTransactionsFiltered?.("all");
-                                  }
-                                }}
-                              >
-                                {exc.suggestedAction}
-                                <ChevronRight className="w-3 h-3 ml-1" />
-                              </Button>
-                              )}
-                              {onAskTeammate && (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-border text-muted-foreground hover:bg-background text-xs cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    onAskTeammate(askPrompt);
-                                  }}
-                                >
-                                  <Sparkles className="w-3 h-3 mr-1 text-primary/70" />
-                                  Ask Clio
-                                </Button>
-                              )}
-                            </div>
-                          )}
-                        </motion.div>
-                      )}
+                        <span className="text-xs text-foreground font-medium truncate">{tx.vendor}</span>
+                        {tx.flagged && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" title="Flagged" />
+                        )}
+                      </div>
+                      <span className={`col-span-3 text-xs font-medium text-right tabular-nums ${
+                        tx.type === 'credit' ? 'text-emerald-700' : 'text-foreground'
+                      }`}>
+                        {tx.type === 'credit' ? '+' : ''}
+                        {tx.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      </span>
+                      <span className="col-span-3 text-xs text-muted-foreground/60 text-right truncate">{tx.account}</span>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
 
-                {SARAH_EXCEPTIONS.length > 3 && onOpenRail && (
+                <div className="px-4 py-3 border-t border-border/60 bg-background flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground/60">Showing last 10 of 141 transactions this month</span>
                   <button
-                    onClick={onOpenRail}
-                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-primary/20 text-primary text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
+                    type="button"
+                    onClick={() => onNavigateToTransactions?.()}
+                    className="text-xs text-primary hover:text-primary font-medium flex items-center gap-1"
                   >
-                    See all {SARAH_EXCEPTIONS.length} items in Today
-                    <ChevronRight className="w-4 h-4" />
+                    View all <ChevronRight className="w-3 h-3" />
                   </button>
-                )}
-              </div>
-
-              {/* Handled for you */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Handled for you</h3>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span>3 agents active</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  {SARAH_AGENT_ACTIONS.map((action) => {
-                    const timeDiff = Date.now() - action.timestamp.getTime();
-                    const mins = Math.floor(timeDiff / 60000);
-                    const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
-                    return (
-                      <div key={action.id} className="bg-card rounded-xl border border-border shadow-sm px-4 py-3 flex items-start gap-3">
-                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <CheckCircle className="w-3 h-3 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-foreground leading-snug">{action.action}</p>
-                          <p className="text-[11px] text-muted-foreground/60 mt-0.5">{timeLabel}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
                 </div>
               </div>
             </div>
-
-            {/* RIGHT COLUMN — System of Record */}
-            <div className="col-span-7">
-              {/* Section header */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-teal-500 to-blue-500 flex items-center justify-center shadow-sm">
-                  <Receipt className="w-3.5 h-3.5 text-white" />
-                </div>
-                <h2 className="text-base font-semibold text-foreground">Transactions</h2>
-              </div>
-
-              {/* Reconciliation status card */}
-              {(() => {
-                const trustAtRisk = 2;
-                const ioltaMatters = 12;
-                const pct = Math.round(((AI_PROCESSED - INITIAL_FLAGGED_COUNT) / AI_PROCESSED) * 100);
-                const isReady = INITIAL_FLAGGED_COUNT === 0;
-                return (
-                  <div className="mt-3 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                    <div className="p-4">
-                      {/* Top row: heading | CTA + large % */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/60 mb-0.5">March 2026</p>
-                          <p className="text-sm font-semibold text-foreground">Reconciliation Status</p>
-                        </div>
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          {isReady ? (
-                            <button
-                              onClick={() => onNavigateToTransactionsFiltered?.("all")}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] transition-all hover:opacity-90 shadow-sm"
-                              style={{ background: "linear-gradient(135deg, #16A34A, #15803D)", color: "#FFFFFF", fontWeight: 600 }}
-                            >
-                              <CheckCircle className="w-3.5 h-3.5" />
-                              Close March
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => onNavigateToTransactionsFiltered?.("missing_info")}
-                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] transition-all hover:opacity-90"
-                              style={{ backgroundColor: "#FFFBEB", border: "1px solid #FDE68A", color: "#B45309", fontWeight: 600 }}
-                            >
-                              Review flagged
-                            </button>
-                          )}
-                          <div className="text-right">
-                            <p className="text-2xl font-bold leading-none" style={{ color: isReady ? "#16A34A" : "#17181C" }}>{pct}%</p>
-                            <p className="text-[10px] text-muted-foreground/60 mt-0.5">readiness</p>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Stat row */}
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "#10B981" }} />
-                          <span className="text-[11px] text-muted-foreground"><span className="font-semibold text-foreground">{AI_PROCESSED.toLocaleString()}</span> auto-processed</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: INITIAL_FLAGGED_COUNT > 0 ? "#F59E0B" : "#10B981" }} />
-                          <span className="text-[11px] text-muted-foreground"><span className="font-semibold text-foreground">{INITIAL_FLAGGED_COUNT}</span> need review</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: trustAtRisk > 0 ? "#EF4444" : "#14B8A6" }} />
-                          <span className="text-[11px] text-muted-foreground">
-                            <span className="font-semibold text-foreground">{trustAtRisk > 0 ? `${trustAtRisk} at risk` : `${ioltaMatters} compliant`}</span> IOLTA
-                          </span>
-                        </div>
-                      </div>
-                      {/* Not close-ready — only when pct < 86 */}
-                      {pct < 86 && (
-                        <button
-                          onClick={() => onNavigateToTransactionsFiltered?.("missing_info")}
-                          className="flex items-center gap-1 hover:underline"
-                          style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}
-                        >
-                          <CircleAlert className="w-3 h-3 flex-shrink-0 text-amber-500" />
-                          <span className="text-[11px] font-semibold text-amber-600">Not close-ready</span>
-                        </button>
-                      )}
-                    </div>
-                    {/* Progress bar pinned to bottom */}
-                    <div className="h-1.5 w-full bg-muted">
-                      <div className="h-1.5 bg-emerald-500 transition-all duration-700" style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Bank feed status */}
-              <div className="mt-3 grid grid-cols-2 gap-3">
-                <div className="bg-card rounded-xl border border-border shadow-sm px-4 py-3">
-                  <p className="text-xs text-muted-foreground mb-1">Bank Feed</p>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-xs font-medium text-foreground">Live · 2 min ago</span>
-                  </div>
-                </div>
-                <div className="bg-card rounded-xl border border-border shadow-sm px-4 py-3">
-                  <p className="text-xs text-muted-foreground mb-1">Auto-coded today</p>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-medium text-foreground">89 transactions</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recent Transactions */}
-              <div className="mt-4">
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                  Recent transactions
-                </h3>
-
-                <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                  <div className="grid grid-cols-12 px-4 py-2.5 border-b border-border/60 bg-background">
-                    <span className="col-span-2 text-xs font-medium text-muted-foreground">Date</span>
-                    <span className="col-span-4 text-xs font-medium text-muted-foreground">Vendor / Description</span>
-                    <span className="col-span-3 text-xs font-medium text-muted-foreground text-right">Amount</span>
-                    <span className="col-span-3 text-xs font-medium text-muted-foreground text-right">Account</span>
-                  </div>
-
-                  <div className="divide-y divide-gray-50">
-                    {RECENT_TRANSACTIONS.map((tx, i) => (
-                      <div
-                        key={i}
-                        className={`grid grid-cols-12 items-center px-4 py-3 hover:bg-background transition-colors cursor-pointer ${tx.flagged ? 'bg-amber-50/40' : ''}`}
-                      >
-                        <span className="col-span-2 text-xs text-muted-foreground">{tx.date}</span>
-                        <div className="col-span-4 flex items-center gap-2 min-w-0">
-                          <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            tx.type === 'credit' ? 'bg-emerald-100' : 'bg-muted'
-                          }`}>
-                            {tx.type === 'credit'
-                              ? <ArrowDownLeft className="w-3 h-3 text-emerald-600" />
-                              : <ArrowUpRight className="w-3 h-3 text-muted-foreground" />
-                            }
-                          </div>
-                          <span className="text-xs text-foreground font-medium truncate">{tx.vendor}</span>
-                          {tx.flagged && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" title="Flagged" />
-                          )}
-                        </div>
-                        <span className={`col-span-3 text-xs font-medium text-right tabular-nums ${
-                          tx.type === 'credit' ? 'text-emerald-700' : 'text-foreground'
-                        }`}>
-                          {tx.type === 'credit' ? '+' : ''}
-                          {tx.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                        </span>
-                        <span className="col-span-3 text-xs text-muted-foreground/60 text-right truncate">{tx.account}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="px-4 py-3 border-t border-border/60 bg-background flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground/60">Showing last 10 of 141 transactions this month</span>
-                    <button
-                      onClick={() => onNavigateToTransactions?.()}
-                      className="text-xs text-primary hover:text-primary font-medium flex items-center gap-1"
-                    >
-                      View all <ChevronRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
           </div>
         </div>
       </div>

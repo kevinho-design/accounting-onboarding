@@ -293,13 +293,10 @@ export function AccountingApp({
         if (activeUser === "sarah") {
           return (
             <BookkeeperDashboard
-              onAskTeammate={onAskTeammate}
-              onOpenRail={onOpenRail}
               onExceptionsChange={onExceptionsChange}
               onRecentActionsChange={onRecentActionsChange}
               onNavigateToTransactions={() => navigateToTransactions("all")}
               onNavigateToTransactionsFiltered={navigateToTransactions}
-              onNavigateToConnections={navigateToConnections}
             />
           );
         }
@@ -308,9 +305,6 @@ export function AccountingApp({
             <RyanDashboard
               onAskTeammate={onAskTeammate}
               onTeammateExplorePlan={onTeammateExplorePlan}
-              onOpenRail={onOpenRail}
-              teammateTodayExceptions={shellExceptions}
-              onNavigateToTransactionsFiltered={navigateToTransactions}
               onNavigateToFinancialHealth={(scrollTo) => {
                 setFhoScrollTarget(scrollTo);
                 requestShellNavigation("Finances:fp_financial_health");
@@ -325,7 +319,6 @@ export function AccountingApp({
             onExceptionsChange={onExceptionsChange}
             onAskTeammate={onAskTeammate}
             onTeammateExplorePlan={onTeammateExplorePlan}
-            onOpenRail={onOpenRail}
             onNavigateToTransactions={() => navigateToTransactions("all")}
             onNavigateToTransactionsFiltered={navigateToTransactions}
             onNavigateToConnections={navigateToConnections}
@@ -401,13 +394,10 @@ export function AccountingApp({
       default:
         return activeUser === "sarah" ? (
           <BookkeeperDashboard
-            onAskTeammate={onAskTeammate}
-            onOpenRail={onOpenRail}
             onExceptionsChange={onExceptionsChange}
             onRecentActionsChange={onRecentActionsChange}
             onNavigateToTransactions={() => navigateToTransactions("all")}
             onNavigateToTransactionsFiltered={navigateToTransactions}
-            onNavigateToConnections={navigateToConnections}
           />
         ) : (
           <ExceptionFirstDashboard 
@@ -416,7 +406,6 @@ export function AccountingApp({
             onExceptionsChange={onExceptionsChange}
             onAskTeammate={onAskTeammate}
             onTeammateExplorePlan={onTeammateExplorePlan}
-            onOpenRail={onOpenRail}
             onNavigateToTransactions={() => navigateToTransactions("all")}
             onNavigateToTransactionsFiltered={navigateToTransactions}
             onNavigateToConnections={navigateToConnections}

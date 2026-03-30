@@ -128,7 +128,7 @@ export function TeammateRailLaunchOptions() {
                 <h2 className="text-sm font-semibold text-gray-900">Dashboard</h2>
                 <button className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:shadow-md transition-all flex items-center gap-2">
                   <Sparkles className="w-4 h-4" />
-                  <span>Ask Teammate</span>
+                  <span>Ask Clio</span>
                   <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded text-xs">2</span>
                 </button>
               </div>

@@ -262,7 +262,7 @@ export function HomeDashboard({
                           onClick={onOpenTeammate}
                         >
                           <MessageSquare className="h-3.5 w-3.5" />
-                          Ask Teammate
+                          Ask Clio
                         </Button>
                       </div>
                     </div>

@@ -1724,7 +1724,7 @@ function TransactionDetailDrawer({ row, onClose, onFlagResolved, confirmedBillab
     if (!row) return [];
     return [
       { time: "10:00 AM", event: `Transaction synced from Bank Feed (${row.method})`, agent: "Plaid", icon: RefreshCcw, color: "#64748B" },
-      { time: "10:01 AM", event: `Auto-matched to ${row.category === "Trust Deposit" ? "Trust Request #108" : row.category === "Client Payment" ? "Invoice #2024-0892" : "vendor pattern"} by Agent v3.1`, agent: "Teammate", icon: Sparkles, color: "#0070E0" },
+      { time: "10:01 AM", event: `Auto-matched to ${row.category === "Trust Deposit" ? "Trust Request #108" : row.category === "Client Payment" ? "Invoice #2024-0892" : "vendor pattern"} by Agent v3.1`, agent: "Clio Accounting", icon: Sparkles, color: "#0070E0" },
       { time: "10:05 AM", event: "Verified by David Thompson (Human)", agent: "Human", icon: CheckCheck, color: "#16A34A" },
     ];
   }, [row]);

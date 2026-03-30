@@ -317,7 +317,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                                   }}
                                 >
                                   <Sparkles className="w-3 h-3 mr-1 text-primary/70" />
-                                  Ask Teammate
+                                  Ask Clio
                                 </Button>
                               )}
                             </div>

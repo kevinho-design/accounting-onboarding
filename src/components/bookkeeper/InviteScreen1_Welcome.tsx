@@ -72,7 +72,7 @@ export function InviteScreen1_Welcome({ onComplete }: InviteScreen1Props) {
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold text-gray-900 text-sm">Our system, trained on your firm</p>
+                <p className="font-semibold text-gray-900 text-sm">Clio Accounting, trained on your firm</p>
                 <p className="text-xs text-gray-500">Vendor patterns, approval workflows, and IOLTA rules configured</p>
               </div>
               <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />

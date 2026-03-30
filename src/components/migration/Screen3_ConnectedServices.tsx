@@ -228,7 +228,7 @@ export function Screen3_ConnectedServices({ onComplete, onBack, onAssign }: Scre
                   <span className={`font-normal text-[12.25px] transition-colors ${
                     connectedServices.email ? 'text-[#4a5565]' : 'text-gray-400'
                   }`}>
-                    Train our system on vendor patterns
+                    Train Clio Accounting on vendor patterns
                   </span>
                 </div>
                 <div className="flex items-center gap-2">

@@ -190,7 +190,7 @@ export default function App() {
               setShowPortal(false);
               setActiveUser("jennifer");
               setCurrentPage("Accounting");
-              setShowValueProp(true);
+              setInMigrationFlow(true);
             }}
             onPillar2={() => {
               setShowPortal(false);

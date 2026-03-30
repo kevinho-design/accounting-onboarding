@@ -80,7 +80,7 @@ export function InviteScreen2_RoleFocus({ onComplete, onBack }: InviteScreen2Pro
               Here's what Clio has lined up for you
             </h2>
             <p className="text-gray-600 text-base">
-              As the bookkeeper, you focus on the work that needs human judgment. Your AI teammate handles everything else.
+              As the bookkeeper, you focus on the work that needs human judgment. Our system handles everything else.
             </p>
           </div>
 
@@ -151,7 +151,7 @@ export function InviteScreen2_RoleFocus({ onComplete, onBack }: InviteScreen2Pro
                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                   <Sparkles className="w-3.5 h-3.5 text-white" />
                 </div>
-                <span className="font-semibold text-gray-900 text-sm">AI Teammate handles</span>
+                <span className="font-semibold text-gray-900 text-sm">Our system handles</span>
               </div>
 
               <div className="space-y-2">

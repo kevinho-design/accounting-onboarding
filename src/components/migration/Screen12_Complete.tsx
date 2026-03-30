@@ -89,13 +89,13 @@ export function Screen12_Complete({ onComplete, assignedTasks = [] }: Screen12Pr
             Setup Complete.
           </h1>
           <h2 className="text-4xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-6">
-            Your Teammate is Now Monitoring.
+            Clio Accounting is Now Monitoring.
           </h2>
 
           <p className="text-xl text-gray-600 mb-16 max-w-2xl mx-auto">
             {hasPending
-              ? `While you focus on practicing law, your AI Teammate has started monitoring. ${assignedTasks.length} task${assignedTasks.length !== 1 ? "s are" : " is"} pending completion by your team.`
-              : "While you focus on practicing law, your AI Teammate is actively watching your finances, learning from every transaction, and ensuring compliance 24/7."}
+              ? `While you focus on practicing law, our system has started monitoring. ${assignedTasks.length} task${assignedTasks.length !== 1 ? "s are" : " is"} pending completion by your team.`
+              : "While you focus on practicing law, our system is actively watching your finances, learning from every transaction, and ensuring compliance 24/7."}
           </p>
 
           {/* What AI is Doing Now - Active Monitoring */}

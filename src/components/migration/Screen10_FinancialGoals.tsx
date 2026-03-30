@@ -183,7 +183,7 @@ export function Screen10_FinancialGoals({ onComplete, onBack, onAssign }: Screen
             </div>
             <h2 className="text-3xl font-semibold text-gray-900 mb-3">Your Firm's North Star</h2>
             <p className="text-gray-600 text-lg">
-              Our system analyzed 3 years of Hartwell &amp; Morris data and benchmarked against comparable firms to recommend these goals.
+              Clio Accounting analyzed 3 years of Hartwell &amp; Morris data and benchmarked against comparable firms to recommend these goals.
             </p>
           </div>
 

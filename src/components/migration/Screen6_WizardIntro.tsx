@@ -71,7 +71,7 @@ export function Screen6_WizardIntro({ onComplete, onSkip, onBack }: Screen6Props
               </div>
               <div>
                 <div className="font-semibold text-gray-900 mb-1">Financial Goals</div>
-                <div className="text-sm text-gray-600">Set the targets our system will monitor and report against every day.</div>
+                <div className="text-sm text-gray-600">Set the targets Clio Accounting will monitor and report against every day.</div>
               </div>
             </div>
           </div>

@@ -179,7 +179,7 @@ export function TeammateTodayTab({
                               }}
                             >
                               <Sparkles className="mr-1 h-3 w-3 text-blue-500" />
-                              Ask Teammate
+                              Ask Clio
                             </Button>
                           </div>
                         </div>

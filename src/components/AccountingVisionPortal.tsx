@@ -21,8 +21,8 @@ function PersonaIllustration({ src, name }: { src: string; name: string }) {
 const PILLARS = [
   {
     badge: "Pillar 1",
-    badgeColor: "color-mix(in srgb, #A3DCFF 28%, #ffffff)",
-    badgeText: "#0070E0",
+    badgeColor: "color-mix(in srgb, #2DD4BF 20%, #ffffff)",
+    badgeText: "#0D9488",
     title: "Setup & Onboarding",
     subtitle: "Configure the software",
     src: "/persona-jennifer.png",
@@ -31,12 +31,12 @@ const PILLARS = [
     description:
       "Jennifer sets up Clio Accounting for the firm, migrates existing books, and lands in the AI-powered accounting dashboard ready to work.",
     cta: "Start setup",
-    accentColor: "#0070E0",
+    accentColor: "#2DD4BF",
   },
   {
     badge: "Pillar 2",
-    badgeColor: "#F0FDF4",
-    badgeText: "#16A34A",
+    badgeColor: "color-mix(in srgb, #8B7CF6 20%, #ffffff)",
+    badgeText: "#6D5FD8",
     title: "Daily Bookkeeping",
     subtitle: "Manage day-to-day finances",
     src: "/persona-sarah.png",
@@ -45,12 +45,12 @@ const PILLARS = [
     description:
       "Sarah receives an invite from Jennifer, completes a focused onboarding, and manages the firm's transactions with AI-assisted categorisation.",
     cta: "Open daily work",
-    accentColor: "#16A34A",
+    accentColor: "#8B7CF6",
   },
   {
     badge: "Pillar 3",
-    badgeColor: "#FFF7ED",
-    badgeText: "#EA580C",
+    badgeColor: "color-mix(in srgb, #F59E0B 20%, #ffffff)",
+    badgeText: "#D97706",
     title: "Financial Oversight",
     subtitle: "Keep a handle on firm finances",
     src: "/persona-ryan.png",
@@ -59,7 +59,7 @@ const PILLARS = [
     description:
       "Ryan monitors the firm's financial health, reviews reports, and makes strategic decisions from the Finances hub.",
     cta: "View firm finances",
-    accentColor: "#EA580C",
+    accentColor: "#F59E0B",
   },
 ];
 
@@ -89,6 +89,8 @@ export function AccountingVisionPortal({ onPillar1, onPillar2, onPillar3 }: Acco
               className="flex flex-col rounded-2xl border border-border overflow-hidden"
               style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
             >
+              {/* Colored top stripe */}
+              <div style={{ height: 5, backgroundColor: pillar.accentColor }} />
               <div className="flex flex-col flex-1 p-6">
                 {/* Badge */}
                 <div className="mb-3">

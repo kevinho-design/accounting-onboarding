@@ -38,8 +38,12 @@ export function FinancialHealthCriticalTodaySection({
           <AlertTriangle className="h-4 w-4 text-white" aria-hidden />
         </div>
         <div className="min-w-0 flex-1 space-y-1">
-          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Today · Critical</p>
-          <h3 className="text-base font-bold leading-snug text-foreground">{payrollException.title}</h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm font-medium leading-snug text-foreground">{payrollException.title}</h3>
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 bg-rose-100 text-rose-800">
+              Critical
+            </span>
+          </div>
           <p className="text-xs leading-relaxed text-muted-foreground">{payrollException.description}</p>
         </div>
       </div>

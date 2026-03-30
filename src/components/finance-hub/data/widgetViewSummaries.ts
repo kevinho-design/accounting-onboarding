@@ -464,7 +464,7 @@ export function getCatalogWidgetSummary(
             ? 'Cash slipped — run the bridge with your bookkeeper and prioritize collections on the largest overdue invoices.'
             : 'Validate the bridge: large inflows tied to billing, outflows tied to payroll and scheduled payables.',
           'If trust activity is heavy this week, confirm operating vs. IOLTA separation before sign-off.',
-          'Use Explore actions on this widget for a structured cash next-steps plan in Clio Teammate.',
+          'Use View suggestions on this widget for a structured cash next-steps plan in Clio Teammate.',
         ),
       };
     case 'fho_revenue_detail':
@@ -480,7 +480,7 @@ export function getCatalogWidgetSummary(
             ? 'Revenue vs. goal is soft — push prebills through and validate pipeline coverage for the quarter.'
             : 'Protect the pace — keep weekly billing targets visible to practice leads.',
           'Compare practice and stream mix; shift BD effort if one area over-concentrates risk.',
-          'Use Explore actions to outline pipeline and billing actions for this week.',
+          'Use View suggestions to outline pipeline and billing actions for this week.',
         ),
       };
     case 'fho_ar_at_risk_detail':
@@ -496,7 +496,7 @@ export function getCatalogWidgetSummary(
             ? '90+ balance is material — escalate to responsible partners with a payment plan or litigation triage.'
             : 'Run a prioritized reminder list for 61–90 day accounts before month-end.',
           'Tie outreach to days-to-collect goals; update expected pay dates after each client touch.',
-          'Open Explore actions for collections options Firm Intelligence recommends.',
+          'Open View suggestions for collections options Firm Intelligence recommends.',
         ),
       };
     case 'fho_runway_detail':
@@ -512,7 +512,7 @@ export function getCatalogWidgetSummary(
             ? 'Runway and cash are under pressure — combine AR acceleration with a short expense review.'
             : 'Hold runway steady — avoid large discretionary draws until collections land.',
           'Model a downside case (delayed collections) in Digital Twin or modelling and share with finance lead.',
-          'Use Explore actions for runway-specific workflow options in Clio Teammate.',
+          'Use View suggestions for runway-specific workflow options in Clio Teammate.',
         ),
       };
     case 'fho_iolta_trust_detail':
@@ -600,7 +600,7 @@ export function getCatalogWidgetSummary(
         suggestions: sg(
           'Create a named model from one concrete question (e.g. payroll shortfall, rate increase) and preview on strategic charts.',
           'When leadership agrees on a scenario, add the model to Financial Goals so recommendations stay goal-aware.',
-          'Use Explore actions on widgets to open structured plans alongside your custom models.',
+          'Use View suggestions on widgets to open structured plans alongside your custom models.',
         ),
       };
     default:

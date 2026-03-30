@@ -23,7 +23,7 @@ import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { motion } from "motion/react";
 import { Exception, AgentAction, AGENTS } from "./agents/AgentTypes";
 import { Button } from "./ui/button";
-import { TrustAssignCTA } from "./accounting/TrustAssign";
+import { TrustAssignCTA, TRUST_ASSIGN_COMPACT_TRIGGER_CLASS } from "./accounting/TrustAssign";
 import { AI_PROCESSED, INITIAL_FLAGGED_COUNT } from "./accounting/UnifiedTransactionInbox";
 
 interface BookkeeperDashboardProps {
@@ -284,7 +284,7 @@ export function BookkeeperDashboard({ onAskTeammate, onOpenRail, onExceptionsCha
                           ) : (
                             <div className="flex items-center gap-2">
                               {exc.id === "sys-trust-balance" ? (
-                                <TrustAssignCTA compact />
+                                <TrustAssignCTA compact buttonClassName={TRUST_ASSIGN_COMPACT_TRIGGER_CLASS} />
                               ) : (
                               <Button
                                 size="sm"

@@ -3,12 +3,14 @@ import { Calendar, Sparkles, Send } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import type { BriefingInsightId } from '../../data/briefingPanelContent';
 import { countMergedTodayTodos } from '../../data/todayTodoMerge';
-import { TodayPanel } from './TodayPanel';
+import { cn } from '../ui/utils';
 
 export interface FloatingChatBarProps {
   onOpen: () => void;
   onSubmitMessage?: (message: string) => void;
   isVisible: boolean;
+  /** Accounting shell nav width (px): positions the bar on `md+` so it clears the left rail. */
+  shellNavLeftInsetPx?: number;
   /** Renders above suggested queries (e.g. global “Navigate to” results). */
   navigationSection?: React.ReactNode;
   suggestedQuestions: string[];
@@ -16,18 +18,15 @@ export interface FloatingChatBarProps {
   onChatInputChange: (value: string) => void;
   placeholder?: string;
   brandColor?: string;
-  /** Briefing items already executed (hidden in Today). */
+  /** Briefing items already executed (affects Today badge count). */
   executedBriefingInsightIds?: readonly BriefingInsightId[];
-  onBriefingTakeAction?: (insightId: string) => void;
-  onBriefingExplore?: (insightId: string) => void;
 }
-
-const TODAY_TITLE_ID = 'ambient-cfo-today-panel-title';
 
 export function FloatingChatBar({
   onOpen,
   onSubmitMessage,
   isVisible,
+  shellNavLeftInsetPx = 239,
   navigationSection,
   suggestedQuestions,
   chatInput,
@@ -35,34 +34,30 @@ export function FloatingChatBar({
   placeholder = 'Search the product or ask your Firm Intelligence…',
   brandColor = '#0069D1',
   executedBriefingInsightIds = [],
-  onBriefingTakeAction,
-  onBriefingExplore,
 }: FloatingChatBarProps) {
   const [isFocused, setIsFocused] = React.useState(false);
-  const [todayOpen, setTodayOpen] = React.useState(false);
-  const barRef = React.useRef<HTMLDivElement>(null);
-
-  const showSuggestions = isFocused && !todayOpen;
-
+  const [isMdViewport, setIsMdViewport] = React.useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches,
+  );
   React.useEffect(() => {
-    if (!todayOpen) return;
-    const onDocMouseDown = (e: MouseEvent) => {
-      const el = barRef.current;
-      if (!el || !(e.target instanceof Node) || el.contains(e.target)) return;
-      setTodayOpen(false);
-    };
-    document.addEventListener('mousedown', onDocMouseDown);
-    return () => document.removeEventListener('mousedown', onDocMouseDown);
-  }, [todayOpen]);
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = () => setIsMdViewport(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
-  const handleSparkleClick = (e: React.MouseEvent) => {
+  const showSuggestions = isFocused;
+
+  /** Opens Clio Teammate with the Today tab (same as sparkle affordance). */
+  const openTeammateToday = (e: React.MouseEvent) => {
     e.stopPropagation();
     onOpen();
     onSubmitMessage?.('__sparkle__');
   };
 
+  const handleSparkleClick = openTeammateToday;
+
   const submitText = (text: string) => {
-    setTodayOpen(false);
     const trimmed = text.trim();
     if (!trimmed) return;
     onOpen();
@@ -80,9 +75,6 @@ export function FloatingChatBar({
     }
   };
 
-  const takeAction = onBriefingTakeAction ?? (() => {});
-  const explore = onBriefingExplore ?? (() => {});
-
   if (!isVisible) return null;
 
   const filteredSuggestions = suggestedQuestions.filter((q) =>
@@ -92,55 +84,21 @@ export function FloatingChatBar({
   const todayTodoCount = countMergedTodayTodos(executedBriefingInsightIds, suggestedQuestions);
 
   return (
-    <div className="pointer-events-none fixed bottom-6 left-0 right-0 z-40 flex flex-col items-center justify-end px-4 md:left-[239px] md:px-8">
-      <div ref={barRef} className="pointer-events-auto w-full max-w-3xl">
+    <div
+      className={cn(
+        'pointer-events-none fixed bottom-6 right-0 z-40 flex flex-col items-center justify-end px-4 md:px-8',
+        !isMdViewport && 'left-0',
+      )}
+      style={isMdViewport ? { left: shellNavLeftInsetPx } : undefined}
+    >
+      <div className="pointer-events-auto w-full max-w-3xl">
         <div className="relative z-10 rounded-full border border-gray-200 bg-white p-2 shadow-2xl">
-          <AnimatePresence>
-            {todayOpen ? (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 8 }}
-                transition={{ duration: 0.15 }}
-                className="pointer-events-auto absolute bottom-full left-0 z-[60] mb-2 w-full"
-              >
-                <TodayPanel
-                  titleId={TODAY_TITLE_ID}
-                  executedBriefingInsightIds={executedBriefingInsightIds}
-                  suggestedQueries={suggestedQuestions}
-                  onBriefingTakeAction={(id) => {
-                    setTodayOpen(false);
-                    takeAction(id);
-                  }}
-                  onBriefingExplore={(id) => {
-                    setTodayOpen(false);
-                    explore(id);
-                  }}
-                  onSuggestedQueryPick={(q) => {
-                    setTodayOpen(false);
-                    submitText(q);
-                  }}
-                  brandColor={brandColor}
-                />
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-
           <div className="flex items-center px-2 py-1">
             <button
               type="button"
-              aria-label={`Today's to do — ${todayTodoCount} task${todayTodoCount === 1 ? '' : 's'}`}
-              aria-expanded={todayOpen}
-              aria-controls={todayOpen ? 'ambient-cfo-today-panel' : undefined}
-              onClick={(e) => {
-                e.stopPropagation();
-                setTodayOpen((o) => !o);
-              }}
-              className={`relative mr-1.5 flex shrink-0 items-center gap-1 rounded-[8px] px-2 py-2 text-xs font-semibold transition-colors max-sm:px-1.5 ${
-                todayOpen
-                  ? 'bg-blue-50 text-blue-800 ring-1 ring-blue-200'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
+              aria-label={`Open Clio Teammate Today — ${todayTodoCount} task${todayTodoCount === 1 ? '' : 's'}`}
+              onClick={openTeammateToday}
+              className="relative mr-1.5 flex shrink-0 items-center gap-1 rounded-[8px] px-2 py-2 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900 max-sm:px-1.5"
             >
               <Calendar className="h-4 w-4 shrink-0" strokeWidth={1.75} />
               <span className="max-sm:sr-only">Today</span>
@@ -165,10 +123,7 @@ export function FloatingChatBar({
               value={chatInput}
               onChange={(e) => onChatInputChange(e.target.value)}
               onKeyDown={handleKeyDown}
-              onFocus={() => {
-                setTodayOpen(false);
-                setIsFocused(true);
-              }}
+              onFocus={() => setIsFocused(true)}
               onBlur={() => {
                 window.setTimeout(() => setIsFocused(false), 200);
               }}

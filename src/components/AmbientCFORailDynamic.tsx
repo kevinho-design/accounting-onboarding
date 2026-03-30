@@ -10,7 +10,7 @@ export function AmbientCFORailDynamic({ scene }: AmbientCFORailDynamicProps) {
     switch (scene) {
       case "manage":
         return {
-          title: "Ambient CFO",
+          title: "Firm Intelligence",
           subtitle: "Analyzing your practice data",
           insights: [
             {
@@ -102,7 +102,7 @@ export function AmbientCFORailDynamic({ scene }: AmbientCFORailDynamicProps) {
 
       default:
         return {
-          title: "Ambient CFO",
+          title: "Firm Intelligence",
           subtitle: "AI-powered insights",
           insights: []
         };
@@ -144,7 +144,7 @@ export function AmbientCFORailDynamic({ scene }: AmbientCFORailDynamicProps) {
           <div className="pt-4 border-t border-gray-200">
             <div className="text-xs text-gray-500 leading-relaxed">
               <p className="font-semibold mb-2">You're all set!</p>
-              <p>The Ambient CFO will continue to monitor your practice and surface insights proactively.</p>
+              <p>Firm Intelligence will continue to monitor your practice and surface insights proactively.</p>
             </div>
           </div>
         )}

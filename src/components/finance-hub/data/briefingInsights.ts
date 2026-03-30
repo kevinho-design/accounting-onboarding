@@ -19,7 +19,7 @@ export const BRIEFING_INSIGHT_ITEMS: BriefingInsightListItem[] = [
   {
     id: 'insight-5',
     title: 'Payroll Shortfall — Operating Account Gap',
-    todaySourceLabel: 'Ambient CFO',
+    todaySourceLabel: 'Firm Intelligence',
     time: 'Just now',
     description:
       'Payroll is due in 3 days and your Operating Account is projected to be short by $15,700. Review ranked resolution options now: internal liquidity levers first, then exact-gap financing only if needed.',

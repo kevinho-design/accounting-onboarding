@@ -22,22 +22,25 @@ import { AGENTS, Exception, AgentAction } from "./agents/AgentTypes";
 import { MigrationReportModal } from "./MigrationReportModal";
 import { FinancialGoalsViewModal } from "./FinancialGoalsViewModal";
 import { motion } from "motion/react";
-import { TrustAssignCTA } from "./accounting/TrustAssign";
+import { TrustAssignCTA, TRUST_ASSIGN_COMPACT_TRIGGER_CLASS } from "./accounting/TrustAssign";
 import { FirmGoalsCardList } from "./finance-hub/components/FirmGoalsCardList";
 import { firmGoalsOnTrackCount, getFirmGoalDashboardCards, useFirmGoalsState } from "./finance-hub/data/firmGoals";
 import { getPayrollShortfallTeammatePlan, type FhoTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
+import {
+  PAYROLL_SHORTFALL_EXCEPTION_DESCRIPTION,
+  PAYROLL_SHORTFALL_EXCEPTION_TITLE,
+} from "./finance-hub/data/payrollShortfallExceptionCopy";
 
 export const JENNIFER_EXCEPTIONS: Exception[] = [
   {
     id: "payroll-shortfall-gap",
     agentId: "revenue-forecasting",
     severity: "critical",
-    title: "Payroll Shortfall — Operating Account Gap",
-    description:
-      "Payroll is due in 3 days and your Operating Account is projected to be short by $15,700 — the highest-impact item on your financial health right now.",
+    title: PAYROLL_SHORTFALL_EXCEPTION_TITLE,
+    description: PAYROLL_SHORTFALL_EXCEPTION_DESCRIPTION,
     impact:
       "Payroll continuity and your operating reserve goal are at risk until you close this gap. Firm Intelligence recommends internal liquidity levers first, then exact-gap financing only if needed.",
-    suggestedAction: "Review scenario plan",
+    suggestedAction: "View suggestions",
     createdAt: new Date(Date.now() - 1 * 60 * 1000),
   },
   {
@@ -298,7 +301,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
             </motion.div>
           )}
 
-          {/* Q1 2026 Financial Goals — full width, below migration banner */}
+          {/* Firm's Financial Goals — full width, below migration banner */}
           <div className="bg-card rounded-xl border border-border shadow-sm mb-8">
             <div
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-background transition-colors"
@@ -309,7 +312,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                   <Target className="w-4 h-4 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Q1 2026 Financial Goals</p>
+                  <p className="text-sm font-semibold text-foreground">Firm's Financial Goals</p>
                   <p className="text-xs text-muted-foreground">
                     {goalCounts.onTrack} of {goalCounts.total} on track • {atRiskGoals} at risk
                   </p>
@@ -419,7 +422,7 @@ export function ExceptionFirstDashboard({ onReviewFinancialGoals, onRecentAction
                             )}
                             <div className="flex items-center gap-2">
                               {exception.id === "sys-trust-balance" ? (
-                                <TrustAssignCTA compact />
+                                <TrustAssignCTA compact buttonClassName={TRUST_ASSIGN_COMPACT_TRIGGER_CLASS} />
                               ) : exception.suggestedAction && (
                                 <Button
                                   size="sm"

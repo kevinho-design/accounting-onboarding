@@ -19,7 +19,7 @@ export function ReportObserveOverview({
           <Sparkles className="h-4 w-4" strokeWidth={2} />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-gray-900">Firm Intelligence overview</p>
+          <p className="text-sm font-semibold text-gray-900">Clio Accounting overview</p>
           <p className="mt-1 text-xs leading-relaxed text-gray-700">
             AI-generated read of <span className="font-medium">{reportName}</span>. Numbers below are illustrative for
             this prototype—use Ask mode or the full table to dig into source data.
@@ -77,7 +77,7 @@ export function ReportObserveOverview({
         </div>
         <div className="min-h-[120px] rounded-[12px] border border-dashed border-gray-200 bg-gray-100/80 p-4">
           <p className="text-xs font-semibold text-gray-500">Exceptions</p>
-          <p className="mt-2 text-sm text-gray-600">Firm Intelligence would list rows that need human review.</p>
+          <p className="mt-2 text-sm text-gray-600">Clio Accounting would list rows that need human review.</p>
         </div>
       </div>
     </div>

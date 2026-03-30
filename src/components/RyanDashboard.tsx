@@ -16,7 +16,8 @@ import {
 import { Button } from "./ui/button";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { motion } from "motion/react";
-import { AgentAction } from "./agents/AgentTypes";
+import type { AgentAction, Exception } from "./agents/AgentTypes";
+import { RYAN_HANDLED_AGENT_ACTIONS } from "./teammateTodayUnifiedFeed";
 import { TrustAssignCTA, TRUST_ASSIGN_COMPACT_TRIGGER_CLASS } from "./accounting/TrustAssign";
 import type { FhoTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
 import { getPayrollShortfallTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
@@ -25,6 +26,8 @@ import { firmGoalsOnTrackCount, useFirmGoalsState } from "./finance-hub/data/fir
 interface RyanDashboardProps {
   onRecentActionsChange?: (actions: AgentAction[]) => void;
   onExceptionsChange?: (exceptions: unknown[]) => void;
+  /** Same `exceptions` as Clio Teammate Today → "Needs your input" (App state). */
+  teammateTodayExceptions?: Exception[];
   onAskTeammate?: (message: string) => void;
   onTeammateExplorePlan?: (plan: FhoTeammatePlan) => void;
   onOpenRail?: () => void;
@@ -57,7 +60,7 @@ const TODAY_ITEMS: TodayItem[] = [
     description:
       "Payroll is due in 3 days with a $15.7k operating cash gap — the highest-impact risk to firm financial health right now.",
     impact:
-      "Posting payroll on time and protecting your operating reserve depend on closing this gap. Firm Intelligence ranked internal liquidity options first.",
+      "Posting payroll on time and protecting your operating reserve depend on closing this gap. Clio Accounting ranked collection opportunities as recommended.",
     meta: "Critical",
   },
   {
@@ -145,6 +148,7 @@ export function RyanDashboard({
   onOpenRail,
   onNavigateToTransactionsFiltered,
   onNavigateToFinancialHealth,
+  teammateTodayExceptions = [],
 }: RyanDashboardProps) {
   useFirmGoalsState();
   const goalCounts = firmGoalsOnTrackCount();
@@ -160,6 +164,12 @@ export function RyanDashboard({
   const approvalCount = visibleItems.filter((i) => i.kind === "approval").length;
   const assignedCount = visibleItems.filter((i) => i.kind === "assigned").length;
   const totalCount = visibleItems.length;
+  const displayedTodayItems =
+    visibleItems.length > 5 ? visibleItems.slice(0, 5) : visibleItems;
+  const railTodayItemCount =
+    teammateTodayExceptions.length > 0
+      ? teammateTodayExceptions.length
+      : visibleItems.length;
 
   return (
     <div className="flex-1 h-screen overflow-hidden relative">
@@ -253,7 +263,7 @@ export function RyanDashboard({
 
               {visibleItems.length > 0 ? (
                 <div className="space-y-2">
-                  {visibleItems.map((item) => {
+                  {displayedTodayItems.map((item) => {
                     const isExpanded = expandedItemId === item.id;
                     const isApproval = item.kind === "approval";
 
@@ -270,12 +280,23 @@ export function RyanDashboard({
                           className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-background transition-colors cursor-pointer"
                           onClick={() => setExpandedItemId(isExpanded ? null : item.id)}
                         >
-                          <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${isApproval ? "from-blue-500 to-blue-600" : "from-purple-500 to-purple-600"} flex items-center justify-center flex-shrink-0`}>
-                            {isApproval
-                              ? <ShieldCheck className="w-3 h-3 text-white" />
-                              : <ClipboardList className="w-3 h-3 text-white" />
-                            }
-                          </div>
+                          {item.priority === "critical" ? (
+                            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-red-600">
+                              <AlertTriangle className="h-3 w-3 text-white" strokeWidth={2} />
+                            </div>
+                          ) : (
+                            <div
+                              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${
+                                isApproval ? "from-blue-500 to-blue-600" : "from-purple-500 to-purple-600"
+                              }`}
+                            >
+                              {isApproval ? (
+                                <ShieldCheck className="h-3 w-3 text-white" />
+                              ) : (
+                                <ClipboardList className="h-3 w-3 text-white" />
+                              )}
+                            </div>
+                          )}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="text-sm font-medium text-foreground leading-snug">{item.title}</p>
@@ -376,6 +397,17 @@ export function RyanDashboard({
                       </div>
                     );
                   })}
+
+                  {visibleItems.length > 5 && onOpenRail && (
+                    <button
+                      type="button"
+                      onClick={onOpenRail}
+                      className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-primary/20 text-primary text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
+                    >
+                      See all {railTodayItemCount} items in Today
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="bg-card rounded-xl border border-border shadow-sm p-8 text-center">
@@ -386,6 +418,35 @@ export function RyanDashboard({
                   <p className="text-xs text-muted-foreground">No pending approvals or assigned tasks.</p>
                 </div>
               )}
+
+              {/* Handled for you */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Handled for you</h3>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground/60">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    <span>3 agents active</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {RYAN_HANDLED_AGENT_ACTIONS.map((action) => {
+                    const timeDiff = Date.now() - action.timestamp.getTime();
+                    const mins = Math.floor(timeDiff / 60000);
+                    const timeLabel = mins < 60 ? `${mins}m ago` : `${Math.floor(mins / 60)}h ago`;
+                    return (
+                      <div key={action.id ?? action.action} className="bg-card rounded-xl border border-border shadow-sm px-4 py-3 flex items-start gap-3">
+                        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <CheckCircle className="w-3 h-3 text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-foreground leading-snug">{action.action}</p>
+                          <p className="text-[11px] text-muted-foreground/60 mt-0.5">{timeLabel}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {/* RIGHT — Financial Health */}

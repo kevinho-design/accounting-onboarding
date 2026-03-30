@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Toaster, toast } from 'sonner';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { toast } from 'sonner';
 import { 
   LayoutDashboard, 
   CreditCard, 
@@ -45,6 +45,9 @@ import {
   Loader2,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import type { Exception } from '../agents/AgentTypes';
+import { JENNIFER_EXCEPTIONS } from '../ExceptionFirstDashboard';
+import { FinancialHealthCriticalTodaySection } from './components/FinancialHealthCriticalTodaySection';
 import {
   Dialog,
   DialogContent,
@@ -94,11 +97,13 @@ import {
   FP_FINANCIAL_HEALTH_ID,
   DEFAULT_NEW_PAGE_WIDGETS,
   DEFAULT_NEW_PAGE_SIDEBAR_WIDGETS,
+  FP_HEADCOUNT_HIRE_READINESS_PAGE_ID,
+  HIRE_READINESS_FINANCE_WIDGETS,
+  HIRE_READINESS_FINANCE_SIDEBAR_WIDGETS,
   defaultLayoutSizeForWidgetId,
   getFinanceWidgetPinKey,
   isWidgetPinDisabled,
   type DashboardFinancialPin,
-  type FinancialHealthViewMode,
   type FinancePageWidget,
   type MainGridColumns,
   type FinanceWidgetExplorePayload,
@@ -133,6 +138,12 @@ import {
   USER_FIRST_NAME,
 } from './data/prototypePersona';
 import type { DigitalTwinScenarioId } from './components/DigitalTwinWidget';
+import {
+  getHireAttorneyNarrativeResponse,
+  getHireViewConfirmationResponse,
+  isAffirmativeHireViewReply,
+  matchHireAttorneyIntent,
+} from '../clio-teammate/headcountHireChatScript';
 
 /** Custom dashboard pages under Finances (id, title, main + sidebar widget layout). */
 const NAV_RAIL_WIDTH_STORAGE_KEY = 'ambient-cfo-nav-rail-width-px';
@@ -170,6 +181,17 @@ type FinanceCustomPage = {
   showSidebar: boolean;
 };
 
+function createHeadcountHireReadinessCustomPage(): FinanceCustomPage {
+  return {
+    id: FP_HEADCOUNT_HIRE_READINESS_PAGE_ID,
+    title: 'Headcount & Runway',
+    widgets: HIRE_READINESS_FINANCE_WIDGETS.map((w) => ({ ...w })),
+    sidebarWidgets: HIRE_READINESS_FINANCE_SIDEBAR_WIDGETS.map((w) => ({ ...w })),
+    mainGridColumns: 2,
+    showSidebar: true,
+  };
+}
+
 type ScenarioModelAction =
   | { text: string; type: 'navigate'; target: string }
   | { text: string; type: 'action'; actionName: string };
@@ -182,21 +204,24 @@ type FinancialScenarioModel = {
   aiAnalysis: { trend: string; insight: string; confidence: string };
   goalImpactAnalysis: string;
   recommendedActions: ScenarioModelAction[];
+  /** When set, chart overlay is computed from live firm rows (+ peer) so Preview tracks baseline cash/burn. */
+  burnDeltaPercent?: number;
   /** User-created via scenario planner */
   isUserCreated?: boolean;
 };
 
-/** Build chart overlay series from baseline strategic data + burn % scenario */
+/** Build static impact table from seed baseline + burn % (Modelling explore / fallbacks). */
 function buildScenarioImpactFromBurnDelta(burnDeltaPercent: number): FinancialScenarioModel['impact'] {
-  return strategicData.map((row, index) => {
+  let cumulativeExtraBurn = 0;
+  return strategicData.map((row) => {
     const altBurn = Math.max(35000, Math.round(row.burn * (1 + burnDeltaPercent / 100)));
-    const burnDiff = altBurn - row.burn;
-    const altCash = Math.round(row.cash - burnDiff * (index + 1) * 500);
-    const rawRunway = altCash / altBurn;
+    cumulativeExtraBurn += altBurn - row.burn;
+    const altCash = Math.round(row.cash - cumulativeExtraBurn);
+    const rawRunway = altBurn > 0 ? altCash / altBurn : row.runway;
     const altRunway = Number(Math.min(30, Math.max(8, rawRunway)).toFixed(1));
     return {
       month: row.month,
-      altCash: Math.max(400000, altCash),
+      altCash: Math.max(250000, altCash),
       altBurn: altBurn,
       altRunway,
     };
@@ -222,7 +247,7 @@ const PAYROLL_SHORTFALL_SCENARIO_MODEL: FinancialScenarioModel = {
   aiAnalysis: {
     trend: '↓ Immediate liquidity risk in Operating Account',
     insight:
-      'Firm Intelligence detected payroll processing on Friday with a projected operating cash deficit. Prioritized options below are ranked from lowest-friction internal levers to higher-cost financing.',
+      'Clio Accounting detected payroll processing on Friday with a projected operating cash deficit. Prioritized options below are ranked from lowest-friction internal levers to higher-cost financing.',
     confidence: 'High (94%) - Based on live operating balance and payroll schedule',
   },
   goalImpactAnalysis:
@@ -230,6 +255,27 @@ const PAYROLL_SHORTFALL_SCENARIO_MODEL: FinancialScenarioModel = {
   recommendedActions: [
     { text: 'Activate Internal Liquidity Levers first: accelerated billing, A/R nudges, and expense deferral.', type: 'navigate', target: 'Funds In' },
     { text: 'If same-day coverage is still needed, draw only the exact gap from Clio Capital LOC.', type: 'action', actionName: 'Draw exact shortfall from LOC' },
+  ],
+};
+
+const HIRE_13TH_ATTORNEY_SCENARIO_MODEL: FinancialScenarioModel = {
+  id: 'hire_13th_attorney',
+  name: 'Hire a 13th attorney',
+  description:
+    'Approximates incremental loaded payroll and benefits for one additional fee-earner vs current baseline (~5% burn lift).',
+  burnDeltaPercent: 5,
+  impact: buildScenarioImpactFromBurnDelta(5),
+  aiAnalysis: {
+    trend: '↓ Runway compresses under higher recurring burn',
+    insight:
+      'Capacity rises, but payroll steps up before collections catch up. Peer-similar firms often pair a hire with tighter A/R cadence and utilization discipline.',
+    confidence: 'Medium (72%) — Prototype estimate from firm burn profile',
+  },
+  goalImpactAnalysis:
+    'A sustained burn lift pressures your operating reserve and days-to-collect goals unless offset by billing or a phased start date. Check alignment with declared firm goals before committing.',
+  recommendedActions: [
+    { text: 'Tighten collections and billing cadence to fund the hire window.', type: 'navigate', target: 'Funds In' },
+    { text: 'Model utilization by practice area before locking a start date.', type: 'action', actionName: 'Review utilization' },
   ],
 };
 
@@ -267,6 +313,7 @@ const defaultFinancialModels: FinancialScenarioModel[] = [
     id: 'salary_increase_7pct',
     name: 'Increase employee salary by 7%',
     description: 'Raises payroll-driven burn ~7% across the forecast horizon',
+    burnDeltaPercent: 7,
     impact: buildScenarioImpactFromBurnDelta(7),
     aiAnalysis: {
       trend: '↓ Pressure on runway vs baseline',
@@ -347,15 +394,15 @@ function ambientCfoInterpretScenario(scenarioSummary: string, framework: ModelFr
   const shortScenario =
     scenarioSummary.length > 140 ? `${scenarioSummary.slice(0, 140)}…` : scenarioSummary;
 
-  const cardDescription = `Firm Intelligence · ${themePhrase}`;
+  const cardDescription = `Clio Accounting · ${themePhrase}`;
 
-  const insight = `Firm Intelligence read your scenario and combined it with the ${framework} framework. Detected themes: ${themePhrase}. That maps to a modeled burn path of ${burnDeltaPercent > 0 ? '+' : ''}${burnDeltaPercent}% vs baseline on the strategic charts. Your description: "${shortScenario}"`;
+  const insight = `Clio Accounting read your scenario and combined it with the ${framework} framework. Detected themes: ${themePhrase}. That maps to a modeled burn path of ${burnDeltaPercent > 0 ? '+' : ''}${burnDeltaPercent}% vs baseline on the strategic charts. Your description: "${shortScenario}"`;
 
   const goalImpact = `This model translates your wording into cash, burn, and runway stress. ${burnDeltaPercent > 0 ? 'Net spend pressure tightens runway—pair hiring or growth moves with collections and timing.' : 'Net spend relief extends runway—sanity-check which cost levers in your text are committed vs aspirational.'}`;
 
   const extraAction = themes[0]
     ? `Double-check assumptions around "${themes[0]}" with finance before you rely on this overlay.`
-    : 'Add more specifics (hiring, cuts, timing) so Firm Intelligence can tighten the scenario next time.';
+    : 'Add more specifics (hiring, cuts, timing) so Clio Accounting can tighten the scenario next time.';
 
   return {
     burnDeltaPercent,
@@ -416,6 +463,7 @@ function createUserFinancialModel(input: {
     id,
     name: name.trim() || 'Untitled scenario',
     description: desc,
+    burnDeltaPercent,
     impact,
     isUserCreated: true,
     aiAnalysis: {
@@ -507,6 +555,10 @@ export default function App({
   onAddPageRef,
   embeddedInAccountingShell,
   shellNavLeftInsetPx = 239,
+  shellExceptions,
+  onShellAskTeammate,
+  onShellNavigateToConnections,
+  onShellNavigateToTransactionsFiltered,
   teammateOpen,
   onTeammateOpenChange,
   onTeammateChatHistoryChange,
@@ -515,6 +567,8 @@ export default function App({
   onTeammateSparkle,
   navigationGuardRef,
   onShellNavigate,
+  headcountHireApplyNonce = 0,
+  onFinanceCustomNavChange,
 }: {
   initialPage?: string;
   scrollToWidget?: string;
@@ -523,6 +577,10 @@ export default function App({
   embeddedInAccountingShell?: boolean;
   /** Accounting shell left nav width (px) for floating bar positioning when embedded. */
   shellNavLeftInsetPx?: number;
+  shellExceptions?: Exception[];
+  onShellAskTeammate?: (message: string) => void;
+  onShellNavigateToConnections?: () => void;
+  onShellNavigateToTransactionsFiltered?: (filter: string, month?: string) => void;
   teammateOpen: boolean;
   onTeammateOpenChange: (open: boolean) => void;
   onTeammateChatHistoryChange: React.Dispatch<React.SetStateAction<TeammateChatMessage[]>>;
@@ -533,6 +591,10 @@ export default function App({
   navigationGuardRef?: React.MutableRefObject<{ tryLeaveToShellPage: (page: string) => boolean } | null>;
   /** After discard/save-and-exit to a shell route (e.g. Dashboard) */
   onShellNavigate?: (page: string) => void;
+  /** Shell hire NQL demo: when incremented, apply headcount preset + peer benchmark (e.g. user confirmed from Dashboard). */
+  headcountHireApplyNonce?: number;
+  /** Accounting shell: mirror custom Finances pages in left nav (embedded mode hides hub aside). */
+  onFinanceCustomNavChange?: (pages: { id: string; title: string }[]) => void;
 }) {
   const [activePage, setActivePage] = useState(initialPage ?? FP_FINANCIAL_HEALTH_ID);
   useEffect(() => {
@@ -553,6 +615,12 @@ export default function App({
     }, 150);
     return () => clearTimeout(id);
   }, [scrollToWidget]);
+
+  const fhoCriticalTodayExceptions = useMemo((): Exception[] => {
+    if (shellExceptions && shellExceptions.length > 0) return shellExceptions;
+    return JENNIFER_EXCEPTIONS;
+  }, [shellExceptions]);
+
   const [reportsViewMode, setReportsViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [profitLossViewState, setProfitLossViewState] = useState<ProfitLossViewState>(
@@ -571,6 +639,8 @@ export default function App({
   const [isFinancesOpen, setIsFinancesOpen] = useState(true);
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
   const [peerBenchmarkEnabled, setPeerBenchmarkEnabled] = useState(false);
+  /** When true, hire NQL demo model is in Modelling + chart overlay sources */
+  const [headcountHireScenarioActive, setHeadcountHireScenarioActive] = useState(false);
   /** Model ids promoted from Modelling → Financial Goals (order preserved) */
   const [financialGoalModelIds, setFinancialGoalModelIds] = useState<string[]>([]);
   const [userFinancialModels, setUserFinancialModels] = useState<FinancialScenarioModel[]>([]);
@@ -598,10 +668,16 @@ export default function App({
       showSidebar: true,
     },
   ]);
+
+  useEffect(() => {
+    onFinanceCustomNavChange?.(
+      financeCustomPages.map((p) => ({ id: p.id, title: p.title })),
+    );
+  }, [financeCustomPages, onFinanceCustomNavChange]);
+
   const [dashboardFinancialPins, setDashboardFinancialPins] = useState<DashboardFinancialPin[]>(
     DEFAULT_DASHBOARD_FINANCIAL_PINS,
   );
-  const [fhoViewMode, setFhoViewMode] = useState<FinancialHealthViewMode>('detailed');
   type CustomizerContext = { mode: 'create' } | { mode: 'edit'; pageId: string };
   const [customizerContext, setCustomizerContext] = useState<CustomizerContext | null>(null);
   const [customizerMountId, setCustomizerMountId] = useState(0);
@@ -613,6 +689,8 @@ export default function App({
   const [customizePendingNav, setCustomizePendingNav] = useState<CustomizePendingNav | null>(null);
   const postSaveNavigateRef = useRef<CustomizePendingNav | null>(null);
   const dashboardCustomizerRef = useRef<DashboardCustomizerHandle | null>(null);
+  const hireFlowPendingRef = useRef(false);
+  const lastAppliedHeadcountHireNonceRef = useRef(0);
 
   const beginCustomize = (ctx: CustomizerContext) => {
     setCustomizerMountId((n) => n + 1);
@@ -632,6 +710,43 @@ export default function App({
     },
     [customizerContext, customizerDirty],
   );
+
+  /** Headcount & Runway is added only after the hire NQL demo — avoid stale shell routes */
+  useEffect(() => {
+    if (activePage !== FP_HEADCOUNT_HIRE_READINESS_PAGE_ID) return;
+    const exists = financeCustomPages.some((p) => p.id === FP_HEADCOUNT_HIRE_READINESS_PAGE_ID);
+    if (!exists) {
+      requestActivePage('fp_default', { force: true });
+    }
+  }, [activePage, financeCustomPages, requestActivePage]);
+
+  const applyHeadcountHireReadinessView = useCallback(() => {
+    setHeadcountHireScenarioActive(true);
+    setPeerBenchmarkEnabled(true);
+    setSelectedModelId('hire_13th_attorney');
+    setFinanceCustomPages((prev) => {
+      const pid = FP_HEADCOUNT_HIRE_READINESS_PAGE_ID;
+      const rest = prev.filter((p) => p.id !== pid);
+      return [...rest, createHeadcountHireReadinessCustomPage()];
+    });
+    requestActivePage(FP_HEADCOUNT_HIRE_READINESS_PAGE_ID, { force: true });
+    onTeammateOpenChange(false);
+    toast.success('Clio Accounting created your Headcount & Runway view', {
+      description:
+        'Your custom Finances page includes strategic cash, burn, and runway widgets with peer benchmarking and a hire scenario so you can stress-test adding a 13th attorney.',
+      duration: 6000,
+    });
+  }, [onTeammateOpenChange, requestActivePage]);
+
+  useEffect(() => {
+    if (
+      headcountHireApplyNonce > 0 &&
+      headcountHireApplyNonce !== lastAppliedHeadcountHireNonceRef.current
+    ) {
+      lastAppliedHeadcountHireNonceRef.current = headcountHireApplyNonce;
+      applyHeadcountHireReadinessView();
+    }
+  }, [headcountHireApplyNonce, applyHeadcountHireReadinessView]);
 
   const tryLeaveToShellPage = useCallback(
     (page: string): boolean => {
@@ -728,14 +843,23 @@ export default function App({
   }, []);
 
   const allFinancialModels = React.useMemo(
-    () => [...defaultFinancialModels, PAYROLL_SHORTFALL_SCENARIO_MODEL, ...userFinancialModels],
-    [userFinancialModels],
+    () => [
+      ...defaultFinancialModels,
+      PAYROLL_SHORTFALL_SCENARIO_MODEL,
+      ...(headcountHireScenarioActive ? [HIRE_13TH_ATTORNEY_SCENARIO_MODEL] : []),
+      ...userFinancialModels,
+    ],
+    [headcountHireScenarioActive, userFinancialModels],
   );
 
   /** Modelling sidebar/widget: starters only — payroll shortfall is handled via Today / Briefing */
   const modellingCatalogModels = React.useMemo(
-    () => [...defaultFinancialModels, ...userFinancialModels],
-    [userFinancialModels],
+    () => [
+      ...defaultFinancialModels,
+      ...(headcountHireScenarioActive ? [HIRE_13TH_ATTORNEY_SCENARIO_MODEL] : []),
+      ...userFinancialModels,
+    ],
+    [headcountHireScenarioActive, userFinancialModels],
   );
 
   const briefingFinancialSnapshot = React.useMemo(
@@ -754,12 +878,18 @@ export default function App({
     };
   }, [activeFinancePage, briefingFinancialSnapshot]);
 
+  const getBurnDeltaPercent = React.useCallback(
+    (modelId: string) => allFinancialModels.find((m) => m.id === modelId)?.burnDeltaPercent,
+    [allFinancialModels],
+  );
+
   const displayStrategicData = React.useMemo(
     () =>
       mergeStrategicRowsWithModelling(briefingFinancialSnapshot.strategicRows, {
         peerBenchmarkEnabled,
         selectedModelId,
         getScenarioImpact: (id, index) => allFinancialModels.find((m) => m.id === id)?.impact[index],
+        getBurnDeltaPercent,
         peerPageContext: peerBenchmarkPageContext,
       }),
     [
@@ -768,6 +898,7 @@ export default function App({
       selectedModelId,
       allFinancialModels,
       peerBenchmarkPageContext,
+      getBurnDeltaPercent,
     ],
   );
 
@@ -781,9 +912,10 @@ export default function App({
         peerBenchmarkEnabled: customizerPeerEnabled,
         selectedModelId: previewModelId,
         getScenarioImpact: (id, index) => allFinancialModels.find((m) => m.id === id)?.impact[index],
+        getBurnDeltaPercent,
         peerPageContext: customizerPeerPageContext,
       }),
-    [briefingFinancialSnapshot.strategicRows, allFinancialModels],
+    [briefingFinancialSnapshot.strategicRows, allFinancialModels, getBurnDeltaPercent],
   );
 
   const addModelToFinancialGoals = React.useCallback(
@@ -1114,6 +1246,34 @@ export default function App({
 
     // Mock AI response delay
     setTimeout(() => {
+      if (hireFlowPendingRef.current) {
+        if (isAffirmativeHireViewReply(textToSubmit)) {
+          hireFlowPendingRef.current = false;
+          onTeammateChatHistoryChange((prev) =>
+            prev.map((msg) =>
+              (msg as { id?: string }).id === loadingMsgId
+                ? { role: 'ai' as const, content: getHireViewConfirmationResponse() }
+                : msg,
+            ),
+          );
+          applyHeadcountHireReadinessView();
+          return;
+        }
+        hireFlowPendingRef.current = false;
+      }
+
+      if (matchHireAttorneyIntent(textToSubmit)) {
+        hireFlowPendingRef.current = true;
+        onTeammateChatHistoryChange((prev) =>
+          prev.map((msg) =>
+            (msg as { id?: string }).id === loadingMsgId
+              ? { role: 'ai' as const, content: getHireAttorneyNarrativeResponse() }
+              : msg,
+          ),
+        );
+        return;
+      }
+
       const lowerQuery = textToSubmit.toLowerCase();
 
       // Heuristic to detect if user is asking for a new report
@@ -1220,7 +1380,7 @@ export default function App({
       setNewModelScenario('');
       setNewModelFramework('Default');
       setIsCreateModelProcessing(false);
-      toast.success('Firm Intelligence built your scenario model — Preview or Explore to review the plan');
+      toast.success('Clio Accounting built your scenario model — Preview or Explore to review the plan');
     }, delayMs);
   };
 
@@ -1353,7 +1513,7 @@ export default function App({
       const plan: FhoTeammatePlan = {
         title: payload.summarySuggestion.headline,
         context:
-          "Suggested from Firm Intelligence on this widget's Summary view. Follow the steps below in Clio Accounting — navigation labels point to where to work next.",
+          "Suggested from Clio Accounting on this widget's Summary view. Follow the steps below in Clio Accounting — navigation labels point to where to work next.",
         options: [
           {
             id: 'fi-widget-summary-plan',
@@ -1366,9 +1526,9 @@ export default function App({
                     { id: 'fi-sum-fb-1', label: summaryBody },
                     {
                       id: 'fi-sum-fb-2',
-                      label: 'Firm Intelligence expansion',
+                      label: 'Clio Accounting expansion',
                       detail:
-                        'In a live product, Firm Intelligence would add firm-specific data, owners, and due dates here.',
+                        'In a live product, Clio Accounting would add firm-specific data, owners, and due dates here.',
                     },
                   ],
           },
@@ -1410,9 +1570,9 @@ export default function App({
                   },
                   {
                     id: 'fb-2',
-                    label: 'Firm Intelligence expansion',
+                    label: 'Clio Accounting expansion',
                     detail:
-                      'In a live product, Firm Intelligence would add firm-specific data and next steps here.',
+                      'In a live product, Clio Accounting would add firm-specific data and next steps here.',
                   },
                 ],
               },
@@ -1498,8 +1658,6 @@ export default function App({
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
-      <Toaster position="bottom-right" richColors />
-
       <AlertDialog
         open={customizerLeaveDialogOpen}
         onOpenChange={(open) => {
@@ -2139,37 +2297,12 @@ export default function App({
                 }`}
               >
                 {activePage === FP_FINANCIAL_HEALTH_ID && !isCustomizing ? (
-                  <div className="w-full shrink-0 space-y-3">
-                    <div className="flex flex-wrap items-center justify-end gap-2">
-                      <div
-                        className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5"
-                        role="group"
-                        aria-label="Financial Health widget layout"
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setFhoViewMode('detailed')}
-                          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-                            fhoViewMode === 'detailed'
-                              ? 'bg-background text-foreground shadow-sm'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          Detailed
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setFhoViewMode('compact')}
-                          className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-                            fhoViewMode === 'compact'
-                              ? 'bg-background text-foreground shadow-sm'
-                              : 'text-muted-foreground hover:text-foreground'
-                          }`}
-                        >
-                          Compact
-                        </button>
-                      </div>
-                    </div>
+                  <div className="w-full shrink-0">
+                    <FinancialHealthCriticalTodaySection
+                      exceptions={fhoCriticalTodayExceptions}
+                      onTeammateExplorePlan={onTeammateExplorePlan}
+                      onAskTeammate={onShellAskTeammate}
+                    />
                   </div>
                 ) : null}
                 <FinancePageWidgetGrid
@@ -2178,7 +2311,7 @@ export default function App({
                   modellingUi={modellingUiBridge}
                   reportLibrary={reportLibraryForFinance}
                   financialHealthViewMode={
-                    activePage === FP_FINANCIAL_HEALTH_ID ? fhoViewMode : undefined
+                    activePage === FP_FINANCIAL_HEALTH_ID ? 'detailed' : undefined
                   }
                   financialHealthSourcePageId={
                     activePage === FP_FINANCIAL_HEALTH_ID ? FP_FINANCIAL_HEALTH_ID : undefined
@@ -2229,7 +2362,7 @@ export default function App({
                     modellingUi={modellingUiBridge}
                     reportLibrary={reportLibraryForFinance}
                     financialHealthViewMode={
-                      activePage === FP_FINANCIAL_HEALTH_ID ? fhoViewMode : undefined
+                      activePage === FP_FINANCIAL_HEALTH_ID ? 'detailed' : undefined
                     }
                     financialHealthSourcePageId={
                       activePage === FP_FINANCIAL_HEALTH_ID ? FP_FINANCIAL_HEALTH_ID : undefined
@@ -2296,7 +2429,7 @@ export default function App({
                     <DialogHeader>
                       <DialogTitle className="text-gray-900 text-xl">Create scenario model</DialogTitle>
                       <DialogDescription className="text-gray-600 text-sm">
-                        Name your model and describe what you want to stress-test. Firm Intelligence reads your scenario, applies your framework, and builds the chart overlay.
+                        Name your model and describe what you want to stress-test. Clio Accounting reads your scenario, applies your framework, and builds the chart overlay.
                       </DialogDescription>
                     </DialogHeader>
                   </div>
@@ -2329,7 +2462,7 @@ export default function App({
                       />
                       <p className="text-[11px] text-gray-500 leading-relaxed flex items-start gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                        When you create the model, Firm Intelligence interprets this text (hiring, cuts, timing, collections, etc.) and maps it to cash, burn, and runway.
+                        When you create the model, Clio Accounting interprets this text (hiring, cuts, timing, collections, etc.) and maps it to cash, burn, and runway.
                       </p>
                     </div>
                     <div className="space-y-2">
@@ -2353,7 +2486,7 @@ export default function App({
                     {isCreateModelProcessing ? (
                       <span className="text-xs text-gray-600 flex items-center gap-2">
                         <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
-                        Firm Intelligence is reading your scenario and building the model…
+                        Clio Accounting is reading your scenario and building the model…
                       </span>
                     ) : (
                       <span className="text-xs text-gray-400 hidden sm:inline" />
@@ -2452,7 +2585,7 @@ export default function App({
                 </div>
 
                 <div className="bg-white rounded-[8px] shadow-sm border border-gray-200 p-6">
-                  <h2 className="text-base font-bold text-gray-900 mb-4">Firm Intelligence Preferences</h2>
+                  <h2 className="text-base font-bold text-gray-900 mb-4">Clio Accounting Preferences</h2>
                   <div className="space-y-4">
                     <label className="flex items-center justify-between rounded-[8px] border border-gray-200 px-4 py-3">
                       <div>
@@ -2550,7 +2683,7 @@ export default function App({
                   <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
                   <p className="mt-2 max-w-xl text-xs leading-relaxed text-gray-600">
                     Open a report for firm-wide and matter-scoped views. Use the floating search bar or Clio Teammate to
-                    ask Firm Intelligence about your numbers.
+                    ask Clio Accounting about your numbers.
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-3">
@@ -2692,8 +2825,9 @@ export default function App({
           chatInput={chatInput}
           onChatInputChange={setChatInput}
           brandColor={brandColor}
-          placeholder="Search the product or ask your Firm Intelligence…"
+          placeholder="Search or ask Clio Accounting..."
           executedBriefingInsightIds={executedBriefingPlans}
+          todayHasCriticalItem={(shellExceptions ?? []).some((e) => e.severity === 'critical')}
           navigationSection={
             chatInput.trim() && globalSearchResults.length > 0 ? (
               <div className="mb-3">

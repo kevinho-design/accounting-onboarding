@@ -19,7 +19,7 @@ export const BRIEFING_INSIGHT_ITEMS: BriefingInsightListItem[] = [
   {
     id: 'insight-5',
     title: 'Payroll Shortfall — Operating Account Gap',
-    todaySourceLabel: 'Firm Intelligence',
+    todaySourceLabel: 'Clio Accounting',
     time: 'Just now',
     description:
       'Payroll is due in 3 days and your Operating Account is projected to be short by $15,700. Review ranked resolution options now: internal liquidity levers first, then exact-gap financing only if needed.',
@@ -33,7 +33,7 @@ export const BRIEFING_INSIGHT_ITEMS: BriefingInsightListItem[] = [
     todaySourceLabel: 'Revenue Forecasting Skill',
     time: 'Just now',
     description:
-      'Firm Intelligence detected a projected 47-day operating cash shortfall—not just a red indicator. You get a Cash Flow Action Plan: collection reminders on overdue invoices, one-click drafts for bill-ready WIP, an optional Clio Capital bridge before payroll, and confirmation that your 60-day reserve goal can hold through Q2 if you execute.',
+      'Clio Accounting detected a projected 47-day operating cash shortfall—not just a red indicator. You get a Cash Flow Action Plan: collection reminders on overdue invoices, one-click drafts for bill-ready WIP, an optional Clio Capital bridge before payroll, and confirmation that your 60-day reserve goal can hold through Q2 if you execute.',
     icon: Wallet,
     iconBg: 'bg-sky-100',
     iconColor: 'text-sky-800',

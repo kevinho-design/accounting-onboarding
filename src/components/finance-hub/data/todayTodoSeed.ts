@@ -7,7 +7,7 @@ export type TodayOperationalTodo = {
   headline: string;
   sourceLabel: string;
   detail: string;
-  /** Sent to Firm Intelligence when user taps Ask */
+  /** Sent to Clio Accounting when user taps Ask */
   askPrompt: string;
 };
 

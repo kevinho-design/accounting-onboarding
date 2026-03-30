@@ -245,10 +245,6 @@ function SortableCanvasWidget({
         </div>
       </div>
 
-      {widget.id === 'suggested_modelling' && (
-        <p className="text-[11px] text-gray-500 mb-2 -mt-1 pl-7">{widget.desc}</p>
-      )}
-
       {!isFho && !isWidgetDisplayModeToolbarHidden(widget.id) ? (
         <ReportViewToolbar
           className="mb-2"
@@ -323,7 +319,7 @@ const LibraryItem = ({ item }: { item: (typeof WIDGET_CATALOG)[number] }) => {
       </div>
       <div>
         <h4 className="text-[13px] font-semibold text-gray-900 leading-tight mb-1">{item.title}</h4>
-        <p className="text-[11px] text-gray-500 leading-relaxed">{item.desc}</p>
+        {item.desc ? <p className="text-[11px] text-gray-500 leading-relaxed">{item.desc}</p> : null}
       </div>
     </div>
   );
@@ -986,7 +982,7 @@ const DashboardCustomizerContent = forwardRef<DashboardCustomizerHandle, Dashboa
             <div className="flex gap-2 text-blue-700">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <p className="text-[11px] leading-relaxed">
-                Need custom reports? Ask your Firm Intelligence to generate a new widget.
+                Need custom reports? Ask your Clio Accounting to generate a new widget.
               </p>
             </div>
           </div>

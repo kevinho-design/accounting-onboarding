@@ -71,7 +71,7 @@ export function MigrationSuccessScreen({ onGoToAccounting }: MigrationSuccessScr
               <div className="flex-1">
                 <div className="font-medium text-gray-900 mb-1">Weekly Financial Review</div>
                 <div className="text-sm text-gray-600">
-                  Firm Intelligence will prepare your weekly financial briefing every Monday at 8:00 AM
+                  Clio Accounting will prepare your weekly financial briefing every Monday at 8:00 AM
                 </div>
               </div>
             </div>

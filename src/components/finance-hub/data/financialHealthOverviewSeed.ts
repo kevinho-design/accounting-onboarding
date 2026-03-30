@@ -8,7 +8,7 @@ import { FIRM_NAME } from './prototypePersona';
 /** Extended runway narrative (dashboard KPI k4 shows “74 Days” and badges). */
 export const FHO_RUNWAY_NARRATIVE = {
   body:
-    'Trending down from 91 days last month as collections timing stretched on two large matters. Firm Intelligence ties this to your minimum 60-day operating reserve goal — closing the AR gap below moves the runway dial fastest.',
+    'Trending down from 91 days last month as collections timing stretched on two large matters. Clio Accounting ties this to your minimum 60-day operating reserve goal — closing the AR gap below moves the runway dial fastest.',
   priorMonthDays: 91,
 } as const;
 
@@ -143,5 +143,5 @@ export const FHO_UNBILLED_MATTER_ROWS: FhoUnbilledMatterRow[] = [
 ];
 
 export function fhoPersonalizationCopy(userFirstName: string): string {
-  return `${userFirstName}, this page expands each block from your Dashboard Financial Health section — same headline numbers as the home cards, with deeper Firm Intelligence breakdowns for ${FIRM_NAME}. Add or remove widgets anytime from Customize page.`;
+  return `${userFirstName}, this page expands each block from your Dashboard Financial Health section — same headline numbers as the home cards, with deeper Clio Accounting breakdowns for ${FIRM_NAME}. Add or remove widgets anytime from Customize page.`;
 }

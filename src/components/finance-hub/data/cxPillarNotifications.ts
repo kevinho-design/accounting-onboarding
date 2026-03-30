@@ -1,5 +1,5 @@
 /**
- * CX-pillar narrative notifications (prototype seed), aligned with Firm Intelligence vision pillars.
+ * CX-pillar narrative notifications (prototype seed), aligned with Clio Accounting vision pillars.
  * @see .cursor/rules/cx-prototyping-spec.mdc
  */
 
@@ -30,7 +30,7 @@ export const CX_PILLAR_NOTIFICATIONS: CxPillarNotification[] = [
     pillar: 'onboarding',
     pillarLabel: CX_PILLAR_LABEL.onboarding,
     title: 'Firm chart of accounts scaffold ready',
-    body: 'Firm Intelligence mapped your practice structure to a starter CoA and default dimensions. Review exceptions before first close.',
+    body: 'Clio Accounting mapped your practice structure to a starter CoA and default dimensions. Review exceptions before first close.',
     timeLabel: 'Today',
     navigateTo: 'Chart of Accounts',
   },

@@ -10,7 +10,7 @@ export type ReportCollaborateComposerProps = {
 export function ReportCollaborateComposer({
   onSend,
   brandColor = '#0069D1',
-  placeholder = 'Ask Firm Intelligence about this report…',
+  placeholder = 'Ask Clio Accounting about this report…',
 }: ReportCollaborateComposerProps) {
   const [value, setValue] = React.useState('');
 

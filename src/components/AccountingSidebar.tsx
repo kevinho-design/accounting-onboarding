@@ -12,7 +12,6 @@ import {
   ArrowLeft,
   Wifi,
   Plus,
-  Activity,
 } from "lucide-react";
 import { cn } from "./ui/utils";
 
@@ -21,6 +20,8 @@ interface AccountingSidebarProps {
   currentPage: string;
   onBackToClio?: () => void;
   onAddFinancePage?: () => void;
+  /** From Finance Hub: custom Finances canvas pages (ids match Finances:subpage routes). */
+  financeShellNavPages?: { id: string; title: string }[];
   /** Icon-only rail; parent widens the shell column. */
   collapsed?: boolean;
   /** When collapsed, parent with children calls this before navigating so the rail expands. */
@@ -39,72 +40,92 @@ export function AccountingSidebar({
   currentPage,
   onBackToClio,
   onAddFinancePage,
+  financeShellNavPages = [],
   collapsed = false,
   onRequestExpandNav,
 }: AccountingSidebarProps) {
-  const navigationItems: NavigationItem[] = [
-    {
-      icon: LayoutDashboard,
-      label: "Dashboard",
-      onClick: () => onPageChange("Dashboard"),
-    },
-    {
-      icon: CreditCard,
-      label: "Transactions",
-      onClick: () => onPageChange("Transactions"),
-    },
-    {
-      icon: ArrowDownToLine,
-      label: "Funds In",
-      onClick: () => onPageChange("Funds In"),
-      children: [
-        { label: "Billing", onClick: () => onPageChange("Funds In") },
-        { label: "Payments", onClick: () => onPageChange("Funds In") },
-        { label: "Trust", onClick: () => onPageChange("Funds In") },
-      ],
-    },
-    {
-      icon: ArrowUpFromLine,
-      label: "Funds Out",
-      onClick: () => onPageChange("Funds Out:payables"),
-      children: [
-        { label: "Payables", route: "payables", onClick: () => onPageChange("Funds Out:payables") },
-        { label: "Expenses", route: "expenses", onClick: () => onPageChange("Funds Out:expenses") },
-        { label: "Vendors", route: "vendors", onClick: () => onPageChange("Funds Out:vendors") },
-      ],
-    },
-    {
-      icon: Users,
-      label: "Payroll",
-      onClick: () => onPageChange("Payroll"),
-    },
-    {
-      icon: DollarSign,
-      label: "Finances",
-      onClick: () => onPageChange("Finances"),
-      children: [
-        { label: "Financial Health", route: "fp_financial_health", icon: Activity, onClick: () => onPageChange("Finances:fp_financial_health") },
-        { label: "Reports", route: "Reports", icon: FileText, onClick: () => onPageChange("Finances:Reports") },
-        { label: "Strategic Dashboard", route: "fp_default", icon: LayoutDashboard, onClick: () => onPageChange("Finances:fp_default") },
-        { label: "Add a custom view", icon: Plus, onClick: () => { onPageChange("Finances"); onAddFinancePage?.(); } },
-      ],
-    },
-    {
-      icon: List,
-      label: "Chart of Accounts",
-      onClick: () => onPageChange("Chart of Accounts"),
-    },
-    {
-      icon: FileText,
-      label: "Documents",
-      onClick: () => onPageChange("Documents"),
-    },
-    {
-      icon: Wifi,
-      label: "Connections",
-      onClick: () => onPageChange("Connections"),
-    },
-  ];
+  const navigationItems: NavigationItem[] = React.useMemo(
+    () => [
+      {
+        icon: LayoutDashboard,
+        label: "Dashboard",
+        onClick: () => onPageChange("Dashboard"),
+      },
+      {
+        icon: CreditCard,
+        label: "Transactions",
+        onClick: () => onPageChange("Transactions"),
+      },
+      {
+        icon: ArrowDownToLine,
+        label: "Funds In",
+        onClick: () => onPageChange("Funds In"),
+        children: [
+          { label: "Billing", onClick: () => onPageChange("Funds In") },
+          { label: "Payments", onClick: () => onPageChange("Funds In") },
+          { label: "Trust", onClick: () => onPageChange("Funds In") },
+        ],
+      },
+      {
+        icon: ArrowUpFromLine,
+        label: "Funds Out",
+        onClick: () => onPageChange("Funds Out:payables"),
+        children: [
+          { label: "Payables", route: "payables", onClick: () => onPageChange("Funds Out:payables") },
+          { label: "Expenses", route: "expenses", onClick: () => onPageChange("Funds Out:expenses") },
+          { label: "Vendors", route: "vendors", onClick: () => onPageChange("Funds Out:vendors") },
+        ],
+      },
+      {
+        icon: Users,
+        label: "Payroll",
+        onClick: () => onPageChange("Payroll"),
+      },
+      {
+        icon: DollarSign,
+        label: "Finances",
+        onClick: () => onPageChange("Finances"),
+        children: [
+          ...financeShellNavPages.map((p) => ({
+            label: p.title,
+            route: p.id,
+            icon: LayoutDashboard,
+            onClick: () => onPageChange(`Finances:${p.id}`),
+          })),
+          {
+            label: "Reports",
+            route: "Reports",
+            icon: FileText,
+            onClick: () => onPageChange("Finances:Reports"),
+          },
+          {
+            label: "Add a custom view",
+            icon: Plus,
+            onClick: () => {
+              onPageChange("Finances");
+              onAddFinancePage?.();
+            },
+          },
+        ],
+      },
+      {
+        icon: List,
+        label: "Chart of Accounts",
+        onClick: () => onPageChange("Chart of Accounts"),
+      },
+      {
+        icon: FileText,
+        label: "Documents",
+        onClick: () => onPageChange("Documents"),
+      },
+      {
+        icon: Wifi,
+        label: "Connections",
+        onClick: () => onPageChange("Connections"),
+      },
+    ],
+    [financeShellNavPages, onPageChange, onAddFinancePage],
+  );
 
   const handleParentClick = (item: NavigationItem) => {
     if (collapsed && item.children?.length) {
@@ -170,7 +191,7 @@ export function AccountingSidebar({
                       const ChildIcon = child.icon;
                       return (
                         <button
-                          key={child.label}
+                          key={child.route ?? `fin-child-${child.label}`}
                           type="button"
                           onClick={child.onClick}
                           className={cn(

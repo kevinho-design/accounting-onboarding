@@ -17,9 +17,10 @@ import type { TeammateChatMessage } from "./finance-hub/components/clio-teammate
 import type { FhoTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
 import { AgentAction, Exception } from "./agents/AgentTypes";
 import {
-  UNIFIED_TEAMMATE_TODAY_ACTIONS,
+  RYAN_HANDLED_AGENT_ACTIONS,
   UNIFIED_TEAMMATE_TODAY_EXCEPTIONS,
 } from "./teammateTodayUnifiedFeed";
+import { FP_HEADCOUNT_HIRE_READINESS_PAGE_ID } from "./finance-hub/components/financeWidgetCatalog";
 
 const ACCOUNTING_NAV_RAIL_STORAGE_KEY = "accounting-shell-nav-rail-width-px";
 const ACCOUNTING_NAV_WIDTH_MIN = 176;
@@ -60,6 +61,7 @@ const ACCOUNTING_SHELL_SUGGESTIONS: Record<"jennifer" | "sarah" | "ryan", string
     "Summarize what AI did overnight",
   ],
   ryan: [
+    "Can we afford to hire a 13th attorney?",
     "What's our cash runway and operating cushion this quarter?",
     "Which approvals are blocking cash or trust movements?",
     "How are we tracking against firm financial goals?",
@@ -74,6 +76,8 @@ interface AccountingAppProps {
   onReviewFinancialGoals: () => void;
   onRecentActionsChange?: (actions: AgentAction[]) => void;
   onExceptionsChange?: (exceptions: Exception[]) => void;
+  /** Shell Today exceptions for Finances (e.g. Financial Health critical strip). */
+  exceptions?: Exception[];
   onAskTeammate?: (message: string) => void;
   onOpenRail?: () => void;
   activeUser?: "jennifer" | "sarah" | "ryan";
@@ -84,6 +88,8 @@ interface AccountingAppProps {
   onTeammateExplorePlan: (plan: FhoTeammatePlan) => void;
   financeChatSubmitRef: React.MutableRefObject<((text: string) => void) | null>;
   onTeammateSparkle: () => void;
+  /** Bumps when user confirms hire NQL demo; shell navigates to Finances so FHO can apply the preset page. */
+  headcountHireApplyNonce?: number;
 }
 
 export function AccountingApp({
@@ -92,6 +98,7 @@ export function AccountingApp({
   onReviewFinancialGoals,
   onRecentActionsChange,
   onExceptionsChange,
+  exceptions: shellExceptions,
   onAskTeammate,
   onOpenRail,
   activeUser = "jennifer",
@@ -102,6 +109,7 @@ export function AccountingApp({
   onTeammateExplorePlan,
   financeChatSubmitRef,
   onTeammateSparkle,
+  headcountHireApplyNonce = 0,
 }: AccountingAppProps) {
   const [currentPage, setCurrentPage] = React.useState(initialPage);
   const [transactionFilter, setTransactionFilter] = React.useState<string>("all");
@@ -110,6 +118,7 @@ export function AccountingApp({
   const [shellChatInput, setShellChatInput] = React.useState("");
   const addPageRef = React.useRef<(() => void) | null>(null);
   const financeNavGuardRef = React.useRef<{ tryLeaveToShellPage: (page: string) => boolean } | null>(null);
+  const [financeShellNavPages, setFinanceShellNavPages] = React.useState<{ id: string; title: string }[]>([]);
 
   const [isMdViewport, setIsMdViewport] = React.useState(
     () => typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches,
@@ -135,6 +144,24 @@ export function AccountingApp({
   const [isResizingShellNav, setIsResizingShellNav] = React.useState(false);
   const isShellNavCollapsedRef = React.useRef(false);
   isShellNavCollapsedRef.current = isShellNavCollapsed;
+
+  /** When Clio Teammate rail opens, collapse left nav for space; restore prior expand state when it closes. */
+  const prevTeammateOpenRef = React.useRef(false);
+  const shellNavWasExpandedBeforeTeammateRef = React.useRef<boolean | null>(null);
+  React.useEffect(() => {
+    if (teammateOpen && !prevTeammateOpenRef.current) {
+      shellNavWasExpandedBeforeTeammateRef.current = !isShellNavCollapsed;
+      setIsShellNavCollapsed(true);
+    } else if (!teammateOpen && prevTeammateOpenRef.current) {
+      const restoreExpanded = shellNavWasExpandedBeforeTeammateRef.current === true;
+      shellNavWasExpandedBeforeTeammateRef.current = null;
+      if (restoreExpanded) {
+        setIsShellNavCollapsed(false);
+      }
+    }
+    prevTeammateOpenRef.current = teammateOpen;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only capture nav width on teammate open/close edges; isShellNavCollapsed is read from the render that flipped teammateOpen
+  }, [teammateOpen]);
 
   React.useEffect(() => {
     try {
@@ -199,6 +226,17 @@ export function AccountingApp({
     [currentPage],
   );
 
+  const prevHeadcountHireNonceRef = React.useRef(0);
+  React.useEffect(() => {
+    if (
+      headcountHireApplyNonce > 0 &&
+      headcountHireApplyNonce !== prevHeadcountHireNonceRef.current
+    ) {
+      prevHeadcountHireNonceRef.current = headcountHireApplyNonce;
+      requestShellNavigation(`Finances:${FP_HEADCOUNT_HIRE_READINESS_PAGE_ID}`);
+    }
+  }, [headcountHireApplyNonce, requestShellNavigation]);
+
   const isFinanceHubRoute =
     currentPage.startsWith("Finances:") || currentPage === "Finances";
   const suggestedQuestions =
@@ -208,7 +246,7 @@ export function AccountingApp({
   React.useEffect(() => {
     if (activeUser !== "ryan") return;
     onExceptionsChange?.(UNIFIED_TEAMMATE_TODAY_EXCEPTIONS);
-    onRecentActionsChange?.(UNIFIED_TEAMMATE_TODAY_ACTIONS);
+    onRecentActionsChange?.(RYAN_HANDLED_AGENT_ACTIONS);
   }, [activeUser, onExceptionsChange, onRecentActionsChange]);
 
   const navigateToTransactions = (filter: string = "all", month?: string) => {
@@ -229,6 +267,10 @@ export function AccountingApp({
           onAddPageRef={addPageRef}
           embeddedInAccountingShell
           shellNavLeftInsetPx={shellNavEffectiveWidthPx}
+          shellExceptions={shellExceptions}
+          onShellAskTeammate={onAskTeammate}
+          onShellNavigateToConnections={navigateToConnections}
+          onShellNavigateToTransactionsFiltered={navigateToTransactions}
           teammateOpen={teammateOpen}
           onTeammateOpenChange={onTeammateOpenChange}
           onTeammateChatHistoryChange={onTeammateChatHistoryChange}
@@ -237,6 +279,8 @@ export function AccountingApp({
           onTeammateSparkle={onTeammateSparkle}
           navigationGuardRef={financeNavGuardRef}
           onShellNavigate={setCurrentPage}
+          headcountHireApplyNonce={headcountHireApplyNonce}
+          onFinanceCustomNavChange={setFinanceShellNavPages}
         />
       );
     }
@@ -265,6 +309,7 @@ export function AccountingApp({
               onAskTeammate={onAskTeammate}
               onTeammateExplorePlan={onTeammateExplorePlan}
               onOpenRail={onOpenRail}
+              teammateTodayExceptions={shellExceptions}
               onNavigateToTransactionsFiltered={navigateToTransactions}
               onNavigateToFinancialHealth={(scrollTo) => {
                 setFhoScrollTarget(scrollTo);
@@ -324,6 +369,10 @@ export function AccountingApp({
             onAddPageRef={addPageRef}
             embeddedInAccountingShell
             shellNavLeftInsetPx={shellNavEffectiveWidthPx}
+            shellExceptions={shellExceptions}
+            onShellAskTeammate={onAskTeammate}
+            onShellNavigateToConnections={navigateToConnections}
+            onShellNavigateToTransactionsFiltered={navigateToTransactions}
             teammateOpen={teammateOpen}
             onTeammateOpenChange={onTeammateOpenChange}
             onTeammateChatHistoryChange={onTeammateChatHistoryChange}
@@ -332,6 +381,8 @@ export function AccountingApp({
             onTeammateSparkle={onTeammateSparkle}
             navigationGuardRef={financeNavGuardRef}
             onShellNavigate={setCurrentPage}
+            headcountHireApplyNonce={headcountHireApplyNonce}
+            onFinanceCustomNavChange={setFinanceShellNavPages}
           />
         );
       case "Chart of Accounts":
@@ -398,6 +449,7 @@ export function AccountingApp({
             onPageChange={requestShellNavigation}
             onBackToClio={onBackToClio}
             onAddFinancePage={() => addPageRef.current?.()}
+            financeShellNavPages={financeShellNavPages}
             collapsed={shellSidebarCollapsed}
             onRequestExpandNav={() => setIsShellNavCollapsed(false)}
           />
@@ -436,7 +488,7 @@ export function AccountingApp({
         <div className="min-h-0 min-w-0 flex-1">{renderPage()}</div>
 
         {/* Column 3: Specialized Financial Team Rail - Now controlled by global FAB */}
-        {/* Removed: SpecializedTeammateRail - using global Firm Intelligence rail (AmbientCFORail) with FAB instead */}
+        {/* Removed: SpecializedTeammateRail - using global Clio Accounting rail (AmbientCFORail) with FAB instead */}
       </div>
 
       {!isFinanceHubRoute ? (
@@ -452,7 +504,8 @@ export function AccountingApp({
           chatInput={shellChatInput}
           onChatInputChange={setShellChatInput}
           brandColor="#0069D1"
-          placeholder="Search the product or ask your Firm Intelligence…"
+          placeholder="Search or ask Clio Accounting..."
+          todayHasCriticalItem={(shellExceptions ?? []).some((e) => e.severity === "critical")}
         />
       ) : null}
     </>

@@ -13,17 +13,25 @@ import {
   collectionTrendSeries,
   partnerRealizationRows,
 } from './dashboardMetricSeed';
+import { getFhoTeammatePlan } from './fhoTeammateBreakdowns';
+import { getFinanceWidgetExploreAction } from './financeWidgetDrillDown';
 
 export type CatalogWidgetSuggestion = {
   text: string;
+  /** Secondary line under the title (e.g. Teammate plan option summary) */
+  detail?: string;
   /** Optional expanded narrative for Clio Teammate Plan when the user taps this suggestion */
   planSummary?: string;
+  /** When true, tap opens the same full Teammate plan as the widget footer "View suggestions" CTA */
+  openFullTeammatePlan?: boolean;
 };
 
 export type CatalogWidgetSummary = {
+  /** Plain-language firm position for Summary (below toolbar, above KPIs) */
+  positionBrief: string;
   kpis: { label: string; value: string }[];
   insight: string;
-  /** Firm Intelligence — actionable bullets in Summary mode */
+  /** Clio Accounting — actionable bullets in Summary mode */
   suggestions: CatalogWidgetSuggestion[];
 };
 
@@ -113,6 +121,22 @@ function sg(...lines: [string, string, string?]): CatalogWidgetSuggestion[] {
   return out;
 }
 
+/** Summary-mode bullets mirror Plan tab options when the widget uses the same Teammate flow as "View suggestions". */
+function teammatePlanCatalogSuggestions(
+  widgetId: string,
+  summaryOptions?: CatalogWidgetSummaryOptions,
+): CatalogWidgetSuggestion[] | null {
+  const explore = getFinanceWidgetExploreAction(widgetId, { reportName: summaryOptions?.reportName });
+  if (explore.type !== 'teammate_prompt') return null;
+  const plan = getFhoTeammatePlan(widgetId);
+  if (!plan?.options?.length) return null;
+  return plan.options.map((opt) => ({
+    text: opt.title,
+    ...(opt.summary ? { detail: opt.summary } : {}),
+    openFullTeammatePlan: true,
+  }));
+}
+
 export function getCatalogWidgetSummary(
   widgetId: string,
   briefingSnapshot: BriefingFinancialSnapshot,
@@ -125,10 +149,12 @@ export function getCatalogWidgetSummary(
   const runwayDown = runwayDeclined(prev, last);
   const burnUp = burnIncreased(prev, last);
 
+  const base = ((): CatalogWidgetSummary | null => {
   switch (widgetId) {
     case 'embedded_report': {
       const rn = options?.reportName?.trim() || 'Report';
       return {
+        positionBrief: `Where you stand: "${rn}" on this page mirrors live Finances data—spot outliers here, then drill into the full report for filters and line detail.`,
         kpis: [
           { label: 'Report', value: rn },
           { label: 'View', value: 'Snapshot on page' },
@@ -139,7 +165,7 @@ export function getCatalogWidgetSummary(
         suggestions: sg(
           `Open the full "${rn}" report to confirm period, basis, and any excluded entities before acting.`,
           'Reconcile notable movements to billing and cash entries this week so leadership sees a defensible story.',
-          'Ask Firm Intelligence in Chat to tie this report to your firm goals and suggest one priority action.',
+          'Ask Clio Accounting in Chat to tie this report to your firm goals and suggest one priority action.',
         ),
       };
     }
@@ -155,6 +181,10 @@ export function getCatalogWidgetSummary(
         : 'Keep billing and time-entry cadence steady so recognized revenue supports the runway trajectory.';
       const s3 = 'Pair this chart with Operating cash and A/R aging to ensure one narrative across widgets.';
       return {
+        positionBrief:
+          last != null
+            ? `Your firm is at about ${r} months of runway as of ${month} with ${fmtMoney(last.cash)} on the cash model${runwayDown || cashDown ? ' — runway or cash moved against you vs. last month, so tighten the story before partners ask.' : ' — hold billing and collections cadence so the trend stays credible.'}`
+            : 'Runway will show here once the latest strategic month is available.',
         kpis: [
           { label: 'Latest month', value: month },
           { label: 'Runway (months)', value: `${r}` },
@@ -173,6 +203,10 @@ export function getCatalogWidgetSummary(
         ? 'Net operating flow weakened — send payment reminders on aging receivables and confirm large payables dates with AP.'
         : 'Maintain collections cadence on accounts past 30 days so inflows stay aligned with the cash-in index.';
       return {
+        positionBrief:
+          b != null
+            ? `Operating flow for ${b.month} shows cash-in ${b.in} vs. cash-out ${b.out} on the prototype index${netBad ? ' — net flow softened vs. prior month, so timing or collections may be the lever.' : ' — net flow is holding; keep watching payables timing vs. collections.'}`
+            : 'Cash flow indices populate from your strategic series.',
         kpis: [
           { label: 'Latest month', value: b?.month ?? month },
           { label: 'Cash in (index)', value: b != null ? String(b.in) : '—' },
@@ -196,6 +230,7 @@ export function getCatalogWidgetSummary(
           ? 'High balance in 61–90 / 90+ — run a partner-approved reminder wave and flag matters needing payment plans.'
           : 'Review largest buckets weekly; tie outreach to firm days-to-collect goals.';
       return {
+        positionBrief: `You are carrying ${fmtMoney(total)} in A/R${top ? `; the largest bucket is ${top.name} at ${fmtMoney(top.value)}` : ''}${late > 12000 ? ' — elevated late-stage balances mean collections should be a this-week priority.' : ' — keep weekly rhythm on the riskiest buckets so days-to-collect goals stay honest.'}`,
         kpis: [
           { label: 'Total A/R', value: fmtMoney(total) },
           { label: 'Largest bucket', value: top?.name ?? '—' },
@@ -218,6 +253,7 @@ export function getCatalogWidgetSummary(
           ? 'Payroll leads the mix and burn is up — validate headcount vs. matter load before adding fixed cost.'
           : `Scrutinize "${top?.name ?? 'top'}" spend: cancel or renegotiate low-ROI subscriptions and marketing tests.`;
       return {
+        positionBrief: `Expense mix totals ${fmtMoney(total)}${top ? ` with ${top.name} leading at ${fmtMoney(top.value)}` : ''}${burnUp && top?.name === 'Payroll' ? ' — payroll-heavy mix while burn is up warrants a headcount vs. load check.' : ' — category mix should line up with what leadership expects in the P&L narrative.'}`,
         kpis: [
           { label: 'Expense mix total', value: fmtMoney(total) },
           { label: 'Top category', value: top?.name ?? '—' },
@@ -238,6 +274,7 @@ export function getCatalogWidgetSummary(
         ? 'Behind revenue pace — accelerate billing for completed work and confirm pipeline coverage for the remainder of the quarter.'
         : 'Hold a short billing stand-up: unblock prebills and reduce aged WIP that is not yet invoiced.';
       return {
+        positionBrief: `Revenue progress is at ${centerPct}% of plan with ${fmtMoney(footerAmount)} recognized toward the quarter${behind ? ' — you are behind pace, so billing throughput and pipeline coverage need attention now.' : ' — pace is workable if you protect billing rhythm through quarter-end.'}`,
         kpis: [
           { label: 'Progress', value: `${centerPct}%` },
           { label: 'Current Q3 rev', value: fmtMoney(footerAmount) },
@@ -256,6 +293,10 @@ export function getCatalogWidgetSummary(
         ? 'Operating cash is trending down vs. last month — prioritize collections and confirm large outflows (payroll, distributions) are expected.'
         : 'Lock the cash bridge narrative with your bookkeeper: inflows vs. billing timing, outflows vs. payroll and rent.';
       return {
+        positionBrief:
+          last != null
+            ? `Operating cash is ${fmtMoney(last.cash)} for ${month} with ${fmtMoney(last.burn)} monthly burn${cashDown ? ' — cash dipped vs. last month, so collections timing and large payouts should be validated this week.' : ' — levels are steady vs. last month; keep the cash bridge narrative tight for leadership.'}`
+            : 'Strategic cash will display when latest month data is on the dashboard.',
         kpis: [
           { label: 'Latest month', value: month },
           { label: 'Operating cash', value: last != null ? fmtMoney(last.cash) : '—' },
@@ -276,6 +317,10 @@ export function getCatalogWidgetSummary(
         ? 'Monthly burn rose — challenge recurring subscriptions and discretionary programs this week.'
         : 'Burn is stable — preserve capacity for strategic hires or tech that improves realization.';
       return {
+        positionBrief:
+          last != null
+            ? `Monthly burn is ${fmtMoney(last.burn)} with ${last.runway} months runway in view for ${month}${burnUp ? ' — burn ticked up; recurring and discretionary lines deserve a short review.' : ' — burn is controlled relative to last month; align spend story with runway before adding fixed cost.'}`
+            : 'Burn and runway figures appear with strategic month data.',
         kpis: [
           { label: 'Latest month', value: month },
           { label: 'Monthly burn', value: last != null ? fmtMoney(last.burn) : '—' },
@@ -300,6 +345,7 @@ export function getCatalogWidgetSummary(
           ? `Practice area "${smallest.area}" is lightest on revenue — assign a lead partner to review pipeline, rates, and matter mix there.`
           : 'Rebalance marketing and BD spend toward areas underrepresented vs. strategic goal mix.';
       return {
+        positionBrief: `Recognized revenue totals $${total}k across ${practiceAreaRevenueVsGoal.length} practice areas${top ? `; ${top.area} leads at $${top.revenue}k` : ''}${smallest && smallest.revenue < 120 ? ` — ${smallest.area} is light vs. peers in this prototype; balance BD and staffing there.` : ' — check mix vs. firm strategy so one area does not crowd out the plan.'}`,
         kpis: [
           { label: 'Practice areas', value: String(practiceAreaRevenueVsGoal.length) },
           { label: 'Total revenue ($k)', value: String(total) },
@@ -315,6 +361,7 @@ export function getCatalogWidgetSummary(
     }
     case 'billing_health':
       return {
+        positionBrief: `Billing health reads ${billingHealthKpis.billedVsGoal} vs. goal with ${billingHealthKpis.draftWip} draft WIP and ${billingHealthKpis.realizationProxy} realization — that bundle is your near-term cash and leakage story.`,
         kpis: [
           { label: 'Draft WIP', value: billingHealthKpis.draftWip },
           { label: 'Billed / goal', value: billingHealthKpis.billedVsGoal },
@@ -335,6 +382,10 @@ export function getCatalogWidgetSummary(
           ? 'Collections dipped vs. prior month — confirm no large invoices slipped to next period.'
           : 'Keep weekly collections huddles focused on top 10 overdue accounts by amount.';
       return {
+        positionBrief:
+          lastCt != null
+            ? `Collections ran $${lastCt.collections}k with DSO at ${lastCt.dso} days in ${lastCt.month}${dsoWorsening() ? ' — DSO worsened; tighten cadence before quarter-end.' : collectionsSoftening() ? ' — collections softened vs. prior month; confirm timing, not just noise.' : ' — trend is steady; keep focus on top overdue balances.'}`
+            : 'Collection trend data will show when series is available.',
         kpis: [
           { label: 'Latest month', value: lastCt?.month ?? '—' },
           { label: 'Collections ($k)', value: lastCt != null ? String(lastCt.collections) : '—' },
@@ -362,6 +413,7 @@ export function getCatalogWidgetSummary(
           ? `Partner "${worst.partner}" is well below target — schedule a short scope and write-down review.`
           : 'Share aggregate realization vs. target in practice group meetings with one concrete coaching ask.';
       return {
+        positionBrief: `Firm average realization is ${avg}% across ${partnerRealizationRows.length} partners${best ? `; ${best.partner} leads at ${best.realization}%` : ''}${worst && worst.realization < worst.target - 5 ? ` — ${worst.partner} is materially below target; coaching should precede rate talk.` : ' — use the spread to coach scope and billing hygiene before changing rates.'}`,
         kpis: [
           { label: 'Partners', value: String(partnerRealizationRows.length) },
           { label: 'Avg realization', value: `${avg}%` },
@@ -383,6 +435,10 @@ export function getCatalogWidgetSummary(
       const total =
         r != null ? r.hourly + r.flatFee + r.referral + r.other : 0;
       return {
+        positionBrief:
+          r != null
+            ? `Gross revenue is about ${round1(total)}k in ${r.month} with ${largestStreamKey(r)} as the largest stream — watch whether mix shifts match firm strategy, not just volume.`
+            : 'Revenue stream trend populates from your series.',
         kpis: [
           { label: 'Latest month', value: r?.month ?? '—' },
           { label: 'Total gross ($k)', value: total > 0 ? String(round1(total)) : '—' },
@@ -402,6 +458,10 @@ export function getCatalogWidgetSummary(
       const total =
         r != null ? r.Payroll + r.Marketing + r.Software + r.Office : 0;
       return {
+        positionBrief:
+          r != null
+            ? `Operating expenses total ~${round1(total)}k in ${r.month} with payroll at ${r.Payroll}k — payroll share vs. revenue is the usual lever if burn is a concern.`
+            : 'Expense trend data will appear for the latest month.',
         kpis: [
           { label: 'Latest month', value: r?.month ?? '—' },
           { label: 'Total OpEx ($k)', value: total > 0 ? String(round1(total)) : '—' },
@@ -424,12 +484,16 @@ export function getCatalogWidgetSummary(
         ? 'Operating margin compressed vs. prior month — prioritize revenue pull-forwards and pause discretionary spend.'
         : 'Margin healthy — reinvest selectively in BD or tools that improve realization.';
       return {
+        positionBrief:
+          lastPl != null
+            ? `Operating margin is ${lastPl.operatingMarginPct}% in ${lastPl.month} (about ${avgMargin}% average in this window)${marginCompressed(briefingSnapshot) ? ' — margin compressed vs. prior month; split revenue vs. expense drivers for partners.' : ' — margin has headroom if you protect revenue pace and OpEx discipline.'}`
+            : 'Margin metrics appear with profitability trend data.',
         kpis: [
           { label: 'Latest month', value: lastPl?.month ?? '—' },
           { label: 'Operating margin', value: lastPl != null ? `${lastPl.operatingMarginPct}%` : '—' },
           { label: 'Avg margin (window)', value: `${avgMargin}%` },
         ],
-        insight: 'Composed chart pairs revenue and OpEx bars with margin %—full mode shows month-by-month detail.',
+        insight: 'Composed chart pairs revenue and OpEx bars with margin %; the detail table under the chart lists month-by-month values.',
         suggestions: sg(
           s1,
           'Split the last move: revenue dip vs. expense creep — partners hear one causal story, not two.',
@@ -439,6 +503,8 @@ export function getCatalogWidgetSummary(
     }
     case 'fho_firm_goals_detail':
       return {
+        positionBrief:
+          'You are tracking three firm goals (net revenue, days to collect, operating reserve) live against plan — Clio Accounting uses this strip to prioritize what to fix first.',
         kpis: [
           { label: 'Goals tracked', value: '3' },
           { label: 'Lens', value: 'Net revenue · DTC · Reserve' },
@@ -446,19 +512,23 @@ export function getCatalogWidgetSummary(
         ],
         insight: 'Goal strip ties recommendations to declared firm targets—expand for progress and narratives.',
         suggestions: sg(
-          'For any goal behind pace, confirm whether the target or timeline still matches firm strategy — update so Firm Intelligence prioritizes the right work.',
+          'For any goal behind pace, confirm whether the target or timeline still matches firm strategy — update so Clio Accounting prioritizes the right work.',
           'Filter alerts and teammate recommendations through these goals so fixes move the metrics leadership cares about.',
           'Draft a short partner note: status, one risk, one decision per at-risk goal.',
         ),
       };
     case 'fho_operating_cash_detail':
       return {
+        positionBrief:
+          last != null
+            ? `Operating cash is ${fmtMoney(last.cash)} with ${fmtMoney(last.burn)} monthly burn on the latest read${cashDown ? ' — cash moved down; validate inflows vs. billing and large outflows.' : ' — levels support a clear bridge story for finance and partners.'}`
+            : 'Operating cash detail fills in when strategic data is present.',
         kpis: [
           { label: 'Focus', value: 'Operating cash' },
           { label: 'Latest cash', value: last != null ? fmtMoney(last.cash) : '—' },
           { label: 'Burn', value: last != null ? fmtMoney(last.burn) : '—' },
         ],
-        insight: 'Bridge table explains cash movement vs Dashboard KPI—full mode includes driver rows.',
+        insight: 'Bridge table explains cash movement vs Dashboard KPI; driver rows sit under the chart.',
         suggestions: sg(
           cashDown
             ? 'Cash slipped — run the bridge with your bookkeeper and prioritize collections on the largest overdue invoices.'
@@ -469,6 +539,7 @@ export function getCatalogWidgetSummary(
       };
     case 'fho_revenue_detail':
       return {
+        positionBrief: `Revenue is at ${briefingSnapshot.revenue.centerPct}% of plan in this lens with recognized plus pipeline context — ${briefingSnapshot.revenue.centerPct < 75 ? 'pace needs a billing and pipeline push.' : 'pace is defensible if you protect throughput.'}`,
         kpis: [
           { label: 'Revenue lens', value: 'Recognized + pipeline' },
           { label: 'Progress', value: `${briefingSnapshot.revenue.centerPct}%` },
@@ -485,22 +556,27 @@ export function getCatalogWidgetSummary(
       };
     case 'fho_ar_at_risk_detail':
       return {
+        positionBrief: `A/R at risk totals ${fmtMoney(sumAr(briefingSnapshot))} with concentration in aging buckets — ${arBucket(briefingSnapshot.arAging, (n) => n.includes('90')) > 4000 ? '90+ exposure is material; partner-level triage may be warranted.' : 'prioritize 61–90 outreach before month-end.'}`,
         kpis: [
           { label: 'A/R at risk', value: fmtMoney(sumAr(briefingSnapshot)) },
           { label: '60+ watch', value: 'Per bucket' },
           { label: 'Actions', value: 'Collections' },
         ],
-        insight: 'Surfaces overdue concentration—full view lists client patterns aligned with briefing insights.',
+        insight: 'Surfaces overdue concentration; bucket table under the chart lists pattern detail.',
         suggestions: sg(
           arBucket(briefingSnapshot.arAging, (n) => n.includes('90')) > 4000
             ? '90+ balance is material — escalate to responsible partners with a payment plan or litigation triage.'
             : 'Run a prioritized reminder list for 61–90 day accounts before month-end.',
           'Tie outreach to days-to-collect goals; update expected pay dates after each client touch.',
-          'Open View suggestions for collections options Firm Intelligence recommends.',
+          'Open View suggestions for collections options Clio Accounting recommends.',
         ),
       };
     case 'fho_runway_detail':
       return {
+        positionBrief:
+          last != null
+            ? `Runway is ${last.runway} months on ${fmtMoney(last.cash)} cash in this view${runwayDown || cashDown ? ' — runway or cash pressure means collections and spend timing should be paired in partner comms.' : ' — trajectory is stable enough to scenario-test before big commitments.'}`
+            : 'Runway detail appears with latest strategic inputs.',
         kpis: [
           { label: 'Runway', value: last != null ? `${last.runway} mo` : '—' },
           { label: 'Cash', value: last != null ? fmtMoney(last.cash) : '—' },
@@ -517,12 +593,14 @@ export function getCatalogWidgetSummary(
       };
     case 'fho_iolta_trust_detail':
       return {
+        positionBrief:
+          'Trust and IOLTA balances need a clean three-way match each close — your position is “compliance-first” before any operating-cash shortcuts.',
         kpis: [
           { label: 'Trust focus', value: 'IOLTA' },
           { label: 'Compliance', value: 'Checklist' },
           { label: 'Balances', value: 'Prototype' },
         ],
-        insight: 'Trust balances and compliance rows are prototype—full mode shows checklist-style detail.',
+        insight: 'Trust balances and compliance rows are prototype; checklist-style detail sits under the summary chart.',
         suggestions: sg(
           'Before period close, run three-way match on trust accounts and attach supporting transfers for any variance.',
           'Confirm client-matter assignment on retainer deposits flagged in compliance narratives.',
@@ -531,12 +609,14 @@ export function getCatalogWidgetSummary(
       };
     case 'fho_unbilled_detail':
       return {
+        positionBrief:
+          'Unbilled WIP is your fastest internal cash lever — oldest matters should invoice or write down first so realization and collections stay credible.',
         kpis: [
           { label: 'WIP lens', value: 'Unbilled time' },
           { label: 'Aging', value: 'Ranked matters' },
           { label: 'Goal tie-in', value: 'Realization' },
         ],
-        insight: 'Ranks matters by aged WIP—open full for the complete table aligned with billing health.',
+        insight: 'Ranks matters by aged WIP; the matter table under the chart matches billing health priorities.',
         suggestions: sg(
           'Invoice matters with the oldest WIP first — improves near-term cash and cuts write-off risk.',
           'Pair high WIP matters to collection goals so reminders stay goal-aligned.',
@@ -545,26 +625,30 @@ export function getCatalogWidgetSummary(
       };
     case 'ambient_cfo':
       return {
+        positionBrief:
+          "This week's briefing is your exception-first queue — a short position read: tackle one insight with an owner and due date so the list does not decay into noise.",
         kpis: [
           { label: 'Insights', value: 'This week' },
           { label: 'Mode', value: 'Live briefing' },
           { label: 'Actions', value: 'Take action / Explore' },
         ],
-        insight: 'Summary shows the briefing strip condensed; Chart uses compact layout; Full shows every insight.',
+        insight: 'Summary condenses the strip; Chart shows the full briefing with every insight.',
         suggestions: sg(
           'Pick one briefing insight, assign an owner and due date — don’t let the list become background noise.',
-          'Use Take action when Firm Intelligence recommends a plan that moves a firm goal.',
+          'Use Take action when Clio Accounting recommends a plan that moves a firm goal.',
           'Use Explore data when you need chart backup before deciding — then log the decision for your team.',
         ),
       };
     case 'digital_twin':
       return {
+        positionBrief:
+          'Digital Twin stress-tests runway and cash against leadership “what-ifs” — your position is only as good as the scenario you align on before big hires or rate moves.',
         kpis: [
           { label: 'Scenarios', value: 'What-if' },
           { label: 'Data', value: 'Strategic series' },
           { label: 'Goal', value: 'Stress paths' },
         ],
-        insight: 'Digital Twin overlays scenario curves on your runway and cash context—explore from full mode.',
+        insight: 'Digital Twin overlays scenario curves on your runway and cash context; detail rows sit below the chart.',
         suggestions: sg(
           'Run staffing and rate scenarios leadership actually debates — export the narrative, not just the chart.',
           'Compare twin outputs to live strategic cash and runway so stress cases feel grounded.',
@@ -573,12 +657,13 @@ export function getCatalogWidgetSummary(
       };
     case 'financial_goals':
       return {
+        positionBrief: `Firm goals sit at ${fmtMoney(briefingSnapshot.financialGoals.q3Current)} toward Q3 revenue and ${fmtMoney(briefingSnapshot.financialGoals.reserveCurrent)} on reserve${briefingSnapshot.financialGoals.q3ProgressPct < 70 || briefingSnapshot.financialGoals.reserveProgressPct < 75 ? ' — at least one target needs attention this period.' : ' — both tracks are within a workable band if you hold discipline.'}`,
         kpis: [
           { label: 'Goals', value: '3 firm targets' },
           { label: 'Q3 revenue', value: fmtMoney(briefingSnapshot.financialGoals.q3Current) },
           { label: 'Reserve', value: fmtMoney(briefingSnapshot.financialGoals.reserveCurrent) },
         ],
-        insight: 'Same definitions as your firm goals strip—Firm Intelligence filters insights through these bars.',
+        insight: 'Same definitions as your firm goals strip—Clio Accounting filters insights through these bars.',
         suggestions: sg(
           briefingSnapshot.financialGoals.q3ProgressPct < 70
             ? 'Q3 revenue goal is behind — accelerate billing and validate pipeline for the remainder of the period.'
@@ -591,6 +676,8 @@ export function getCatalogWidgetSummary(
       };
     case 'suggested_modelling':
       return {
+        positionBrief:
+          'Modelling is where you name a scenario and preview it on strategic charts — your position improves when leadership agrees which stress case to plan against.',
         kpis: [
           { label: 'Modelling', value: 'Scenarios' },
           { label: 'Preview', value: 'Chart overlay' },
@@ -600,12 +687,18 @@ export function getCatalogWidgetSummary(
         suggestions: sg(
           'Create a named model from one concrete question (e.g. payroll shortfall, rate increase) and preview on strategic charts.',
           'When leadership agrees on a scenario, add the model to Financial Goals so recommendations stay goal-aware.',
-          'Use View suggestions on widgets to open structured plans alongside your custom models.',
+          'Use Explore on a model to open the modelling review panel with results and alternatives.',
         ),
       };
     default:
       return null;
   }
+  })();
+
+  if (!base) return null;
+  const planSugs = teammatePlanCatalogSuggestions(widgetId, options);
+  if (planSugs) return { ...base, suggestions: planSugs };
+  return base;
 }
 
 function round1(n: number): number {

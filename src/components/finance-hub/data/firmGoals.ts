@@ -1,5 +1,5 @@
 /**
- * Firm-level goals Firm Intelligence uses to filter insights, alerts, and recommendations.
+ * Firm-level goals Clio Accounting uses to filter insights, alerts, and recommendations.
  * @see prototypePersona for primary user name (Jennifer).
  */
 
@@ -56,7 +56,7 @@ export type FirmGoalDashboardCard = {
   insight: string;
 };
 
-export const FIRM_INTELLIGENCE_GOALS_FILTER_NARRATIVE = `Every insight, alert, and recommendation Firm Intelligence delivers is now filtered through these goals. The system knows what ${USER_FIRST_NAME} is trying to achieve—not just what the numbers say.`;
+export const FIRM_INTELLIGENCE_GOALS_FILTER_NARRATIVE = `Every insight, alert, and recommendation Clio Accounting delivers is now filtered through these goals. The system knows what ${USER_FIRST_NAME} is trying to achieve—not just what the numbers say.`;
 
 /** Four Q1 2026 firm goals aligned with the Jennifer dashboard. */
 /** Reassign (do not mutate in place) so `useSyncExternalStore` snapshots change after updates. */
@@ -83,7 +83,7 @@ export let FIRM_GOAL_DEFINITIONS: FirmGoalDefinition[] = [
     aiOptimization: {
       recommendedTargetValue: 1560000,
       rationale:
-        'Firm Intelligence projects a realistic stretch target based on trailing billing velocity, a stronger collections trend, and expected productivity from recent associate onboarding.',
+        'Clio Accounting projects a realistic stretch target based on trailing billing velocity, a stronger collections trend, and expected productivity from recent associate onboarding.',
       billingVelocityNote: 'Current billed pace annualizes to ~$1.48M if sustained.',
       operationalChangesNote: 'Two recent hires are expected to lift billable capacity by ~6% over the next two quarters.',
     },
@@ -110,7 +110,7 @@ export let FIRM_GOAL_DEFINITIONS: FirmGoalDefinition[] = [
     aiOptimization: {
       recommendedTargetValue: 39,
       rationale:
-        'Firm Intelligence recommends a pragmatic margin target given current expense pressure and likely realization rates through year-end.',
+        'Clio Accounting recommends a pragmatic margin target given current expense pressure and likely realization rates through year-end.',
       billingVelocityNote: 'Current realization supports a steady-state margin around 38–39%.',
       operationalChangesNote: 'New team capacity should improve leverage, but onboarding cost keeps near-term margin expansion moderate.',
     },
@@ -137,7 +137,7 @@ export let FIRM_GOAL_DEFINITIONS: FirmGoalDefinition[] = [
     aiOptimization: {
       recommendedTargetValue: 44,
       rationale:
-        'Firm Intelligence sees an achievable reduction in days-to-collect through targeted reminder campaigns and faster draft-invoice turnarounds.',
+        'Clio Accounting sees an achievable reduction in days-to-collect through targeted reminder campaigns and faster draft-invoice turnarounds.',
       billingVelocityNote: 'Recent invoice cycle-time improvements should reduce collection lag by 6-8 days.',
       operationalChangesNote: 'Additional billing support improves follow-up cadence on aging receivables.',
     },
@@ -164,7 +164,7 @@ export let FIRM_GOAL_DEFINITIONS: FirmGoalDefinition[] = [
     aiOptimization: {
       recommendedTargetValue: 84,
       rationale:
-        'Firm Intelligence recommends a staged runway goal that balances payroll certainty with current burn-rate reality.',
+        'Clio Accounting recommends a staged runway goal that balances payroll certainty with current burn-rate reality.',
       billingVelocityNote: 'Collections + WIP conversion mix supports a near-term runway stabilization in the mid-80-day range.',
       operationalChangesNote: 'Recent hiring raises burn initially, then improves throughput as utilization ramps.',
     },
@@ -282,7 +282,7 @@ export function addFirmGoal(): FirmGoalDefinition {
     progressTargetLabel: '$100,000 target',
     progressPct: 0,
     status: 'at_risk',
-    dashboardInsight: 'Define a realistic target and deadline, then optimize with Firm Intelligence.',
+    dashboardInsight: 'Define a realistic target and deadline, then optimize with Clio Accounting.',
     valueFormat,
     currentValue: 0,
     targetValue: 100000,
@@ -295,7 +295,7 @@ export function addFirmGoal(): FirmGoalDefinition {
     aiOptimization: {
       recommendedTargetValue: 95000,
       rationale:
-        'Firm Intelligence uses your current run-rate and peer context to suggest an achievable initial target for this custom goal.',
+        'Clio Accounting uses your current run-rate and peer context to suggest an achievable initial target for this custom goal.',
       billingVelocityNote: 'Current velocity supports a phased ramp toward this target.',
       operationalChangesNote: 'Recent staffing and workflow changes can improve attainment consistency over time.',
     },

@@ -20,6 +20,8 @@ export interface FloatingChatBarProps {
   brandColor?: string;
   /** Briefing items already executed (affects Today badge count). */
   executedBriefingInsightIds?: readonly BriefingInsightId[];
+  /** When true, Today badge uses red (matches critical items in Teammate Today / shell exceptions). */
+  todayHasCriticalItem?: boolean;
 }
 
 export function FloatingChatBar({
@@ -31,9 +33,10 @@ export function FloatingChatBar({
   suggestedQuestions,
   chatInput,
   onChatInputChange,
-  placeholder = 'Search the product or ask your Firm Intelligence…',
+  placeholder = 'Search or ask Clio Accounting...',
   brandColor = '#0069D1',
   executedBriefingInsightIds = [],
+  todayHasCriticalItem = false,
 }: FloatingChatBarProps) {
   const [isFocused, setIsFocused] = React.useState(false);
   const [isMdViewport, setIsMdViewport] = React.useState(
@@ -103,7 +106,12 @@ export function FloatingChatBar({
               <Calendar className="h-4 w-4 shrink-0" strokeWidth={1.75} />
               <span className="max-sm:sr-only">Today</span>
               {todayTodoCount > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[9px] font-bold text-white">
+                <span
+                  className={cn(
+                    'absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold text-white',
+                    todayHasCriticalItem ? 'bg-red-600' : 'bg-amber-500',
+                  )}
+                >
                   {todayTodoCount > 9 ? '9+' : todayTodoCount}
                 </span>
               ) : null}
@@ -156,7 +164,7 @@ export function FloatingChatBar({
                 {navigationSection}
 
                 <p className="mb-2 px-2 text-xs font-semibold text-gray-500">
-                  {chatInput ? 'Ask Firm Intelligence' : 'Suggested queries'}
+                  {chatInput ? 'Ask Clio Accounting' : 'Suggested queries'}
                 </p>
                 <div className="custom-scrollbar flex max-h-[200px] flex-col gap-1 overflow-y-auto">
                   {chatInput.trim() ? (

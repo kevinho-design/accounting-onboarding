@@ -29,7 +29,7 @@ export type MergedTodayTodo =
       query: string;
     };
 
-const SUGGESTED_SOURCE = 'Firm Intelligence';
+const SUGGESTED_SOURCE = 'Clio Accounting';
 const MAX_TOTAL_DEFAULT = 12;
 const PRIORITY_BRIEFING_ORDER: Record<string, number> = {
   'insight-5': 0, // Payroll Shortfall — highest priority in Today
@@ -64,7 +64,7 @@ function suggestedToMerged(query: string, index: number): MergedTodayTodo {
     key: `suggested-${index}-${query.slice(0, 24)}`,
     headline: query,
     sourceLabel: SUGGESTED_SOURCE,
-    detail: 'Ask Firm Intelligence to run this analysis or open the relevant report from search.',
+    detail: 'Ask Clio Accounting to run this analysis or open the relevant report from search.',
     query,
   };
 }

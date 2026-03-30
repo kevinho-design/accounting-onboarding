@@ -219,7 +219,7 @@ export const drillDownRootInsight4: DrillDownNode = {
                 { label: 'Application status', value: 'Not submitted', tone: 'neutral' },
               ],
               narrative:
-                'One-click submission stages the firm’s application for review. Firm Intelligence ties the amount to the payroll window while collections and invoicing execute—keeping the 60-day reserve goal intact through Q2 once the plan runs.',
+                'One-click submission stages the firm’s application for review. Clio Accounting ties the amount to the payroll window while collections and invoicing execute—keeping the 60-day reserve goal intact through Q2 once the plan runs.',
             },
           ],
         },

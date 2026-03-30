@@ -1,19 +1,106 @@
 import * as React from 'react';
-import { CheckCircle2, ChevronDown, Loader2, X, Sparkles } from 'lucide-react';
+import { ChevronDown, X, Sparkles } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 import {
-  getExecuteOutcomeForOption,
   getPayrollShortfallTeammatePlan,
-  type FhoExecuteOutcome,
+  isFhoWorkflowDualAction,
+  isFhoWorkflowOperatingTransfer,
+  isPlanWorkflowCardAction,
   type FhoTeammatePlan,
-  type FhoWorkflowOption,
+  type FhoWorkflowOperatingTransferStep,
 } from '../../data/fhoTeammateBreakdowns';
 import type { AgentAction, Exception } from '../../../agents/AgentTypes';
+import { TrustAssignCTA, TRUST_ASSIGN_COMPACT_TRIGGER_CLASS } from '../../../accounting/TrustAssign';
 import { TeammateTodayTab } from './TeammateTodayTab';
+
+function PlanOperatingTransferCard({
+  action,
+  brandColor,
+  stepIndex,
+}: {
+  action: FhoWorkflowOperatingTransferStep;
+  brandColor: string;
+  stepIndex: number;
+}) {
+  const firstId = action.sourceAccounts[0]?.id ?? '';
+  const [sourceAccountId, setSourceAccountId] = React.useState(firstId);
+  const [amountInput, setAmountInput] = React.useState(String(action.defaultTransferAmount));
+
+  const selected = action.sourceAccounts.find((a) => a.id === sourceAccountId);
+
+  return (
+    <div className="rounded-lg border border-gray-100 bg-gray-50/40 p-3 shadow-sm">
+      <div className="flex gap-3">
+        <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-200/90 text-[11px] font-bold text-gray-700">
+          {stepIndex + 1}
+        </span>
+        <div className="min-w-0 flex-1 space-y-3">
+          <div>
+            <p className="text-sm font-semibold leading-snug text-gray-900">{action.title}</p>
+            <p className="mt-1 text-xs leading-relaxed text-gray-600">{action.description}</p>
+          </div>
+          <div className="rounded-md border border-amber-200/80 bg-amber-50/60 px-2.5 py-2">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-amber-900/80">
+              Payroll shortfall (Operating)
+            </p>
+            <p className="mt-0.5 text-sm font-bold tabular-nums text-amber-950">{action.shortfallDisplay}</p>
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor={`transfer-from-${action.id}`} className="text-[11px] font-semibold text-gray-700">
+              Transfer from
+            </label>
+            <select
+              id={`transfer-from-${action.id}`}
+              value={sourceAccountId}
+              onChange={(e) => setSourceAccountId(e.target.value)}
+              className="w-full rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs text-gray-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            >
+              {action.sourceAccounts.map((acc) => (
+                <option key={acc.id} value={acc.id}>
+                  {acc.label} — {acc.balanceDisplay} available
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <label htmlFor={`transfer-amt-${action.id}`} className="text-[11px] font-semibold text-gray-700">
+              Amount (USD)
+            </label>
+            <input
+              id={`transfer-amt-${action.id}`}
+              type="number"
+              min={0}
+              step={0.01}
+              value={amountInput}
+              onChange={(e) => setAmountInput(e.target.value)}
+              className="w-full rounded-md border border-gray-200 bg-white px-2.5 py-2 text-xs tabular-nums text-gray-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            />
+            <p className="text-[10px] text-gray-500">Defaults to the shortfall; change if you are moving a different amount.</p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            className="w-full text-xs font-medium leading-snug text-white sm:w-auto"
+            style={{ backgroundColor: brandColor }}
+            onClick={() => {
+              const amt = amountInput.trim() === '' ? 0 : Number(amountInput);
+              const amtLabel = Number.isFinite(amt) ? `$${amt.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}` : amountInput;
+              toast.message(
+                `${action.primaryCta} — prototype: would move ${amtLabel} from ${selected?.label ?? 'selected account'} to Operating (payroll account).`,
+              );
+            }}
+          >
+            {action.primaryCta}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export type TeammateChatMessage = { role: 'user' | 'ai'; content: string; id?: string };
 
@@ -28,9 +115,9 @@ export interface SpecializedTeammateRailProps {
    * When true, the panel sits beside main content (pushes layout) instead of overlaying with a scrim.
    */
   dock?: boolean;
-  /** When incremented (e.g. Finances widget "Explore actions"), switch to the Plan tab. */
+  /** When incremented (e.g. Finances widget "View suggestions"), switch to the Plan tab. */
   focusPlanTabNonce?: number;
-  /** Content for Financial Health "Explore actions" — shown on Plan, not as chat. */
+  /** Content for Financial Health "View suggestions" — shown on Plan, not as chat. */
   teammatePlan?: FhoTeammatePlan | null;
   onTeammateExplorePlan?: (plan: FhoTeammatePlan) => void;
   /** Accounting shell exceptions + agent actions for the Today tab. */
@@ -60,35 +147,10 @@ export function SpecializedTeammateRail({
   const [tab, setTab] = React.useState('today');
   const [draft, setDraft] = React.useState('');
   const [expandedOptionId, setExpandedOptionId] = React.useState<string | null>(null);
-  const [executingOptionId, setExecutingOptionId] = React.useState<string | null>(null);
-  const [completedByOptionId, setCompletedByOptionId] = React.useState<Record<string, FhoExecuteOutcome>>(
-    {},
-  );
-  const executeTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
     setExpandedOptionId(null);
-    setExecutingOptionId(null);
-    setCompletedByOptionId({});
   }, [teammatePlan]);
-
-  React.useEffect(() => {
-    return () => {
-      if (executeTimerRef.current) clearTimeout(executeTimerRef.current);
-    };
-  }, []);
-
-  const runExecuteWorkflow = (opt: FhoWorkflowOption) => {
-    if (completedByOptionId[opt.id] || executingOptionId) return;
-    setExecutingOptionId(opt.id);
-    if (executeTimerRef.current) clearTimeout(executeTimerRef.current);
-    executeTimerRef.current = setTimeout(() => {
-      executeTimerRef.current = null;
-      const outcome = getExecuteOutcomeForOption(opt);
-      setCompletedByOptionId((prev) => ({ ...prev, [opt.id]: outcome }));
-      setExecutingOptionId(null);
-    }, 650);
-  };
 
   React.useEffect(() => {
     if (focusPlanTabNonce > 0) setTab('plan');
@@ -257,145 +319,191 @@ export function SpecializedTeammateRail({
         <TabsContent value="plan" className="min-h-0 flex-1 overflow-y-auto custom-scrollbar pb-4">
           {teammatePlan ? (
             <div className="space-y-4">
-              <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-4">
+              <div
+                className={cn(
+                  'rounded-xl border p-4',
+                  teammatePlan.planSummaryVariant === 'payroll_shortfall'
+                    ? 'border-rose-300 bg-white ring-1 ring-rose-200'
+                    : 'border-gray-200 bg-gray-50/80',
+                )}
+              >
+                {teammatePlan.planSummaryVariant === 'payroll_shortfall' &&
+                teammatePlan.shortfallAmountDisplay ? (
+                  <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-rose-200/80 bg-rose-50/60 px-3 py-2">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-rose-900/80">
+                      Projected operating gap
+                    </p>
+                    <p className="text-lg font-semibold tabular-nums text-rose-700">
+                      {teammatePlan.shortfallAmountDisplay}
+                    </p>
+                  </div>
+                ) : null}
                 <h3 className="text-sm font-semibold text-gray-900">{teammatePlan.title}</h3>
                 {teammatePlan.context ? (
                   <p className="mt-2 text-xs leading-relaxed text-gray-600">{teammatePlan.context}</p>
                 ) : null}
+                {teammatePlan.planSummaryVariant === 'payroll_shortfall' ? (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <TrustAssignCTA compact buttonClassName={TRUST_ASSIGN_COMPACT_TRIGGER_CLASS} />
+                  </div>
+                ) : null}
               </div>
               <div className="space-y-3">
                 <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">
-                  Workflow options
+                  Suggested options
                 </p>
-                {teammatePlan.options.map((opt) => {
+                {teammatePlan.options.map((opt, optIndex) => {
                   const isOpen = expandedOptionId === opt.id;
-                  const isDone = Boolean(completedByOptionId[opt.id]);
-                  const isExecuting = executingOptionId === opt.id;
-                  const outcome = completedByOptionId[opt.id];
-                  const anyExecuting = executingOptionId !== null;
+                  const showRecommended = optIndex === 0;
                   return (
                     <div
                       key={opt.id}
-                      className={cn(
-                        'rounded-xl border bg-white p-3 shadow-sm transition-colors',
-                        isDone ? 'border-emerald-200/80 bg-emerald-50/40' : 'border-gray-200',
-                      )}
-                      aria-busy={isExecuting}
+                      className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-colors"
                     >
-                      <div className="flex flex-col gap-2">
-                        <div className="flex flex-wrap items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <h4 className="text-sm font-semibold text-gray-900">{opt.title}</h4>
-                            {opt.summary ? (
-                              <p className="mt-1 text-xs leading-relaxed text-gray-600">{opt.summary}</p>
-                            ) : null}
-                          </div>
-                          {isDone ? (
-                            <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-100/90 px-2 py-0.5 text-[11px] font-semibold text-emerald-900">
-                              <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-                              Completed
+                      <button
+                        type="button"
+                        onClick={() => setExpandedOptionId(isOpen ? null : opt.id)}
+                        className="flex w-full items-start gap-3 p-3 text-left transition-colors hover:bg-gray-50/90 motion-reduce:transition-none"
+                        aria-expanded={isOpen}
+                        aria-controls={`plan-option-steps-${opt.id}`}
+                        id={`plan-option-trigger-${opt.id}`}
+                      >
+                        <div className="min-w-0 flex-1">
+                          {showRecommended ? (
+                            <span className="mb-1.5 inline-flex w-fit items-center rounded-md bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary ring-1 ring-primary/15">
+                              Recommended
                             </span>
                           ) : null}
+                          <h4 className="text-sm font-semibold text-gray-900">{opt.title}</h4>
+                          {opt.summary ? (
+                            <p className="mt-1 text-xs leading-relaxed text-gray-600">{opt.summary}</p>
+                          ) : null}
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            disabled={isDone || (anyExecuting && !isExecuting)}
-                            className={cn(
-                              'text-white',
-                              !isDone && 'disabled:opacity-60',
-                              isDone && 'pointer-events-none bg-emerald-600/90 text-white',
-                            )}
-                            style={
-                              isDone
-                                ? undefined
-                                : {
-                                    backgroundColor: brandColor,
-                                  }
-                            }
-                            onClick={() => runExecuteWorkflow(opt)}
-                          >
-                            {isExecuting ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                                Working…
-                              </>
-                            ) : isDone ? (
-                              'Completed'
-                            ) : (
-                              'Execute'
-                            )}
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="gap-1 border-gray-200"
-                            onClick={() => setExpandedOptionId(isOpen ? null : opt.id)}
-                            aria-expanded={isOpen}
-                          >
-                            Explore
-                            <ChevronDown
-                              className={cn(
-                                'h-4 w-4 transition-transform',
-                                isOpen ? 'rotate-180' : 'rotate-0',
-                              )}
-                            />
-                          </Button>
-                        </div>
-                      </div>
-                      {isDone && outcome ? (
-                        <div
-                          className="mt-3 rounded-lg border border-emerald-100 bg-white/90 p-3 shadow-sm"
-                          aria-live="polite"
-                        >
-                          <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-900/90">
-                            What Firm Intelligence did
-                          </p>
-                          <p className="mt-2 text-xs leading-relaxed text-gray-800">{outcome.summary}</p>
-                          <ul className="mt-2 list-disc space-y-1.5 pl-4 text-xs leading-snug text-gray-700">
-                            {outcome.bullets.map((line, i) => (
-                              <li key={i}>{line}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : null}
+                        <ChevronDown
+                          className={cn(
+                            'mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 ease-out motion-reduce:transition-none',
+                            isOpen ? 'rotate-180' : 'rotate-0',
+                          )}
+                          aria-hidden
+                        />
+                      </button>
                       {isOpen ? (
-                        <ol className="mt-3 space-y-3 border-t border-gray-100 pt-3">
-                          {opt.actions.map((action, idx) => (
-                            <li key={action.id} className="text-sm">
-                              <div className="flex gap-2">
-                                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-600">
-                                  {idx + 1}
-                                </span>
-                                <div className="min-w-0 flex-1">
-                                  <p className="font-medium leading-snug text-gray-900">{action.label}</p>
-                                  {action.detail ? (
-                                    <p className="mt-1 text-xs leading-relaxed text-gray-600">{action.detail}</p>
-                                  ) : null}
-                                  {action.ctaLabel && action.ctaKind !== 'none' ? (
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      className="mt-2 h-7 px-2 text-xs text-blue-700"
-                                      onClick={() =>
-                                        toast.message(
-                                          action.ctaKind === 'toast'
-                                            ? `${action.ctaLabel} — prototype: Firm Intelligence would complete this step.`
-                                            : action.ctaLabel,
-                                        )
-                                      }
-                                    >
-                                      {action.ctaLabel}
-                                    </Button>
-                                  ) : null}
-                                </div>
-                              </div>
-                            </li>
-                          ))}
-                        </ol>
+                        <div
+                          id={`plan-option-steps-${opt.id}`}
+                          role="region"
+                          aria-labelledby={`plan-option-trigger-${opt.id}`}
+                          className="border-t border-gray-100 px-3 pb-3 pt-2"
+                        >
+                          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                            Workflows
+                          </p>
+                          {opt.actions.some(isPlanWorkflowCardAction) ? (
+                            <div className="space-y-3">
+                              {opt.actions.map((action, idx) =>
+                                isFhoWorkflowOperatingTransfer(action) ? (
+                                  <PlanOperatingTransferCard
+                                    key={action.id}
+                                    action={action}
+                                    brandColor={brandColor}
+                                    stepIndex={idx}
+                                  />
+                                ) : isFhoWorkflowDualAction(action) ? (
+                                  <div
+                                    key={action.id}
+                                    className="rounded-lg border border-gray-100 bg-gray-50/40 p-3 shadow-sm"
+                                  >
+                                    <div className="flex gap-3">
+                                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-200/90 text-[11px] font-bold text-gray-700">
+                                        {idx + 1}
+                                      </span>
+                                      <div className="min-w-0 flex-1 space-y-2">
+                                        <p className="text-sm font-semibold leading-snug text-gray-900">
+                                          {action.title}
+                                        </p>
+                                        <p className="text-xs leading-relaxed text-gray-600">{action.description}</p>
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                          <Button
+                                            type="button"
+                                            size="sm"
+                                            className="min-w-0 flex-1 text-xs font-medium leading-snug text-white sm:flex-initial"
+                                            style={{ backgroundColor: brandColor }}
+                                            onClick={() =>
+                                              toast.message(
+                                                `${action.aiCta} — prototype: Firm Intelligence would run this workflow on your behalf.`,
+                                              )
+                                            }
+                                          >
+                                            <span className="truncate">{action.aiCta}</span>
+                                          </Button>
+                                          {action.manualHref ? (
+                                            <Button
+                                              asChild
+                                              variant="outline"
+                                              size="sm"
+                                              className="min-w-0 flex-1 border-gray-200 text-xs font-medium leading-snug text-gray-600 hover:bg-gray-50 sm:flex-initial"
+                                            >
+                                              <a
+                                                href={action.manualHref}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                              >
+                                                {action.manualCta}
+                                              </a>
+                                            </Button>
+                                          ) : (
+                                            <Button
+                                              type="button"
+                                              variant="outline"
+                                              size="sm"
+                                              className="min-w-0 flex-1 border-gray-200 text-xs font-medium leading-snug text-gray-600 hover:bg-gray-50 sm:flex-initial"
+                                              onClick={() =>
+                                                toast.message(
+                                                  `${action.manualCta} — prototype: opens the manual path in Manage / Billing.`,
+                                                )
+                                              }
+                                            >
+                                              {action.manualCta}
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div key={action.id} className="flex gap-2 text-sm">
+                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-600">
+                                      {idx + 1}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-medium leading-snug text-gray-900">{action.label}</p>
+                                      {action.detail ? (
+                                        <p className="mt-1 text-xs leading-relaxed text-gray-600">{action.detail}</p>
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          ) : (
+                            <ol className="space-y-3">
+                              {opt.actions.map((action, idx) => (
+                                <li key={action.id} className="text-sm">
+                                  <div className="flex gap-2">
+                                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gray-100 text-[10px] font-bold text-gray-600">
+                                      {idx + 1}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-medium leading-snug text-gray-900">{action.label}</p>
+                                      {action.detail ? (
+                                        <p className="mt-1 text-xs leading-relaxed text-gray-600">{action.detail}</p>
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                </li>
+                              ))}
+                            </ol>
+                          )}
+                        </div>
                       ) : null}
                     </div>
                   );
@@ -406,7 +514,7 @@ export function SpecializedTeammateRail({
             <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/50 p-6 text-center">
               <p className="text-sm font-medium text-gray-700">No plan loaded yet</p>
               <p className="mt-1 text-xs text-gray-500">
-                Use <span className="font-semibold text-gray-700">Explore actions</span> on a Financial Health widget to
+                Use <span className="font-semibold text-gray-700">View suggestions</span> on a Financial Health widget to
                 see recommended steps and options here.
               </p>
             </div>

@@ -96,7 +96,7 @@ export function GoalOptimizationModal({
           <DialogHeader>
             <DialogTitle className="text-gray-900 text-xl">Review & optimize goal</DialogTitle>
             <DialogDescription className="text-gray-600 text-sm">
-              Choose what this goal measures, name it for your team, and set targets with benchmark and Ambient CFO
+              Choose what this goal measures, name it for your team, and set targets with benchmark and Firm Intelligence
               context.
             </DialogDescription>
           </DialogHeader>
@@ -191,7 +191,7 @@ export function GoalOptimizationModal({
           <section className="rounded-[8px] border border-violet-200 bg-violet-50/60 p-4">
             <div className="flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-violet-700" />
-              <h4 className="text-[11px] font-bold text-violet-700 uppercase tracking-widest">Ambient CFO insight</h4>
+              <h4 className="text-[11px] font-bold text-violet-700 uppercase tracking-widest">Firm Intelligence insight</h4>
             </div>
             <p className="mt-3 text-sm text-gray-800 leading-relaxed">{goal.aiOptimization.rationale}</p>
             <ul className="mt-3 space-y-1.5 text-xs text-gray-700">

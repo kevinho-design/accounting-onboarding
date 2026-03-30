@@ -1,4 +1,12 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import {
@@ -72,6 +80,14 @@ export type FinanceDashboardSavePayload = {
   /** When false, live page uses full-width main and hides the right rail. */
   showSidebar: boolean;
 };
+
+export type DashboardCustomizerHandle = {
+  save: () => void;
+};
+
+function stableSerializeWidgets(a: FinancePageWidget[]): string {
+  return JSON.stringify(a);
+}
 
 type CanvasWidgetItem = HydratedPlacedWidget;
 
@@ -340,28 +356,7 @@ function ReportLibraryItem({ name, desc, icon: Icon }: { name: string; desc: str
   );
 }
 
-export const DashboardCustomizerContent = ({
-  onClose,
-  onTakeAction,
-  onExploreData,
-  mode,
-  dashboardTitle,
-  initialWidgets,
-  initialSidebarWidgets,
-  initialShowSidebar,
-  reportLibrary,
-  onSaveDashboard,
-  onDeleteDashboard,
-  executedBriefingInsightIds,
-  onDigitalTwinScenario,
-  getCustomizerStrategicRows,
-  modellingWidgetModels,
-  financialGoalModelIds,
-  onModellingExplore,
-  onModellingOpenCreateModel,
-  initialPeerBenchmarkEnabled,
-  onFinanceWidgetExplore,
-}: {
+export type DashboardCustomizerContentProps = {
   onClose: () => void;
   onTakeAction?: (insightId: string) => void;
   onExploreData?: (insightId: string) => void;
@@ -386,7 +381,36 @@ export const DashboardCustomizerContent = ({
   onModellingOpenCreateModel: () => void;
   initialPeerBenchmarkEnabled?: boolean;
   onFinanceWidgetExplore?: (payload: FinanceWidgetExplorePayload) => void;
-}) => {
+  onDirtyChange?: (dirty: boolean) => void;
+};
+
+const DashboardCustomizerContent = forwardRef<DashboardCustomizerHandle, DashboardCustomizerContentProps>(
+  function DashboardCustomizerContent(
+    {
+      onClose,
+      onTakeAction,
+      onExploreData,
+      mode,
+      dashboardTitle,
+      initialWidgets,
+      initialSidebarWidgets,
+      initialShowSidebar,
+      reportLibrary,
+      onSaveDashboard,
+      onDeleteDashboard,
+      executedBriefingInsightIds,
+      onDigitalTwinScenario,
+      getCustomizerStrategicRows,
+      modellingWidgetModels,
+      financialGoalModelIds,
+      onModellingExplore,
+      onModellingOpenCreateModel,
+      initialPeerBenchmarkEnabled,
+      onFinanceWidgetExplore,
+      onDirtyChange,
+    },
+    ref,
+  ) {
   /** Customizer always uses a 2-column main grid (matches live Finances layout). */
   const mainGridColumns: MainGridColumns = 2;
 
@@ -596,7 +620,7 @@ export const DashboardCustomizerContent = ({
 
   const categories = Array.from(new Set(WIDGET_CATALOG.map((w) => w.category)));
 
-  const save = () => {
+  const save = useCallback(() => {
     onSaveDashboard({
       title:
         draftDashboardTitle.trim() ||
@@ -607,7 +631,48 @@ export const DashboardCustomizerContent = ({
       mainGridColumns,
       showSidebar: draftShowSidebar,
     });
-  };
+  }, [
+    canvasMainWidgets,
+    canvasSidebarWidgets,
+    dashboardTitle,
+    draftDashboardTitle,
+    draftShowSidebar,
+    mainGridColumns,
+    mode,
+    onSaveDashboard,
+  ]);
+
+  useImperativeHandle(ref, () => ({ save }), [save]);
+
+  const isDirty = useMemo(() => {
+    const baselineTitle = mode === 'create' ? '' : dashboardTitle.trim();
+    if (draftDashboardTitle.trim() !== baselineTitle) return true;
+    if (draftShowSidebar !== initialShowSidebar) return true;
+    if (peerBenchmarkDraft !== (initialPeerBenchmarkEnabled ?? false)) return true;
+    const mainNow = stableSerializeWidgets(financePageWidgetsFromHydrated(canvasMainWidgets));
+    const sideNow = stableSerializeWidgets(
+      financeSidebarWidgetsForPersist(financePageWidgetsFromHydrated(canvasSidebarWidgets)),
+    );
+    if (mainNow !== stableSerializeWidgets(initialWidgets)) return true;
+    if (sideNow !== stableSerializeWidgets(initialSidebarWidgets)) return true;
+    return false;
+  }, [
+    canvasMainWidgets,
+    canvasSidebarWidgets,
+    dashboardTitle,
+    draftDashboardTitle,
+    draftShowSidebar,
+    initialPeerBenchmarkEnabled,
+    initialShowSidebar,
+    initialSidebarWidgets,
+    initialWidgets,
+    mode,
+    peerBenchmarkDraft,
+  ]);
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   return (
     <StrategicDashboardChartsProvider value={chartsValue}>
@@ -930,9 +995,12 @@ export const DashboardCustomizerContent = ({
     </div>
     </StrategicDashboardChartsProvider>
   );
-};
+});
 
-export const DashboardCustomizer = ({
+DashboardCustomizerContent.displayName = 'DashboardCustomizerContent';
+
+export const DashboardCustomizer = forwardRef<DashboardCustomizerHandle, DashboardCustomizerContentProps>(function DashboardCustomizer(
+  {
   onClose,
   onTakeAction,
   onExploreData,
@@ -953,36 +1021,14 @@ export const DashboardCustomizer = ({
   onModellingOpenCreateModel,
   initialPeerBenchmarkEnabled,
   onFinanceWidgetExplore,
-}: {
-  onClose: () => void;
-  onTakeAction?: (insightId: string) => void;
-  onExploreData?: (insightId: string) => void;
-  mode: 'create' | 'edit';
-  dashboardTitle: string;
-  initialWidgets: FinancePageWidget[];
-  initialSidebarWidgets: FinancePageWidget[];
-  initialShowSidebar: boolean;
-  reportLibrary: readonly ReportLibraryEntry[];
-  onSaveDashboard: (payload: FinanceDashboardSavePayload) => void;
-  onDeleteDashboard: () => void;
-  executedBriefingInsightIds?: readonly BriefingInsightId[];
-  onDigitalTwinScenario?: (id: DigitalTwinScenarioId) => void;
-  getCustomizerStrategicRows?: (
-    previewModelId: string | null,
-    peerBenchmarkEnabled: boolean,
-    peerPageContext: PeerBenchmarkPageContext | null,
-  ) => StrategicMonthRow[];
-  modellingWidgetModels: ModellingWidgetUiBridge['models'];
-  financialGoalModelIds: readonly string[];
-  onModellingExplore: (modelId: string) => void;
-  onModellingOpenCreateModel: () => void;
-  /** Match live Finances toggle when the customizer opens. */
-  initialPeerBenchmarkEnabled?: boolean;
-  onFinanceWidgetExplore?: (payload: FinanceWidgetExplorePayload) => void;
-}) => {
+  onDirtyChange,
+}: DashboardCustomizerContentProps,
+  ref,
+) {
   return (
     <DndProvider backend={HTML5Backend}>
       <DashboardCustomizerContent
+        ref={ref}
         onClose={onClose}
         onTakeAction={onTakeAction}
         onExploreData={onExploreData}
@@ -1003,7 +1049,10 @@ export const DashboardCustomizer = ({
         onModellingOpenCreateModel={onModellingOpenCreateModel}
         initialPeerBenchmarkEnabled={initialPeerBenchmarkEnabled}
         onFinanceWidgetExplore={onFinanceWidgetExplore}
+        onDirtyChange={onDirtyChange}
       />
     </DndProvider>
   );
-};
+});
+
+DashboardCustomizer.displayName = 'DashboardCustomizer';

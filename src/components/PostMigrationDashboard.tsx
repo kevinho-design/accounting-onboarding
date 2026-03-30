@@ -319,7 +319,7 @@ export function PostMigrationDashboard({ onReviewFinancialGoals }: PostMigration
                     <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
                       <Target className="w-5 h-5 text-green-600" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">Q1 2026 Financial Goals</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">Firm's Financial Goals</h3>
                   </div>
                   <p className="text-gray-600">3 of 4 goals on track</p>
                 </div>

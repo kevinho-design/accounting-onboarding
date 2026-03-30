@@ -1,7 +1,12 @@
 /**
- * Plan content when the user clicks "Explore actions" on a Financial Health Overview widget.
+ * Plan content when the user clicks "View suggestions" on a Financial Health Overview widget.
  * Shown in Clio Teammate → Plan (not chat).
  */
+
+import {
+  PAYROLL_SHORTFALL_EXCEPTION_DESCRIPTION,
+  PAYROLL_SHORTFALL_EXCEPTION_TITLE,
+} from './payrollShortfallExceptionCopy';
 
 export type FhoWorkflowActionCtaKind = 'toast' | 'none';
 
@@ -11,15 +16,65 @@ export type FhoExecuteOutcome = {
   bullets: string[];
 };
 
-export type FhoWorkflowAction = {
+/** Simple numbered step (label + detail) in Plan → Workflows. */
+export type FhoWorkflowNarrativeAction = {
+  variant?: 'narrative';
   id: string;
   label: string;
-  /** Body copy when the user expands or focuses this step */
   detail?: string;
-  /** Optional per-action control (prototype: toast) */
   ctaLabel?: string;
   ctaKind?: FhoWorkflowActionCtaKind;
 };
+
+/** Interactive step: AI vs manual CTAs (e.g. Collection opportunities payroll plan). */
+export type FhoWorkflowDualActionStep = {
+  variant: 'dual_action';
+  id: string;
+  title: string;
+  description: string;
+  aiCta: string;
+  manualCta: string;
+  /** When set, secondary CTA opens this URL in a new tab (no prototype toast). */
+  manualHref?: string;
+};
+
+export type FhoWorkflowOperatingTransferSourceAccount = {
+  id: string;
+  label: string;
+  balanceDisplay: string;
+};
+
+/** Bank-style transfer: shortfall + source account + amount + single primary CTA (Capital Management payroll plan). */
+export type FhoWorkflowOperatingTransferStep = {
+  variant: 'operating_transfer';
+  id: string;
+  title: string;
+  description: string;
+  primaryCta: string;
+  shortfallDisplay: string;
+  /** Default amount in the amount field (dollars), e.g. 15700 for $15.7k gap */
+  defaultTransferAmount: number;
+  sourceAccounts: FhoWorkflowOperatingTransferSourceAccount[];
+};
+
+export type FhoWorkflowAction =
+  | FhoWorkflowNarrativeAction
+  | FhoWorkflowDualActionStep
+  | FhoWorkflowOperatingTransferStep;
+
+export function isFhoWorkflowDualAction(a: FhoWorkflowAction): a is FhoWorkflowDualActionStep {
+  return a.variant === 'dual_action';
+}
+
+export function isFhoWorkflowOperatingTransfer(
+  a: FhoWorkflowAction,
+): a is FhoWorkflowOperatingTransferStep {
+  return a.variant === 'operating_transfer';
+}
+
+export function isPlanWorkflowCardAction(a: FhoWorkflowAction): boolean {
+  return isFhoWorkflowDualAction(a) || isFhoWorkflowOperatingTransfer(a);
+}
 
 export type FhoWorkflowOption = {
   id: string;
@@ -31,11 +86,17 @@ export type FhoWorkflowOption = {
   executeOutcome?: FhoExecuteOutcome;
 };
 
+export type FhoTeammatePlanSummaryVariant = 'payroll_shortfall';
+
 export type FhoTeammatePlan = {
   title: string;
   /** Optional narrative before the workflow options */
   context?: string;
   options: FhoWorkflowOption[];
+  /** Plan tab summary chrome (e.g. match Today payroll exception). */
+  planSummaryVariant?: FhoTeammatePlanSummaryVariant;
+  /** Emphasized gap amount when `planSummaryVariant` is payroll_shortfall */
+  shortfallAmountDisplay?: string;
 };
 
 const PLANS: Record<string, FhoTeammatePlan> = {
@@ -1095,70 +1156,102 @@ const PLANS: Record<string, FhoTeammatePlan> = {
     ],
   },
   payroll_shortfall_gap_plan: {
-    title: 'Payroll shortfall — ranked resolution options',
-    context:
-      'Payroll is due soon and your Operating Account is projected short (prototype: $15.7k gap). Ambient CFO ranks paths from lowest-friction internal liquidity through external financing and partner-level moves. Expand each track for what Firm Intelligence can run or model next.',
+    title: PAYROLL_SHORTFALL_EXCEPTION_TITLE,
+    context: PAYROLL_SHORTFALL_EXCEPTION_DESCRIPTION,
+    planSummaryVariant: 'payroll_shortfall',
+    shortfallAmountDisplay: '$15,700',
     options: [
       {
-        id: 'payroll-internal-liquidity',
-        title: 'Internal Liquidity Levers',
-        summary: 'Pull forward cash already in the firm before adding financing cost.',
+        id: 'payroll-collection-opportunities',
+        title: 'Collection opportunities',
+        summary: 'Pull forward cash through accelerated billing and collections before adding financing cost.',
         actions: [
           {
-            id: 'payroll-il-wip',
-            label: 'Accelerated Billing (WIP liquidation)',
-            detail:
-              'Instantly generate and send draft invoices for all unbilled Work-in-Progress (WIP) that has reached a defined bill-ready threshold, so collections can start immediately.',
+            variant: 'dual_action',
+            id: 'payroll-col-ai-triage',
+            title: 'AI Triage for Velocity',
+            description:
+              'Isolate and contact past-due clients who have stored payment methods and no active dispute flags.',
+            aiCta: 'Auto-Run Triage & Send',
+            manualCta: 'Review Eligible Accounts',
           },
           {
-            id: 'payroll-il-ar',
-            label: 'A/R "Nudge" campaign',
-            detail:
-              'Trigger automated, polite email/SMS reminders for clients with invoices 15+ days past due, including a pay-now link and optional short-term incentive (e.g. 2% discount for immediate settlement).',
+            variant: 'dual_action',
+            id: 'payroll-col-trust-sweep',
+            title: 'Trust Account Sweep',
+            description:
+              'Reconcile ledgers and instantly transfer all legally earned fees from client Trust accounts to the Operating account.',
+            aiCta: 'Execute Sweep ($12.4k Available)',
+            manualCta: 'Go to Trust Ledger',
           },
           {
-            id: 'payroll-il-ap',
-            label: 'Expense deferral',
-            detail:
-              'Identify non-essential Accounts Payable (software renewals, office supplies, discretionary marketing) and model pushing those payments out by ~14 days to free operating cash for payroll.',
+            variant: 'dual_action',
+            id: 'payroll-col-wip-liquidation',
+            title: 'Accelerated WIP Liquidation',
+            description:
+              'Generate and issue interim invoices for matters with high unbilled Work-In-Progress and strong payment histories.',
+            aiCta: 'Auto-Draft & Issue Invoices',
+            manualCta: 'View Unbilled WIP',
+          },
+          {
+            variant: 'dual_action',
+            id: 'payroll-col-urgency',
+            title: 'Deploy Urgency Incentives',
+            description:
+              'Send targeted SMS/emails offering a temporary 5% early-settlement discount for payments made within 48 hours on 60+ day A/R.',
+            aiCta: 'Deploy Discount Campaign',
+            manualCta: 'Select Accounts Manually',
+          },
+          {
+            variant: 'dual_action',
+            id: 'payroll-col-partial-pay',
+            title: 'Secure Immediate Partial Payments',
+            description:
+              'Offer structured payment plans to delinquent accounts that require an immediate, same-day down payment to activate.',
+            aiCta: 'Send Plan Offers',
+            manualCta: 'Configure Payment Plans',
           },
         ],
       },
       {
         id: 'payroll-external-financing',
         title: 'External Financing',
-        summary: 'When internal levers are not enough on the timeline you have.',
+        summary:
+          'Clio Capital offers fast, flexible financing for eligible firms on Clio Payments—check the Capital page in Manage when you need cash for payroll.',
         actions: [
           {
-            id: 'payroll-ex-loc',
-            label: 'Draw on line of credit (LOC)',
-            detail:
-              'If the firm has a pre-approved bank LOC, Ambient CFO can propose a one-click transfer of the exact amount needed to cover the payroll gap, with paydown timing tied to incoming collections.',
-          },
-          {
-            id: 'payroll-ex-factoring',
-            label: 'Invoice factoring / legal funding',
-            detail:
-              "For firms with large contingency matters or aged receivables, evaluate selling a portion of an outstanding invoice or a settled case's expected payout to a third party for immediate cash (cost and eligibility surfaced upfront).",
+            variant: 'dual_action',
+            id: 'payroll-ex-clio-capital',
+            title: 'Clio Capital financing',
+            description:
+              'Pre-qualification is based on your Clio Payments volume and history. On the Capital page in Clio Manage (administrators), review any offer, choose an amount sized to your payroll shortfall with terms and flat fee shown upfront, and—if approved—receive funds into your operating account in as little as two business days. Repayment is a fixed weekly debit from operating; Firm Intelligence can surface eligibility signals and a recommended amount for this gap (prototype).',
+            aiCta: 'Pre-check eligibility & amount',
+            manualCta: 'Read more about Clio Capital',
+            manualHref: 'https://www.clio.com/features/payments/law-firm-financing/',
           },
         ],
       },
       {
         id: 'payroll-capital-mgmt',
         title: 'Capital Management',
-        summary: 'Structural moves that protect staff payroll when liquidity is tight.',
+        summary:
+          'Move cash from another firm account into Operating so payroll can clear—pick the source account and amount like a bank transfer (prototype).',
         actions: [
           {
-            id: 'payroll-cm-draw',
-            label: 'Partner capital call (draw adjustment)',
-            detail:
-              'Model a temporary reduction or deferral of partner draws for the current cycle so associate and staff payroll stays fully funded while the firm closes the operating gap.',
-          },
-          {
-            id: 'payroll-cm-transfer',
-            label: 'Inter-account transfer',
-            detail:
-              'If the firm maintains a rainy-day or tax reserve account, execute or model a transfer to the Operating Account sized to the payroll shortfall, with a replenishment schedule.',
+            variant: 'operating_transfer',
+            id: 'payroll-cm-operating-transfer',
+            title: 'Transfer funds to Operating',
+            description:
+              'Payroll draws from your Operating account. Transfer from any other linked firm account into Operating to cover the projected shortfall. Adjust the amount if you only need part of the gap covered.',
+            primaryCta: 'Transfer to cover shortfall',
+            shortfallDisplay: '$15,700',
+            defaultTransferAmount: 15700,
+            sourceAccounts: [
+              { id: 'iolta-reserve', label: 'IOLTA — fee reserve', balanceDisplay: '$42,180.00' },
+              { id: 'tax-reserve', label: 'Tax withholding reserve', balanceDisplay: '$28,400.00' },
+              { id: 'secondary-ops', label: 'Secondary operating (sweep)', balanceDisplay: '$19,250.00' },
+              { id: 'rainy-day', label: 'Rainy-day money market', balanceDisplay: '$65,000.00' },
+            ],
           },
         ],
       },
@@ -1166,7 +1259,7 @@ const PLANS: Record<string, FhoTeammatePlan> = {
   },
 };
 
-/** Clio Teammate → Plan when user chooses Review plan / Take action on payroll shortfall (any entry point). */
+/** Clio Teammate → Plan when user chooses View suggestions / Take action on payroll shortfall (any entry point). */
 export function getPayrollShortfallTeammatePlan(): FhoTeammatePlan {
   return PLANS.payroll_shortfall_gap_plan;
 }
@@ -1182,13 +1275,25 @@ function truncateForOutcome(s: string, max: number): string {
 }
 
 /** Resolves Execute result copy: explicit `executeOutcome` or FI-style bullets from `actions`. */
+function actionLineForOutcome(a: FhoWorkflowAction): string {
+  if (isFhoWorkflowDualAction(a)) {
+    return a.description
+      ? `${truncateForOutcome(a.title, 56)} — ${truncateForOutcome(a.description, 72)}`
+      : `Completed automated step: ${truncateForOutcome(a.title, 100)}`;
+  }
+  if (isFhoWorkflowOperatingTransfer(a)) {
+    return a.description
+      ? `${truncateForOutcome(a.title, 56)} — ${truncateForOutcome(a.description, 72)}`
+      : `Transfer toward shortfall ${a.shortfallDisplay}`;
+  }
+  return a.detail
+    ? `${truncateForOutcome(a.label, 56)} — ${truncateForOutcome(a.detail, 72)}`
+    : `Completed automated step: ${truncateForOutcome(a.label, 100)}`;
+}
+
 export function getExecuteOutcomeForOption(opt: FhoWorkflowOption): FhoExecuteOutcome {
   if (opt.executeOutcome) return opt.executeOutcome;
-  const derived = opt.actions.slice(0, 4).map((a) =>
-    a.detail
-      ? `${truncateForOutcome(a.label, 56)} — ${truncateForOutcome(a.detail, 72)}`
-      : `Completed automated step: ${truncateForOutcome(a.label, 100)}`,
-  );
+  const derived = opt.actions.slice(0, 4).map(actionLineForOutcome);
   const bullets =
     derived.length > 0
       ? derived
@@ -1207,7 +1312,9 @@ export function getFhoTeammateBreakdown(widgetId: string): string | null {
   for (const opt of p.options) {
     parts.push(opt.title);
     for (const a of opt.actions) {
-      parts.push(`• ${a.label}`);
+      parts.push(
+        `• ${isFhoWorkflowDualAction(a) || isFhoWorkflowOperatingTransfer(a) ? a.title : a.label}`,
+      );
     }
   }
   return parts.join('\n\n');

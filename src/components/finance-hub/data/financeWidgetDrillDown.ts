@@ -15,7 +15,7 @@ export function isFinanceWidgetExploreNoop(a: FinanceWidgetExploreAction): boole
 }
 
 function teammateExplore(prompt: string): FinanceWidgetExploreAction {
-  return { type: 'teammate_prompt', label: 'Explore actions', prompt };
+  return { type: 'teammate_prompt', label: 'View suggestions', prompt };
 }
 
 /**
@@ -399,8 +399,8 @@ export function getFinanceWidgetSummaryNavigateActions(
         },
         {
           id: 'fi-fho-rv-3',
-          label: 'Use widget Explore actions for a full teammate workflow',
-          detail: 'Footer Explore actions still open a broader plan alongside this suggestion.',
+          label: 'Use widget View suggestions for a full teammate workflow',
+          detail: 'Footer View suggestions still open a broader plan alongside this suggestion.',
         },
       ];
 
@@ -510,8 +510,8 @@ export function getFinanceWidgetSummaryNavigateActions(
         strategicTriplet[1]!,
         {
           id: 'fi-def-3',
-          label: 'Use Explore actions in the widget footer',
-          detail: 'For a broader workflow, open the full Clio Teammate plan from Explore actions below.',
+          label: 'Use View suggestions in the widget footer',
+          detail: 'For a broader workflow, open the full Clio Teammate plan from View suggestions below.',
         },
       ];
   }

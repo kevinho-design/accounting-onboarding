@@ -89,7 +89,7 @@ export const BRIEFING_EXPLORE_BY_ID: Record<BriefingInsightId, BriefingExploreCo
     title: 'Payroll Shortfall — Operating Account Gap',
     aiAnalysis: {
       summary:
-        'Ambient CFO detected payroll due in three days with a projected operating cash gap of $15,700. The system has ranked resolution paths from lowest-friction internal liquidity actions to higher-cost financing.',
+        'Firm Intelligence detected payroll due in three days with a projected operating cash gap of $15,700. The system has ranked resolution paths from lowest-friction internal liquidity actions to higher-cost financing.',
       whySurfacing:
         'We surface this now because payroll is a fixed-date obligation and timing risk compounds quickly. Addressing the gap now gives you enough runway to use lower-cost levers before drawing on external financing.',
     },

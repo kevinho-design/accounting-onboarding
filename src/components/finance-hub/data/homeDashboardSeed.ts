@@ -106,7 +106,6 @@ export interface FinancialKpi {
   extraBadges?: { label: string; variant: KpiBadgeVariant }[];
   /** 'sparkline' | 'bars' | 'stackedBars' | 'radial' */
   viz: 'sparkline' | 'bars' | 'stackedBars' | 'radial';
-  vizMeta?: { radialPct?: number };
 }
 
 export const financialKpis: FinancialKpi[] = [
@@ -142,7 +141,6 @@ export const financialKpis: FinancialKpi[] = [
     badge: { label: 'BEHIND GOAL', variant: 'warning' },
     extraBadges: [{ label: '-16 days from goal', variant: 'warning' }],
     viz: 'radial',
-    vizMeta: { radialPct: 82 },
   },
 ];
 

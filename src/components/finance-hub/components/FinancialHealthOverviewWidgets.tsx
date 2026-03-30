@@ -178,23 +178,6 @@ function MiniSparkline() {
   );
 }
 
-function RunwayRadialHint({ pct }: { pct: number }) {
-  const p = Math.min(100, Math.max(0, pct));
-  return (
-    <div
-      className="relative mx-auto h-20 w-20 shrink-0 rounded-full border-2 border-border"
-      style={{
-        background: `conic-gradient(var(--chart-emerald) ${p}%, var(--muted) 0)`,
-      }}
-      aria-hidden
-    >
-      <div className="absolute inset-2 flex items-center justify-center rounded-full bg-background text-center text-[10px] font-bold leading-tight text-muted-foreground">
-        {p}%
-      </div>
-    </div>
-  );
-}
-
 export function FhoPersonalizationBanner(props?: {
   surface?: FhoSurface;
   onOpenFullFinancialHealth?: () => void;
@@ -610,29 +593,18 @@ function FhoRunwayTrendMiniChart() {
 
 export function FhoRunwayDetailWidget({ surface = 'page' }: { surface?: FhoSurface } = {}) {
   const k4 = kpiById('k4');
-  const radialPct = k4.vizMeta?.radialPct ?? 0;
   if (surface === 'dashboardSummary') {
     return (
-      <div className="flex gap-3">
-        <div className="min-w-0 flex-1 space-y-2">
-          <KpiHeadline kpi={k4} icon={Activity} iconClass="text-pink-600" compact />
-          <p className="text-[11px] text-muted-foreground line-clamp-3">{FHO_RUNWAY_NARRATIVE.body}</p>
-        </div>
-        <div className="shrink-0 scale-75 origin-top-right">
-          <RunwayRadialHint pct={radialPct} />
-        </div>
+      <div className="min-w-0 space-y-2">
+        <KpiHeadline kpi={k4} icon={Activity} iconClass="text-pink-600" compact />
+        <p className="text-[11px] text-muted-foreground line-clamp-3">{FHO_RUNWAY_NARRATIVE.body}</p>
       </div>
     );
   }
   return (
     <div className="space-y-4">
       <FhoPageStickyHeader>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1 space-y-3">
-            <KpiHeadline kpi={k4} icon={Activity} iconClass="text-pink-600" />
-          </div>
-          <RunwayRadialHint pct={radialPct} />
-        </div>
+        <KpiHeadline kpi={k4} icon={Activity} iconClass="text-pink-600" />
       </FhoPageStickyHeader>
       <p className="text-sm leading-relaxed text-muted-foreground">{FHO_RUNWAY_NARRATIVE.body}</p>
       <div className="flex flex-wrap gap-3 text-xs font-semibold">

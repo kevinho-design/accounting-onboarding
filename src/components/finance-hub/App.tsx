@@ -55,7 +55,18 @@ import {
 } from './components/ui/dialog';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
-import { DashboardCustomizer } from './components/DashboardCustomizer';
+import {
+  DashboardCustomizer,
+  type DashboardCustomizerHandle,
+} from './components/DashboardCustomizer';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './components/ui/alert-dialog';
 import { BriefingSidePanel, type BriefingPanelState } from './components/BriefingSidePanel';
 import { FloatingChatBar } from './components/clio-teammate/FloatingChatBar';
 import { isBriefingInsightId, type BriefingInsightId } from './data/briefingPanelContent';
@@ -211,7 +222,7 @@ const PAYROLL_SHORTFALL_SCENARIO_MODEL: FinancialScenarioModel = {
   aiAnalysis: {
     trend: '↓ Immediate liquidity risk in Operating Account',
     insight:
-      'Ambient CFO detected payroll processing on Friday with a projected operating cash deficit. Prioritized options below are ranked from lowest-friction internal levers to higher-cost financing.',
+      'Firm Intelligence detected payroll processing on Friday with a projected operating cash deficit. Prioritized options below are ranked from lowest-friction internal levers to higher-cost financing.',
     confidence: 'High (94%) - Based on live operating balance and payroll schedule',
   },
   goalImpactAnalysis:
@@ -495,24 +506,33 @@ export default function App({
   scrollToWidget,
   onAddPageRef,
   embeddedInAccountingShell,
+  shellNavLeftInsetPx = 239,
   teammateOpen,
   onTeammateOpenChange,
   onTeammateChatHistoryChange,
   onTeammateExplorePlan,
   financeChatSubmitRef,
   onTeammateSparkle,
+  navigationGuardRef,
+  onShellNavigate,
 }: {
   initialPage?: string;
   scrollToWidget?: string;
   onAddPageRef?: React.MutableRefObject<(() => void) | null>;
   /** When true, only this floating bar shows on Finances (root shell hides its duplicate). */
   embeddedInAccountingShell?: boolean;
+  /** Accounting shell left nav width (px) for floating bar positioning when embedded. */
+  shellNavLeftInsetPx?: number;
   teammateOpen: boolean;
   onTeammateOpenChange: (open: boolean) => void;
   onTeammateChatHistoryChange: React.Dispatch<React.SetStateAction<TeammateChatMessage[]>>;
   onTeammateExplorePlan: (plan: FhoTeammatePlan) => void;
   financeChatSubmitRef: React.MutableRefObject<((text: string) => void) | null>;
   onTeammateSparkle: () => void;
+  /** Accounting shell: intercept sidebar navigation while customizer has unsaved changes */
+  navigationGuardRef?: React.MutableRefObject<{ tryLeaveToShellPage: (page: string) => boolean } | null>;
+  /** After discard/save-and-exit to a shell route (e.g. Dashboard) */
+  onShellNavigate?: (page: string) => void;
 }) {
   const [activePage, setActivePage] = useState(initialPage ?? FP_FINANCIAL_HEALTH_ID);
   useEffect(() => {
@@ -585,12 +605,75 @@ export default function App({
   type CustomizerContext = { mode: 'create' } | { mode: 'edit'; pageId: string };
   const [customizerContext, setCustomizerContext] = useState<CustomizerContext | null>(null);
   const [customizerMountId, setCustomizerMountId] = useState(0);
+  const [customizerDirty, setCustomizerDirty] = useState(false);
+  const [customizerLeaveDialogOpen, setCustomizerLeaveDialogOpen] = useState(false);
+  type CustomizePendingNav =
+    | { kind: 'finance'; page: string }
+    | { kind: 'shell'; page: string };
+  const [customizePendingNav, setCustomizePendingNav] = useState<CustomizePendingNav | null>(null);
+  const postSaveNavigateRef = useRef<CustomizePendingNav | null>(null);
+  const dashboardCustomizerRef = useRef<DashboardCustomizerHandle | null>(null);
 
   const beginCustomize = (ctx: CustomizerContext) => {
     setCustomizerMountId((n) => n + 1);
     setCustomizerContext(ctx);
+    setCustomizerDirty(false);
   };
   const isCustomizing = customizerContext !== null;
+
+  const requestActivePage = useCallback(
+    (next: string, opts?: { force?: boolean }) => {
+      if (opts?.force || !customizerContext || !customizerDirty) {
+        setActivePage(next);
+        return;
+      }
+      setCustomizePendingNav({ kind: 'finance', page: next });
+      setCustomizerLeaveDialogOpen(true);
+    },
+    [customizerContext, customizerDirty],
+  );
+
+  const tryLeaveToShellPage = useCallback(
+    (page: string): boolean => {
+      if (!customizerContext || !customizerDirty) return true;
+      setCustomizePendingNav({ kind: 'shell', page });
+      setCustomizerLeaveDialogOpen(true);
+      return false;
+    },
+    [customizerContext, customizerDirty],
+  );
+
+  useEffect(() => {
+    if (!navigationGuardRef) return;
+    navigationGuardRef.current = { tryLeaveToShellPage };
+    return () => {
+      navigationGuardRef.current = null;
+    };
+  }, [navigationGuardRef, tryLeaveToShellPage]);
+
+  const handleCustomizerLeaveCancel = useCallback(() => {
+    setCustomizerLeaveDialogOpen(false);
+    setCustomizePendingNav(null);
+  }, []);
+
+  const handleCustomizerLeaveDiscard = useCallback(() => {
+    setCustomizerLeaveDialogOpen(false);
+    const p = customizePendingNav;
+    setCustomizePendingNav(null);
+    setCustomizerContext(null);
+    setCustomizerDirty(false);
+    if (!p) return;
+    if (p.kind === 'shell') onShellNavigate?.(p.page);
+    else setActivePage(p.page);
+  }, [customizePendingNav, onShellNavigate]);
+
+  const handleCustomizerLeaveSave = useCallback(() => {
+    const p = customizePendingNav;
+    setCustomizerLeaveDialogOpen(false);
+    setCustomizePendingNav(null);
+    postSaveNavigateRef.current = p;
+    dashboardCustomizerRef.current?.save();
+  }, [customizePendingNav]);
 
   useEffect(() => {
     if (onAddPageRef) onAddPageRef.current = () => beginCustomize({ mode: 'create' });
@@ -711,9 +794,9 @@ export default function App({
       }
       setFinancialGoalModelIds((prev) => [...prev, modelId]);
       toast.success('Model added to Financial Goals');
-      setActivePage(FP_FINANCIAL_HEALTH_ID);
+      requestActivePage(FP_FINANCIAL_HEALTH_ID, { force: true });
     },
-    [financialGoalModelIds, allFinancialModels],
+    [financialGoalModelIds, allFinancialModels, requestActivePage],
   );
 
   const openModellingExplorePanel = React.useCallback((modelId: string) => {
@@ -1014,7 +1097,7 @@ export default function App({
     // P&L natural-language → filters + navigate (any page / Reports grid; was gated on already-open P&L only)
     const nl = interpretProfitLossQuery(textToSubmit, profitLossViewState);
     if (nl.matched) {
-      setActivePage('Reports');
+      requestActivePage('Reports');
       setSelectedReport('Profit and Loss');
       setProfitLossViewState(nl.nextState);
       window.setTimeout(() => {
@@ -1152,9 +1235,12 @@ export default function App({
     "Digital Twin: model a 10% billing rate increase in Real Estate",
   ];
 
-  const handleDigitalTwinScenario = React.useCallback((_id: DigitalTwinScenarioId) => {
-    setActivePage('fp_default');
-  }, []);
+  const handleDigitalTwinScenario = React.useCallback(
+    (_id: DigitalTwinScenarioId) => {
+      requestActivePage('fp_default', { force: true });
+    },
+    [requestActivePage],
+  );
 
   // Sidebar Navigation Items matching the provided reference image
   const navItems = React.useMemo((): NavItem[] => [
@@ -1297,11 +1383,11 @@ export default function App({
       case 'noop':
         return;
       case 'navigate_report':
-        setActivePage('Reports');
+        requestActivePage('Reports', { force: true });
         setSelectedReport(action.reportName);
         return;
       case 'navigate_page':
-        setActivePage(action.pageId);
+        requestActivePage(action.pageId, { force: true });
         setSelectedReport(null);
         return;
       case 'open_dialog':
@@ -1341,7 +1427,7 @@ export default function App({
       default:
         return;
     }
-  }, [handleBriefingExplore, onTeammateExplorePlan]);
+  }, [handleBriefingExplore, onTeammateExplorePlan, requestActivePage]);
 
   const globalSearchResults = React.useMemo(() => {
     if (!chatInput.trim()) return [];
@@ -1365,7 +1451,7 @@ export default function App({
               type: 'page',
               icon: item.icon,
               action: () => {
-                setActivePage(pageId);
+                requestActivePage(pageId);
                 setSelectedReport(null);
               },
             });
@@ -1381,7 +1467,7 @@ export default function App({
               type: 'page',
               icon: item.icon,
               action: () => {
-                setActivePage(item.name);
+                requestActivePage(item.name);
                 setSelectedReport(null);
               },
             });
@@ -1400,7 +1486,7 @@ export default function App({
           type: 'report',
           icon: report.icon,
           action: () => {
-            setActivePage('Reports');
+            requestActivePage('Reports');
             setSelectedReport(report.name);
           }
         });
@@ -1408,11 +1494,51 @@ export default function App({
     });
     
     return results;
-  }, [chatInput, availableReports, navItems]);
+  }, [chatInput, availableReports, navItems, requestActivePage]);
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       <Toaster position="bottom-right" richColors />
+
+      <AlertDialog
+        open={customizerLeaveDialogOpen}
+        onOpenChange={(open) => {
+          setCustomizerLeaveDialogOpen(open);
+          if (!open) setCustomizePendingNav(null);
+        }}
+      >
+        <AlertDialogContent className="border-gray-200 bg-white text-gray-900 sm:max-w-md z-[200]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes to this custom view. If you leave now, they will be lost.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={handleCustomizerLeaveCancel}
+              className="inline-flex h-10 items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleCustomizerLeaveDiscard}
+              className="inline-flex h-10 items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
+            >
+              Exit without saving
+            </button>
+            <button
+              type="button"
+              onClick={handleCustomizerLeaveSave}
+              className="inline-flex h-10 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Save and exit
+            </button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Mobile: open nav from menu; desktop: sidebar always visible */}
       {mobileNavOpen && (
@@ -1511,7 +1637,7 @@ export default function App({
                     setIsNavCollapsed(false);
                     setIsFinancesOpen(true);
                   } else {
-                    setActivePage(item.name);
+                    requestActivePage(item.name);
                     closeMobileNav();
                   }
                 }}
@@ -1553,7 +1679,7 @@ export default function App({
                       onClick={(e) => {
                         e.preventDefault();
                         if (!subItem.isAction) {
-                          setActivePage(subItem.name);
+                          requestActivePage(subItem.name);
                           if (subItem.name === 'Reports') {
                             setSelectedReport(null);
                           }
@@ -1590,7 +1716,7 @@ export default function App({
               href="#"
               onClick={(e) => {
                 e.preventDefault();
-                setActivePage('User Profile');
+                requestActivePage('User Profile');
                 closeMobileNav();
               }}
               className={`flex items-center rounded-[8px] gap-[10.5px] hover:bg-[var(--nav-item-hover-bg)] transition-colors duration-[var(--motion-duration-sm)] ease-[var(--motion-ease-standard)] motion-reduce:transition-none group ${
@@ -1632,11 +1758,16 @@ export default function App({
       >
         {isCustomizing && customizerContext ? (
           <DashboardCustomizer
+            ref={dashboardCustomizerRef}
             key={`dashboard-customizer-${customizerMountId}`}
             reportLibrary={reportLibraryForFinance}
             executedBriefingInsightIds={executedBriefingPlans}
             mode={customizerContext.mode}
-            onClose={() => setCustomizerContext(null)}
+            onDirtyChange={setCustomizerDirty}
+            onClose={() => {
+              setCustomizerContext(null);
+              setCustomizerDirty(false);
+            }}
             dashboardTitle={
               customizerContext.mode === 'edit'
                 ? financeCustomPages.find((p) => p.id === customizerContext.pageId)?.title ?? ''
@@ -1665,13 +1796,17 @@ export default function App({
             onModellingOpenCreateModel={() => setCreateModelDialogOpen(true)}
             initialPeerBenchmarkEnabled={peerBenchmarkEnabled}
             onSaveDashboard={({ title, widgets, sidebarWidgets, mainGridColumns, showSidebar }) => {
+              const ctx = customizerContext;
+              const redirect = postSaveNavigateRef.current;
+              postSaveNavigateRef.current = null;
               const t = title.trim() || 'Untitled dashboard';
-              if (customizerContext.mode === 'create') {
-                const id = `fp_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`;
+              let createdPageId: string | null = null;
+              if (ctx.mode === 'create') {
+                createdPageId = `fp_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`;
                 setFinanceCustomPages((prev) => [
                   ...prev,
                   {
-                    id,
+                    id: createdPageId!,
                     title: t,
                     widgets,
                     sidebarWidgets,
@@ -1679,10 +1814,9 @@ export default function App({
                     showSidebar,
                   },
                 ]);
-                setActivePage(id);
                 toast.success('New page added under Finances');
               } else {
-                const pid = customizerContext.pageId;
+                const pid = ctx.pageId;
                 setFinanceCustomPages((prev) =>
                   prev.map((p) =>
                     p.id === pid ? { ...p, title: t, widgets, sidebarWidgets, mainGridColumns, showSidebar } : p,
@@ -1691,6 +1825,13 @@ export default function App({
                 toast.success('Dashboard updated');
               }
               setCustomizerContext(null);
+              setCustomizerDirty(false);
+              if (redirect) {
+                if (redirect.kind === 'shell') onShellNavigate?.(redirect.page);
+                else setActivePage(redirect.page);
+              } else if (createdPageId) {
+                setActivePage(createdPageId);
+              }
             }}
             onDeleteDashboard={() => {
               if (customizerContext.mode !== 'edit') return;
@@ -1699,7 +1840,7 @@ export default function App({
               setFinanceCustomPages(remaining);
               setSharedDashboardUsers([]);
               setCustomizerContext(null);
-              setActivePage(remaining[0]?.id ?? FP_FINANCIAL_HEALTH_ID);
+              requestActivePage(remaining[0]?.id ?? FP_FINANCIAL_HEALTH_ID, { force: true });
               toast.success('Dashboard permanently deleted');
             }}
             onTakeAction={(insightId) => {
@@ -1720,12 +1861,12 @@ export default function App({
           <HomeDashboard
             userFirstName={USER_FIRST_NAME}
             onOpenTeammate={() => onTeammateOpenChange(true)}
-            onReviewGoals={() => setActivePage(FP_FINANCIAL_HEALTH_ID)}
-            onOpenFinancialHealthOverview={() => setActivePage(FP_FINANCIAL_HEALTH_ID)}
+            onReviewGoals={() => requestActivePage(FP_FINANCIAL_HEALTH_ID)}
+            onOpenFinancialHealthOverview={() => requestActivePage(FP_FINANCIAL_HEALTH_ID)}
             financialHealthPins={dashboardFinancialPins}
             reportLibrary={reportLibraryForFinance}
             onUnpinFinancialPinKey={handleUnpinDashboardFinancial}
-            onOpenSourceFinancePage={(pageId) => setActivePage(pageId)}
+            onOpenSourceFinancePage={(pageId) => requestActivePage(pageId)}
           />
         ) : isFinanceCustomPageView && activeFinancePage ? (
           <div className="max-w-7xl mx-auto w-full p-8 pb-32 flex flex-col gap-8 animate-in fade-in duration-300">
@@ -2043,7 +2184,9 @@ export default function App({
                     activePage === FP_FINANCIAL_HEALTH_ID ? FP_FINANCIAL_HEALTH_ID : undefined
                   }
                   pinUi={
-                    isFinanceCustomPageView && !isCustomizing
+                    isFinanceCustomPageView &&
+                    !isCustomizing &&
+                    activePage !== FP_FINANCIAL_HEALTH_ID
                       ? {
                           activePageId: activePage,
                           pinnedPinKeys: financePagePinnedKeys,
@@ -2092,7 +2235,9 @@ export default function App({
                       activePage === FP_FINANCIAL_HEALTH_ID ? FP_FINANCIAL_HEALTH_ID : undefined
                     }
                     pinUi={
-                      isFinanceCustomPageView && !isCustomizing
+                      isFinanceCustomPageView &&
+                      !isCustomizing &&
+                      activePage !== FP_FINANCIAL_HEALTH_ID
                         ? {
                             activePageId: activePage,
                             pinnedPinKeys: financePagePinnedKeys,
@@ -2499,13 +2644,13 @@ export default function App({
         widgetId={financeExploreDialogWidgetId}
         fallbackTitle="Widget"
         onNavigateReport={(reportName) => {
-          setActivePage('Reports');
+          requestActivePage('Reports', { force: true });
           setSelectedReport(reportName);
           setFinanceExploreDialogOpen(false);
           setFinanceExploreDialogWidgetId(null);
         }}
         onNavigatePage={(pageId) => {
-          setActivePage(pageId);
+          requestActivePage(pageId, { force: true });
           setSelectedReport(null);
           setFinanceExploreDialogOpen(false);
           setFinanceExploreDialogWidgetId(null);
@@ -2533,6 +2678,7 @@ export default function App({
       {embeddedInAccountingShell !== false ? (
         <FloatingChatBar
           isVisible={!isCustomizing && !teammateOpen}
+          shellNavLeftInsetPx={shellNavLeftInsetPx}
           onOpen={() => onTeammateOpenChange(true)}
           onSubmitMessage={(msg) => {
             onTeammateOpenChange(true);
@@ -2548,8 +2694,6 @@ export default function App({
           brandColor={brandColor}
           placeholder="Search the product or ask your Firm Intelligence…"
           executedBriefingInsightIds={executedBriefingPlans}
-          onBriefingTakeAction={handleBriefingTakeAction}
-          onBriefingExplore={handleBriefingExplore}
           navigationSection={
             chatInput.trim() && globalSearchResults.length > 0 ? (
               <div className="mb-3">

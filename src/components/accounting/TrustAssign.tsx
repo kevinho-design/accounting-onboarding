@@ -1,6 +1,20 @@
 import React from "react";
 import * as ReactDOM from "react-dom";
 import { Users, ChevronDown, Search, X } from "lucide-react";
+import { buttonVariants } from "../ui/button";
+import { cn } from "../ui/utils";
+
+/** Outline trigger aligned with `Button variant="outline" size="sm"` (e.g. Ask Teammate). */
+export const TRUST_ASSIGN_COMPACT_TRIGGER_CLASS = cn(
+  buttonVariants({ variant: "outline", size: "sm" }),
+  "border-border text-muted-foreground hover:bg-background text-xs cursor-pointer",
+);
+
+const DEFAULT_PROMINENT_TRIGGER_STYLE: React.CSSProperties = {
+  fontWeight: 600,
+  backgroundColor: "#D97706",
+  color: "#FFFFFF",
+};
 
 export type FirmMember = { id: string; name: string; role: string; dept: string; initials: string; color: string };
 
@@ -77,6 +91,13 @@ export function TrustAssignCTA({ onDismiss, compact = false, buttonClassName, bu
     m.role.toLowerCase().includes(search.toLowerCase())
   );
 
+  const triggerStyle: React.CSSProperties | undefined =
+    buttonStyle !== undefined
+      ? buttonStyle
+      : buttonClassName !== undefined
+        ? {}
+        : DEFAULT_PROMINENT_TRIGGER_STYLE;
+
   if (assignee) {
     return (
       <div className="flex items-center gap-2 flex-shrink-0">
@@ -149,7 +170,7 @@ export function TrustAssignCTA({ onDismiss, compact = false, buttonClassName, bu
         ref={buttonRef}
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
         className={buttonClassName ?? "flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] transition-all hover:opacity-90"}
-        style={buttonStyle ?? { fontWeight: 600, backgroundColor: "#D97706", color: "#FFFFFF" }}
+        style={triggerStyle}
       >
         <Users className="w-3 h-3" />
         Assign request

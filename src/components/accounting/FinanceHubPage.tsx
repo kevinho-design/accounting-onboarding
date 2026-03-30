@@ -8,24 +8,31 @@ export function FinanceHubPage({
   scrollToWidget,
   onAddPageRef,
   embeddedInAccountingShell,
+  shellNavLeftInsetPx,
   teammateOpen,
   onTeammateOpenChange,
   onTeammateChatHistoryChange,
   onTeammateExplorePlan,
   financeChatSubmitRef,
   onTeammateSparkle,
+  navigationGuardRef,
+  onShellNavigate,
 }: {
   initialPage?: string;
   scrollToWidget?: string;
   onAddPageRef?: React.MutableRefObject<(() => void) | null>;
   /** When true, finance-hub shows its own floating search bar (root shell hides its bar on Finances:*). */
   embeddedInAccountingShell?: boolean;
+  /** Width of the accounting shell left nav (px) for floating bar inset when embedded. */
+  shellNavLeftInsetPx?: number;
   teammateOpen: boolean;
   onTeammateOpenChange: (open: boolean) => void;
   onTeammateChatHistoryChange: React.Dispatch<React.SetStateAction<TeammateChatMessage[]>>;
   onTeammateExplorePlan: (plan: FhoTeammatePlan) => void;
   financeChatSubmitRef: React.MutableRefObject<((text: string) => void) | null>;
   onTeammateSparkle: () => void;
+  navigationGuardRef?: React.MutableRefObject<{ tryLeaveToShellPage: (page: string) => boolean } | null>;
+  onShellNavigate?: (page: string) => void;
 }) {
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden finance-hub">
@@ -42,12 +49,15 @@ export function FinanceHubPage({
         scrollToWidget={scrollToWidget}
         onAddPageRef={onAddPageRef}
         embeddedInAccountingShell={embeddedInAccountingShell}
+        shellNavLeftInsetPx={shellNavLeftInsetPx}
         teammateOpen={teammateOpen}
         onTeammateOpenChange={onTeammateOpenChange}
         onTeammateChatHistoryChange={onTeammateChatHistoryChange}
         onTeammateExplorePlan={onTeammateExplorePlan}
         financeChatSubmitRef={financeChatSubmitRef}
         onTeammateSparkle={onTeammateSparkle}
+        navigationGuardRef={navigationGuardRef}
+        onShellNavigate={onShellNavigate}
       />
     </div>
   );

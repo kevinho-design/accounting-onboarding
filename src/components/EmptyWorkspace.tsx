@@ -19,7 +19,7 @@ export function EmptyWorkspace() {
             </h2>
             <p className="text-lg text-gray-600 leading-relaxed">
               Your main workspace is ready. Select a feature from the navigation to get started, 
-              or let the Ambient CFO guide you to the next best action.
+              or let Firm Intelligence guide you to the next best action.
             </p>
             
             {/* 12-Column Grid Visualization (Optional) */}

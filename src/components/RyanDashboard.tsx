@@ -17,7 +17,7 @@ import { Button } from "./ui/button";
 import { PulsatingCloudBackground } from "./PulsatingCloudBackground";
 import { motion } from "motion/react";
 import { AgentAction } from "./agents/AgentTypes";
-import { TrustAssignCTA } from "./accounting/TrustAssign";
+import { TrustAssignCTA, TRUST_ASSIGN_COMPACT_TRIGGER_CLASS } from "./accounting/TrustAssign";
 import type { FhoTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
 import { getPayrollShortfallTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
 
@@ -171,7 +171,7 @@ export function RyanDashboard({
             <p className="text-muted-foreground text-sm">Managing Partner · Tuesday, March 18, 2026</p>
           </div>
 
-          {/* Q1 2026 Financial Goals */}
+          {/* Firm's Financial Goals */}
           <div className="bg-card rounded-xl border border-border shadow-sm mb-8">
             <div
               className="flex items-center justify-between p-4 cursor-pointer hover:bg-background transition-colors"
@@ -182,7 +182,7 @@ export function RyanDashboard({
                   <Target className="w-4 h-4 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Q1 2026 Financial Goals</p>
+                  <p className="text-sm font-semibold text-foreground">Firm's Financial Goals</p>
                   <p className="text-xs text-muted-foreground">3 of 4 on track • 1 at risk</p>
                 </div>
               </div>
@@ -335,13 +335,9 @@ export function RyanDashboard({
                                     }}
                                   >
                                     <CheckCircle className="w-3 h-3 mr-1" />
-                                    {item.id === "payroll-shortfall-critical" ? "Review plan" : "Approve"}
+                                    {item.id === "payroll-shortfall-critical" ? "View suggestions" : "Approve"}
                                   </Button>
-                                  <TrustAssignCTA
-                                    compact
-                                    buttonClassName="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] transition-all hover:opacity-90 border border-border bg-background text-muted-foreground font-semibold"
-                                    buttonStyle={undefined}
-                                  />
+                                  <TrustAssignCTA compact buttonClassName={TRUST_ASSIGN_COMPACT_TRIGGER_CLASS} />
                                 </>
                               ) : (
                                 <Button

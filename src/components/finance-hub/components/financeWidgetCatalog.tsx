@@ -119,10 +119,10 @@ export function isFinancialHealthOverviewWidgetId(widgetId: string): boolean {
   return widgetId.startsWith('fho_');
 }
 
-/** Min + max height for Financial Health Overview widget cards; body scrolls when content exceeds. */
-export const FHO_WIDGET_CARD_MIN_CLASS = 'min-h-[420px] md:min-h-[480px] max-h-[480px]';
+/** Financial Health Overview cards: max height only (no min-height — shell hugs content up to cap). */
+export const FHO_WIDGET_CARD_MIN_CLASS = 'max-h-[480px]';
 
-/** Scrollable body region inside flex column FHO cards (requires min-h-0 for overflow). */
+/** Scrollable body inside capped FHO cards when content exceeds max-height. */
 export const FHO_WIDGET_BODY_SCROLL_CLASS = 'flex-1 min-h-0 overflow-y-auto custom-scrollbar';
 
 /** Widgets that must stay in Finances context (charts / goals bridge); no Dashboard pin. */
@@ -695,7 +695,7 @@ type FinanceWidgetContentProps = {
   /** Pinned-from page (generic + embedded summaries) */
   sourcePageId?: string;
   reportLibrary?: readonly ReportLibraryEntry[];
-  /** Summary suggestions + footer Explore actions → Clio Teammate Plan */
+  /** Summary suggestions + footer View suggestions → Clio Teammate Plan */
   onFinanceWidgetExplore?: (payload: FinanceWidgetExplorePayload) => void;
   exploreFallbackTitle?: string;
 };

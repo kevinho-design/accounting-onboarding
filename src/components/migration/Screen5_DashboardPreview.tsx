@@ -130,7 +130,7 @@ export function Screen5_DashboardPreview({ onComplete }: Screen5Props) {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-gray-900">14 items need your input</p>
-                <p className="text-xs text-gray-500 mt-0.5">Your Teammate will walk you through each one when you're ready.</p>
+                <p className="text-xs text-gray-500 mt-0.5">Our system will walk you through each one when you're ready.</p>
               </div>
               <div className="bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">
                 <span className="text-xs font-semibold text-amber-700">Queued for review</span>

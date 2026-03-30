@@ -27,6 +27,16 @@ export function InviteScreen2_RoleFocus({ onComplete, onBack }: InviteScreen2Pro
   const [responsibilities, setResponsibilities] = React.useState<string[]>(DEFAULT_RESPONSIBILITIES);
   const [checked, setChecked] = React.useState<Set<string>>(new Set(DEFAULT_RESPONSIBILITIES));
   const [newItem, setNewItem] = React.useState("");
+  const [aiChecked, setAiChecked] = React.useState<Set<string>>(new Set(AI_HANDLES));
+
+  const toggleAiItem = (item: string) => {
+    setAiChecked(prev => {
+      const next = new Set(prev);
+      if (next.has(item)) next.delete(item);
+      else next.add(item);
+      return next;
+    });
+  };
 
   const toggleItem = (item: string) => {
     setChecked(prev => {
@@ -70,7 +80,7 @@ export function InviteScreen2_RoleFocus({ onComplete, onBack }: InviteScreen2Pro
               Here's what Clio has lined up for you
             </h2>
             <p className="text-gray-600 text-base">
-              As the bookkeeper, you focus on the work that needs human judgment. Your AI teammate handles everything else.
+              As the bookkeeper, you focus on the work that needs human judgment. Our system handles everything else.
             </p>
           </div>
 
@@ -141,14 +151,29 @@ export function InviteScreen2_RoleFocus({ onComplete, onBack }: InviteScreen2Pro
                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                   <Sparkles className="w-3.5 h-3.5 text-white" />
                 </div>
-                <span className="font-semibold text-gray-900 text-sm">AI Teammate handles</span>
+                <span className="font-semibold text-gray-900 text-sm">Our system handles</span>
               </div>
 
               <div className="space-y-2">
                 {AI_HANDLES.map(item => (
-                  <div key={item} className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 border border-purple-100">
-                    <Sparkles className="w-4 h-4 text-purple-500 flex-shrink-0" />
-                    <span className="text-sm text-gray-700">{item}</span>
+                  <div
+                    key={item}
+                    onClick={() => toggleAiItem(item)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                      aiChecked.has(item)
+                        ? "bg-purple-50 border-purple-200"
+                        : "bg-gray-50 border-gray-200 opacity-50"
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 border transition-colors ${
+                      aiChecked.has(item) ? "bg-purple-500 border-purple-500" : "border-gray-300 bg-white"
+                    }`}>
+                      {aiChecked.has(item) && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+                    </div>
+                    <span className={`text-sm flex-1 ${aiChecked.has(item) ? "text-gray-700" : "text-gray-400 line-through"}`}>
+                      {item}
+                    </span>
+                    <Sparkles className={`w-3.5 h-3.5 flex-shrink-0 transition-colors ${aiChecked.has(item) ? "text-purple-400" : "text-gray-300"}`} />
                   </div>
                 ))}
               </div>

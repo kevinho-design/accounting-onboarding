@@ -21,6 +21,7 @@ import { RYAN_HANDLED_AGENT_ACTIONS } from "./teammateTodayUnifiedFeed";
 import { TrustAssignCTA, TRUST_ASSIGN_COMPACT_TRIGGER_CLASS } from "./accounting/TrustAssign";
 import type { FhoTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
 import { getPayrollShortfallTeammatePlan } from "./finance-hub/data/fhoTeammateBreakdowns";
+import { firmGoalsOnTrackCount, useFirmGoalsState } from "./finance-hub/data/firmGoals";
 
 interface RyanDashboardProps {
   onRecentActionsChange?: (actions: AgentAction[]) => void;
@@ -149,6 +150,8 @@ export function RyanDashboard({
   onNavigateToFinancialHealth,
   teammateTodayExceptions = [],
 }: RyanDashboardProps) {
+  useFirmGoalsState();
+  const goalCounts = firmGoalsOnTrackCount();
   const [goalsExpanded, setGoalsExpanded] = React.useState(true);
   const [expandedItemId, setExpandedItemId] = React.useState<string | null>(null);
   const [approvedIds, setApprovedIds] = React.useState<Set<string>>(new Set());
@@ -192,8 +195,8 @@ export function RyanDashboard({
                   <Target className="w-4 h-4 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">Firm's Financial Goals</p>
-                  <p className="text-xs text-muted-foreground">3 of 4 on track • 1 at risk</p>
+                  <p className="text-sm font-semibold text-foreground">Q1 2026 Financial Goals</p>
+                  <p className="text-xs text-muted-foreground">{goalCounts.onTrack} of {goalCounts.total} on track • {goalCounts.total - goalCounts.onTrack} at risk</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">

@@ -194,8 +194,7 @@ export default function App() {
             }}
             onPillar2={() => {
               setShowPortal(false);
-              setCurrentPage("Dashboard");
-              showSarahInviteToast();
+              startSarahFlow();
             }}
             onPillar3={() => {
               setShowPortal(false);

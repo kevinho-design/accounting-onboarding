@@ -743,6 +743,111 @@ function CategoryDropdown({ value, onChange }: { value: string; onChange: (v: st
 }
 
 
+function BulkActionToolbar({ selectedCount, onClear, onChangeCategory, onChangeClient, onChangeMatter }: {
+  selectedCount: number;
+  onClear: () => void;
+  onChangeCategory: (cat: string) => void;
+  onChangeClient: (val: string) => void;
+  onChangeMatter: (val: string) => void;
+}) {
+  const [activeAction, setActiveAction] = React.useState<"category" | "client" | "matter" | null>(null);
+  const [inputVal, setInputVal] = React.useState("");
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (activeAction === "client" || activeAction === "matter") {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [activeAction]);
+
+  const commitInput = () => {
+    if (!inputVal.trim()) { setActiveAction(null); return; }
+    if (activeAction === "client") onChangeClient(inputVal.trim());
+    else if (activeAction === "matter") onChangeMatter(inputVal.trim());
+    setInputVal("");
+    setActiveAction(null);
+  };
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-2" style={{ backgroundColor: "#EFF6FF", borderBottom: "1px solid #BFDBFE" }}>
+      <span className="text-[13px]" style={{ fontWeight: 600, color: "#1D4ED8" }}>
+        {selectedCount} selected
+      </span>
+      <div className="flex items-center gap-1.5">
+        <div className="relative">
+          <button
+            onClick={() => setActiveAction(activeAction === "category" ? null : "category")}
+            className="px-2.5 py-1 rounded-md text-[12px] transition-colors"
+            style={{ backgroundColor: activeAction === "category" ? "#DBEAFE" : "#FFFFFF", border: "1px solid #BFDBFE", color: "#1D4ED8", fontWeight: 500 }}
+          >
+            Change Category
+          </button>
+          {activeAction === "category" && (
+            <div
+              className="absolute top-full left-0 mt-1 z-50 rounded-lg overflow-hidden"
+              style={{ border: "1px solid #E2E8F0", boxShadow: "0 4px 16px rgba(0,0,0,0.12)", backgroundColor: "#FFFFFF", minWidth: 180, maxHeight: 240, overflowY: "auto" }}
+            >
+              {CATEGORY_OPTIONS.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => { onChangeCategory(cat); setActiveAction(null); }}
+                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-gray-50 transition-colors"
+                  style={{ color: "#475569", fontWeight: 500 }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => setActiveAction(activeAction === "client" ? null : "client")}
+          className="px-2.5 py-1 rounded-md text-[12px] transition-colors"
+          style={{ backgroundColor: activeAction === "client" ? "#DBEAFE" : "#FFFFFF", border: "1px solid #BFDBFE", color: "#1D4ED8", fontWeight: 500 }}
+        >
+          Change Client
+        </button>
+        <button
+          onClick={() => setActiveAction(activeAction === "matter" ? null : "matter")}
+          className="px-2.5 py-1 rounded-md text-[12px] transition-colors"
+          style={{ backgroundColor: activeAction === "matter" ? "#DBEAFE" : "#FFFFFF", border: "1px solid #BFDBFE", color: "#1D4ED8", fontWeight: 500 }}
+        >
+          Change Matter
+        </button>
+      </div>
+
+      {(activeAction === "client" || activeAction === "matter") && (
+        <div className="flex items-center gap-1.5">
+          <input
+            ref={inputRef}
+            value={inputVal}
+            onChange={e => setInputVal(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") commitInput(); if (e.key === "Escape") setActiveAction(null); }}
+            placeholder={activeAction === "client" ? "Enter client name…" : "Enter matter…"}
+            className="px-2.5 py-1 rounded-md text-[12px] outline-none"
+            style={{ border: "1px solid #BFDBFE", width: 180, color: "#17181C" }}
+          />
+          <button
+            onClick={commitInput}
+            className="px-2 py-1 rounded-md text-[12px]"
+            style={{ backgroundColor: "#2563EB", color: "#FFFFFF", fontWeight: 600 }}
+          >
+            Apply
+          </button>
+        </div>
+      )}
+
+      <button
+        onClick={onClear}
+        className="ml-auto px-2 py-1 rounded-md text-[12px] transition-colors hover:bg-blue-100"
+        style={{ color: "#64748B", fontWeight: 500 }}
+      >
+        Clear selection
+      </button>
+    </div>
+  );
+}
+
 function EvidenceTooltip({ rationale, confidence, children }: { rationale: string; confidence: number; children: React.ReactNode }) {
   const [pos, setPos] = React.useState<{ top: number; left: number } | null>(null);
   const triggerRef = React.useRef<HTMLDivElement>(null);
@@ -1212,6 +1317,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
   const [selectedMonth, setSelectedMonth] = React.useState(initialMonth ?? "mar");
   const [reconModalOpen, setReconModalOpen] = React.useState(false);
   const [confirmedBillable, setConfirmedBillable] = React.useState<Set<string>>(new Set());
+  const [selectedRows, setSelectedRows] = React.useState<Set<string>>(new Set());
   const viewingRow = viewingRowId ? ledger.find((r) => r.id === viewingRowId) || null : null;
   const handleDrawerClose = () => {
     if (viewingRowId) { setPulsingRowId(viewingRowId); setTimeout(() => setPulsingRowId(null), 1200); }
@@ -1346,7 +1452,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
               return (
                 <button
                   key={key}
-                  onClick={() => setPriorityFilter(key)}
+                  onClick={() => { setPriorityFilter(key); setSelectedRows(new Set()); }}
                   className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] transition-all"
                   style={{
                     fontWeight: isActive ? 600 : 400,
@@ -1400,9 +1506,43 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
           </div>
 
           <div className="flex-1 overflow-y-auto">
+          {selectedRows.size > 0 && (
+            <BulkActionToolbar
+              selectedCount={selectedRows.size}
+              onClear={() => setSelectedRows(new Set())}
+              onChangeCategory={(cat) => {
+                selectedRows.forEach(id => { updateField(id, "category", cat); onCategoryEdit(id); });
+                setSelectedRows(new Set());
+              }}
+              onChangeClient={(val) => {
+                selectedRows.forEach(id => updateField(id, "payee", val));
+                setSelectedRows(new Set());
+              }}
+              onChangeMatter={(val) => {
+                selectedRows.forEach(id => updateField(id, "matter", val));
+                setSelectedRows(new Set());
+              }}
+            />
+          )}
           <table className="w-full table-fixed min-w-[1000px]">
             <thead>
               <tr style={{ borderBottom: "1px solid #F1F5F9", borderColor: "#F1F5F9" }}>
+                {(priorityFilter === "processed" || priorityFilter === "all") && (
+                  <th style={{ width: "36px", paddingLeft: 12 }}>
+                    <input
+                      type="checkbox"
+                      checked={visibleLedger.length > 0 && visibleLedger.every(r => selectedRows.has(r.id))}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedRows(new Set(visibleLedger.map(r => r.id)));
+                        } else {
+                          setSelectedRows(new Set());
+                        }
+                      }}
+                      className="w-3.5 h-3.5 rounded cursor-pointer accent-blue-600"
+                    />
+                  </th>
+                )}
                 {[
                   { label: "Date",              align: "left",   width: "64px"  },
                   { label: "Source",            align: "left",   width: "80px"  },
@@ -1469,8 +1609,24 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                         borderLeft: "3px solid #F59E0B",
                       } : {}),
                       ...(isPulsing ? { animation: "tealPulse 1.2s ease-out forwards" } : {}),
+                      ...(selectedRows.has(row.id) ? { backgroundColor: "#EFF6FF" } : {}),
                     }}
                   >
+                    {(priorityFilter === "processed" || priorityFilter === "all") && (
+                      <td style={{ paddingLeft: 12, width: "36px" }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedRows.has(row.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            const next = new Set(selectedRows);
+                            if (e.target.checked) next.add(row.id); else next.delete(row.id);
+                            setSelectedRows(next);
+                          }}
+                          className="w-3.5 h-3.5 rounded cursor-pointer accent-blue-600"
+                        />
+                      </td>
+                    )}
                     <td className="px-3 py-2.5 text-[14px]" style={{ color: "#64748B", fontFeatureSettings: "'tnum'" }}>{row.date}</td>
 
                     {/* Source */}

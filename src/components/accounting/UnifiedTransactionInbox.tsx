@@ -1327,79 +1327,79 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
         );
       })()}
 
-      {/* Action Filter Bar */}
-      <div className="flex items-center justify-between px-6 py-2 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: "#FFFFFF" }}>
-        <div className="flex items-center gap-1.5">
-        {([
-          { key: "approval", label: "Needs Approval" },
-          { key: "anomalies", label: "Anomalies" },
-          { key: "missing_info", label: "Missing Info" },
-          { key: "processed", label: "Processed" },
-          { key: "all", label: "All" },
-        ] as const).map(({ key, label }) => {
-          const isActive = priorityFilter === key;
-          const count = key === "all" ? Object.values(priorityCounts).reduce((a, b) => a + b, 0) : priorityCounts[key] || 0;
-          const isProcessed = key === "processed";
-          if (key !== "all" && count === 0) return null;
-          return (
-            <button
-              key={key}
-              onClick={() => setPriorityFilter(key)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] transition-all"
-              style={{
-                fontWeight: isActive ? 600 : 400,
-                color: isActive ? (isProcessed ? "#166534" : "#17181C") : "#64748B",
-                backgroundColor: isActive ? (isProcessed ? "#DCFCE7" : "#F1F5F9") : "transparent",
-                border: isActive ? `1px solid ${isProcessed ? "#86EFAC" : "#CBD5E1"}` : "1px solid transparent",
-              }}
-            >
-              {isProcessed && (
-                <CheckCircle2 className="w-[9px] h-[9px] flex-shrink-0" style={{ color: isActive ? "#16A34A" : "#94A3B8" }} />
-              )}
-              {label}
-              {count > 0 && (
-                <span
-                  className="text-[11px] px-1.5 py-0.5 rounded-full ml-0.5"
+      {/* Action Filter Bar + Table */}
+      <div className="flex-1 overflow-hidden px-6 pb-20 flex flex-col">
+        <div className="bg-white rounded-xl overflow-hidden flex flex-col flex-1" style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div className="flex items-center justify-between px-4 py-2 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9" }}>
+            <div className="flex items-center gap-1.5">
+            {([
+              { key: "approval", label: "Needs Approval" },
+              { key: "anomalies", label: "Anomalies" },
+              { key: "missing_info", label: "Missing Info" },
+              { key: "processed", label: "Processed" },
+              { key: "all", label: "All" },
+            ] as const).map(({ key, label }) => {
+              const isActive = priorityFilter === key;
+              const count = key === "all" ? Object.values(priorityCounts).reduce((a, b) => a + b, 0) : priorityCounts[key] || 0;
+              const isProcessed = key === "processed";
+              if (key !== "all" && count === 0) return null;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setPriorityFilter(key)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] transition-all"
                   style={{
-                    backgroundColor: isActive ? (isProcessed ? "#86EFAC40" : "#E2E8F0") : "#F1F5F9",
-                    color: isActive ? (isProcessed ? "#166534" : "#475569") : "#94A3B8",
-                    fontWeight: 600,
+                    fontWeight: isActive ? 600 : 400,
+                    color: isActive ? (isProcessed ? "#166534" : "#17181C") : "#64748B",
+                    backgroundColor: isActive ? (isProcessed ? "#DCFCE7" : "#F1F5F9") : "transparent",
+                    border: isActive ? `1px solid ${isProcessed ? "#86EFAC" : "#CBD5E1"}` : "1px solid transparent",
                   }}
                 >
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={accountFilter}
-            onChange={(e) => setAccountFilter(e.target.value)}
-            className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
-            style={{ border: "1px solid #E2E8F0", color: accountFilter === "all" ? "#64748B" : "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
-          >
-            {BANK_ACCOUNTS.map((ba) => (
-              <option key={ba.key} value={ba.key}>{ba.label}</option>
-            ))}
-          </select>
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
-            style={{ border: "1px solid #E2E8F0", color: "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
-          >
-            {RECON_MONTH_DATA.map((m) => (
-              <option key={m.key} value={m.key}>{m.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+                  {isProcessed && (
+                    <CheckCircle2 className="w-[9px] h-[9px] flex-shrink-0" style={{ color: isActive ? "#16A34A" : "#94A3B8" }} />
+                  )}
+                  {label}
+                  {count > 0 && (
+                    <span
+                      className="text-[11px] px-1.5 py-0.5 rounded-full ml-0.5"
+                      style={{
+                        backgroundColor: isActive ? (isProcessed ? "#86EFAC40" : "#E2E8F0") : "#F1F5F9",
+                        color: isActive ? (isProcessed ? "#166534" : "#475569") : "#94A3B8",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={accountFilter}
+                onChange={(e) => setAccountFilter(e.target.value)}
+                className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
+                style={{ border: "1px solid #E2E8F0", color: accountFilter === "all" ? "#64748B" : "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+              >
+                {BANK_ACCOUNTS.map((ba) => (
+                  <option key={ba.key} value={ba.key}>{ba.label}</option>
+                ))}
+              </select>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
+                style={{ border: "1px solid #E2E8F0", color: "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+              >
+                {RECON_MONTH_DATA.map((m) => (
+                  <option key={m.key} value={m.key}>{m.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-y-auto px-6 pb-20">
-        <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div className="flex-1 overflow-y-auto">
           <table className="w-full table-fixed min-w-[1000px]">
             <thead>
               <tr style={{ borderBottom: "1px solid #F1F5F9", borderColor: "#F1F5F9" }}>
@@ -1611,6 +1611,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
               <span className="text-[12px]" style={{ color: "#CBD5E1" }}>All {filteredLedger.length} transactions loaded</span>
             </div>
           )}
+          </div>
         </div>
       </div>
 

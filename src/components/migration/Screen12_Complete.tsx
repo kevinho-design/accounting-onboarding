@@ -17,7 +17,7 @@ export function Screen12_Complete({ onComplete, assignedTasks = [] }: Screen12Pr
   }, []);
 
   return (
-    <div className="flex-1 h-[calc(100vh-90px)] overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-white relative">
+    <div className="flex-1 bg-gradient-to-br from-blue-50 via-purple-50 to-white relative">
       {/* Real Confetti Animation */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-50">
@@ -75,7 +75,7 @@ export function Screen12_Complete({ onComplete, assignedTasks = [] }: Screen12Pr
         }
       `}</style>
       
-      <div className="relative z-20 h-full overflow-y-auto flex items-center justify-center">
+      <div className="relative z-20">
         <div className="max-w-4xl mx-auto px-20 py-16 text-center">
           
           {/* AI Icon with Glow */}

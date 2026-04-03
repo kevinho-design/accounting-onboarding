@@ -87,10 +87,10 @@ export function AccountingVisionPortal({ onPillar1, onPillar2, onPillar3 }: Acco
             <div
               key={pillar.badge}
               className="flex flex-col rounded-2xl border border-border overflow-hidden"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}
+              style={{ boxShadow: "0px 12.2px 8px 0px rgba(0, 0, 0, 0.06)" }}
             >
               {/* Colored top stripe */}
-              <div style={{ height: 5, backgroundColor: pillar.accentColor }} />
+              <div style={{ height: 14, backgroundColor: pillar.accentColor }} />
               <div className="flex flex-col flex-1 p-6">
                 {/* Badge */}
                 <div className="mb-3">

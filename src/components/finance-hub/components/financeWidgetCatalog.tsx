@@ -79,6 +79,7 @@ import { DIGITAL_TWIN_CATALOG_DESC } from '../data/prototypePersona';
 import { DigitalTwinWidget, type DigitalTwinScenarioId } from './DigitalTwinWidget';
 import { SuggestedModellingWidget, type ModellingWidgetUiBridge } from './SuggestedModellingWidget';
 import {
+  FhoCashFlowChartWidget,
   FhoFirmGoalsDetailWidget,
   FhoOperatingCashDetailWidget,
   FhoRevenueDetailWidget,
@@ -221,6 +222,13 @@ export const WIDGET_CATALOG = [
     icon: FileText,
     desc: 'Aged WIP total and ranked matters aligned with Dashboard',
   },
+  {
+    id: 'fho_cash_flow_chart',
+    title: 'Cash flow (chart)',
+    category: 'Financial Health',
+    icon: BarChart2,
+    desc: 'Monthly billable hours vs realized revenue with contextual insights',
+  },
   { id: 'runway', title: 'Runway Projection', category: 'Charts', icon: BarChart2, desc: '6-month cash runway trend' },
   { id: 'cash_flow', title: 'Cash Flow', category: 'Charts', icon: BarChart2, desc: 'Operating cash flow vs target' },
   { id: 'ar_aging', title: 'A/R Aging', category: 'Graphs', icon: PieChart, desc: 'Accounts receivable aging buckets' },
@@ -360,7 +368,7 @@ export function layoutSizeToGridClass(layoutSize: WidgetLayoutSize, columns: Mai
 
 /** Same 4-column spans as Dashboard Financial Health pins (compact FHO layout). */
 export function dashboardPinGridClass(widgetId: string): string {
-  if (widgetId === 'fho_firm_goals_detail') return 'lg:col-span-4';
+  if (widgetId === 'fho_firm_goals_detail' || widgetId === 'fho_cash_flow_chart') return 'lg:col-span-4';
   if (
     widgetId === 'fho_operating_cash_detail' ||
     widgetId === 'fho_revenue_detail' ||
@@ -840,6 +848,8 @@ function FinanceWidgetBody({
       return tri('fho_iolta_trust_detail', <FhoIoltaTrustDetailWidget />);
     case 'fho_unbilled_detail':
       return tri('fho_unbilled_detail', <FhoUnbilledDetailWidget />);
+    case 'fho_cash_flow_chart':
+      return tri('fho_cash_flow_chart', <FhoCashFlowChartWidget />);
     case 'runway': {
       const showRwOverlay = peerBenchmarkEnabled || Boolean(selectedModelId);
       const rwTooltipLabel = (name: string) => {
@@ -1750,6 +1760,7 @@ export const DEFAULT_FP_DEFAULT_SIDEBAR_WIDGETS: FinancePageWidget[] = [
 /** Default Financial Health Overview page (first under Finances). */
 export const DEFAULT_FP_FINANCIAL_HEALTH_WIDGETS: FinancePageWidget[] = [
   { instanceId: 'fho_w_goals', widgetId: 'fho_firm_goals_detail', layoutSize: 'expanded' },
+  { instanceId: 'fho_w_cashflow', widgetId: 'fho_cash_flow_chart', layoutSize: 'expanded' },
   { instanceId: 'fho_w_k1', widgetId: 'fho_operating_cash_detail', layoutSize: 'compact' },
   { instanceId: 'fho_w_k2', widgetId: 'fho_revenue_detail', layoutSize: 'compact' },
   { instanceId: 'fho_w_k3', widgetId: 'fho_ar_at_risk_detail', layoutSize: 'compact' },
@@ -1765,6 +1776,7 @@ export type DashboardFinancialPin = FinancePageWidget & {
 
 export const DEFAULT_DASHBOARD_FINANCIAL_PINS: DashboardFinancialPin[] = [
   { instanceId: 'dash_fho_firm_goals_detail', widgetId: 'fho_firm_goals_detail', layoutSize: 'compact', sourcePageId: FP_FINANCIAL_HEALTH_ID },
+  { instanceId: 'dash_fho_cash_flow_chart', widgetId: 'fho_cash_flow_chart', layoutSize: 'compact', sourcePageId: FP_FINANCIAL_HEALTH_ID },
   { instanceId: 'dash_fho_operating_cash_detail', widgetId: 'fho_operating_cash_detail', layoutSize: 'compact', sourcePageId: FP_FINANCIAL_HEALTH_ID },
   { instanceId: 'dash_fho_revenue_detail', widgetId: 'fho_revenue_detail', layoutSize: 'compact', sourcePageId: FP_FINANCIAL_HEALTH_ID },
   { instanceId: 'dash_fho_ar_at_risk_detail', widgetId: 'fho_ar_at_risk_detail', layoutSize: 'compact', sourcePageId: FP_FINANCIAL_HEALTH_ID },

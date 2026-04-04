@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Activity,
   AlertTriangle,
+  ArrowRight,
   FileText,
   Shield,
   Sparkles,
@@ -29,6 +30,7 @@ import {
 } from '../data/firmGoals';
 import {
   FHO_AR_INVOICE_ROWS,
+  FHO_CASH_FLOW_MONTHLY,
   FHO_GROW_PIPELINE,
   FHO_IOLTA_CHECKLIST,
   FHO_COLLECTION_RISK,
@@ -41,8 +43,11 @@ import {
   FHO_RUNWAY_TREND,
   FHO_UNBILLED_MATTER_ROWS,
   fhoPersonalizationCopy,
+  type FhoCashFlowMonth,
 } from '../data/financialHealthOverviewSeed';
 import {
+  Bar,
+  BarChart,
   CartesianGrid,
   Line,
   LineChart,
@@ -747,6 +752,162 @@ export function FhoUnbilledDetailWidget({ surface = 'page' }: { surface?: FhoSur
           </li>
         ))}
       </ol>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CASH FLOW CHART WIDGET
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+const fmtK = (v: number) => `$${Math.round(v / 1000)}K`;
+const fmtFull = (v: number) => `$${v.toLocaleString('en-US')}`;
+
+function CashFlowInsightTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  const row: FhoCashFlowMonth | undefined = payload[0]?.payload;
+  if (!row) return null;
+
+  const idx = FHO_CASH_FLOW_MONTHLY.findIndex((m) => m.month === row.month);
+  const prev = idx > 0 ? FHO_CASH_FLOW_MONTHLY[idx - 1] : null;
+  const revDelta = prev ? row.realizedRevenue - prev.realizedRevenue : null;
+
+  return (
+    <div
+      className="rounded-xl border border-border bg-card shadow-lg"
+      style={{ minWidth: 260, maxWidth: 320, pointerEvents: 'auto' }}
+    >
+      <div className="border-b border-border/80 px-4 py-2.5">
+        <p className="text-[13px] font-semibold text-foreground">{label} 2026</p>
+      </div>
+      <div className="space-y-3 px-4 py-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Billable hours</p>
+            <p className="text-base font-bold tabular-nums text-foreground">{fmtFull(row.billableHoursValue)}</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Realized revenue</p>
+            <p className="text-base font-bold tabular-nums text-foreground">{fmtFull(row.realizedRevenue)}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 rounded-full bg-violet-50 px-2 py-0.5 dark:bg-violet-950/40">
+            <span className="text-[11px] font-semibold text-violet-700 dark:text-violet-300">
+              {Math.round(row.realization * 100)}% realization
+            </span>
+          </div>
+          {revDelta !== null && (
+            <span className={cn('text-[11px] font-semibold', revDelta >= 0 ? 'text-emerald-600' : 'text-rose-600')}>
+              {revDelta >= 0 ? '+' : ''}{fmtK(revDelta)} vs prior
+            </span>
+          )}
+        </div>
+
+        {row.insight && (
+          <div className="rounded-lg bg-muted/40 px-3 py-2">
+            <div className="mb-1 flex items-center gap-1.5">
+              <Sparkles className="h-3 w-3 text-violet-500" />
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-violet-600 dark:text-violet-400">Insight</span>
+            </div>
+            <p className="text-[12px] leading-[1.5] text-muted-foreground">{row.insight}</p>
+          </div>
+        )}
+
+        {row.ctaLabel && (
+          <button
+            className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-violet-600 px-3 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-violet-700 active:scale-[0.98]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {row.ctaLabel}
+            <ArrowRight className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function FhoCashFlowChartWidget() {
+  return (
+    <div>
+      {/* Header + legend */}
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-foreground">Cash Flow</h3>
+          <p className="mt-0.5 text-[12px] text-muted-foreground">Billable hours value vs realized revenue by month</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: 'linear-gradient(to top, #7C3AED, #A78BFA)' }} />
+            <span className="text-[11px] font-medium text-muted-foreground">Billable hours</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-sm" style={{ background: 'linear-gradient(to top, #DB2777, #F472B6)' }} />
+            <span className="text-[11px] font-medium text-muted-foreground">Realized revenue</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Chart */}
+      <div className="h-[280px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={FHO_CASH_FLOW_MONTHLY}
+            margin={{ top: 8, right: 4, left: 0, bottom: 4 }}
+            barGap={2}
+            barCategoryGap="20%"
+          >
+            <defs>
+              <linearGradient id="gradBillable" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stopColor="#7C3AED" />
+                <stop offset="100%" stopColor="#A78BFA" />
+              </linearGradient>
+              <linearGradient id="gradRevenue" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stopColor="#DB2777" />
+                <stop offset="100%" stopColor="#F472B6" />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--chart-grid, #e2e8f0)" />
+            <XAxis
+              dataKey="month"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 11, fill: 'var(--chart-tick, #94a3b8)', fontWeight: 500 }}
+              dy={8}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              width={52}
+              tick={{ fontSize: 10, fill: 'var(--chart-tick, #94a3b8)' }}
+              tickFormatter={fmtK}
+              domain={[0, 'auto']}
+            />
+            <Tooltip
+              content={<CashFlowInsightTooltip />}
+              cursor={{ fill: 'var(--chart-grid, #e2e8f0)', fillOpacity: 0.4, radius: 4 }}
+              wrapperStyle={{ zIndex: 50, outline: 'none' }}
+              allowEscapeViewBox={{ x: false, y: true }}
+            />
+            <Bar
+              dataKey="billableHoursValue"
+              name="Billable hours"
+              fill="url(#gradBillable)"
+              radius={[4, 4, 0, 0]}
+              barSize={16}
+            />
+            <Bar
+              dataKey="realizedRevenue"
+              name="Realized revenue"
+              fill="url(#gradRevenue)"
+              radius={[4, 4, 0, 0]}
+              barSize={16}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

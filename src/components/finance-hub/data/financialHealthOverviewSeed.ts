@@ -142,6 +142,65 @@ export const FHO_UNBILLED_MATTER_ROWS: FhoUnbilledMatterRow[] = [
   { id: 'u5', matter: 'Metro Transit — discovery', amount: '$5,800', ageLabel: 'Ready to pre-bill', rank: 5 },
 ];
 
+export type FhoCashFlowMonth = {
+  month: string;
+  billableHoursValue: number;
+  realizedRevenue: number;
+  realization: number;
+  insight?: string;
+  ctaLabel?: string;
+  ctaAction?: string;
+};
+
+export const FHO_CASH_FLOW_MONTHLY: FhoCashFlowMonth[] = [
+  {
+    month: 'Oct',
+    billableHoursValue: 298_400,
+    realizedRevenue: 241_600,
+    realization: 0.81,
+    insight: 'Strong collections month — litigation settlements drove above-average realization.',
+  },
+  {
+    month: 'Nov',
+    billableHoursValue: 276_200,
+    realizedRevenue: 214_800,
+    realization: 0.78,
+    insight: 'Holiday slowdown reduced billable output; collections held steady from October invoices.',
+  },
+  {
+    month: 'Dec',
+    billableHoursValue: 254_800,
+    realizedRevenue: 198_700,
+    realization: 0.78,
+    insight: 'Year-end billing push offset by deferred client payments into Q1.',
+  },
+  {
+    month: 'Jan',
+    billableHoursValue: 312_600,
+    realizedRevenue: 237_400,
+    realization: 0.76,
+    insight: 'Ramp-up after holidays; two large retainer deposits boosted billable value but collections lagged.',
+    ctaLabel: 'Review aging invoices',
+    ctaAction: 'navigate_ar',
+  },
+  {
+    month: 'Feb',
+    billableHoursValue: 328_100,
+    realizedRevenue: 268_200,
+    realization: 0.82,
+    insight: 'Best realization rate in three months — accelerated collections on corporate matters.',
+  },
+  {
+    month: 'Mar',
+    billableHoursValue: 342_500,
+    realizedRevenue: 284_500,
+    realization: 0.83,
+    insight: 'Revenue trending up but two large invoices ($53K combined) remain outstanding past 60 days.',
+    ctaLabel: 'Follow up on overdue',
+    ctaAction: 'navigate_ar',
+  },
+];
+
 export function fhoPersonalizationCopy(userFirstName: string): string {
   return `${userFirstName}, this page expands each block from your Dashboard Financial Health section — same headline numbers as the home cards, with deeper Clio Accounting breakdowns for ${FIRM_NAME}. Add or remove widgets anytime from Customize page.`;
 }

@@ -30,7 +30,7 @@ import {
   Building2,
   CheckCheck,
   Flag,
-
+  MoreHorizontal,
   Landmark,
   Mail,
   Users,
@@ -604,7 +604,9 @@ function EditableCell({ value, onChange }: { value: string; onChange: (v: string
   const [editing, setEditing] = React.useState(false);
   const [localVal, setLocalVal] = React.useState(value);
   const [pulsing, setPulsing] = React.useState(false);
+  const [tooltipPos, setTooltipPos] = React.useState<{ top: number; left: number } | null>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const spanRef = React.useRef<HTMLSpanElement>(null);
 
   React.useEffect(() => { if (editing && inputRef.current) inputRef.current.focus(); }, [editing]);
 
@@ -616,6 +618,15 @@ function EditableCell({ value, onChange }: { value: string; onChange: (v: string
       setTimeout(() => setPulsing(false), 1100);
     }
   };
+
+  const showTip = () => {
+    if (!spanRef.current) return;
+    const el = spanRef.current;
+    if (el.scrollWidth <= el.clientWidth) return;
+    const r = el.getBoundingClientRect();
+    setTooltipPos({ top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 330) });
+  };
+  const hideTip = () => setTooltipPos(null);
 
   if (editing) {
     return (
@@ -631,14 +642,24 @@ function EditableCell({ value, onChange }: { value: string; onChange: (v: string
     );
   }
 
+  const tip = tooltipPos ? ReactDOM.createPortal(
+    <div style={{ position: "fixed", top: tooltipPos.top, left: tooltipPos.left, zIndex: 9999, backgroundColor: "#17181C", borderRadius: 8, padding: "6px 10px", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", pointerEvents: "none", maxWidth: 320, color: "#F1F5F9", fontSize: 12, lineHeight: 1.5 }}>
+      {value}
+    </div>,
+    document.body,
+  ) : null;
+
   return (
     <span
+      ref={spanRef}
       onClick={() => setEditing(true)}
+      onMouseEnter={showTip}
+      onMouseLeave={hideTip}
       className="cursor-pointer px-1.5 py-0.5 rounded transition-all inline-block hover:bg-background truncate max-w-full"
       style={pulsing ? { animation: "tealPulse 1.1s ease-out forwards" } : undefined}
-      title={value}
     >
       {value}
+      {tip}
     </span>
   );
 }
@@ -726,18 +747,38 @@ function CategoryDropdown({ value, onChange }: { value: string; onChange: (v: st
     document.body
   ) : null;
 
+  const [tipPos, setTipPos] = React.useState<{ top: number; left: number } | null>(null);
+  const outerRef = React.useRef<HTMLSpanElement>(null);
+
+  const showTip = () => {
+    if (open || !outerRef.current) return;
+    const el = outerRef.current;
+    if (el.scrollWidth <= el.clientWidth) return;
+    const r = el.getBoundingClientRect();
+    setTipPos({ top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 330) });
+  };
+  const hideTip = () => setTipPos(null);
+
+  const catTip = tipPos ? ReactDOM.createPortal(
+    <div style={{ position: "fixed", top: tipPos.top, left: tipPos.left, zIndex: 9999, backgroundColor: "#17181C", borderRadius: 8, padding: "6px 10px", boxShadow: "0 4px 12px rgba(0,0,0,0.15)", pointerEvents: "none", maxWidth: 320, color: "#F1F5F9", fontSize: 12, lineHeight: 1.5 }}>
+      {value}
+    </div>,
+    document.body,
+  ) : null;
+
   return (
-    <span className="relative inline-block">
+    <span ref={outerRef} className="relative block truncate" onMouseEnter={showTip} onMouseLeave={hideTip}>
       <span
         ref={triggerRef}
         onClick={openMenu}
-        className="cursor-pointer px-1.5 py-0.5 rounded transition-all inline-flex items-center whitespace-nowrap hover:bg-background"
+        className="cursor-pointer px-1.5 py-0.5 rounded transition-all inline-flex items-center hover:bg-background max-w-full"
         style={pulsing ? { animation: "tealPulse 1.1s ease-out forwards" } : undefined}
       >
-        <span className="text-[14px]" style={{ color: "#17181C" }}>{value}</span>
+        <span className="text-[14px] truncate" style={{ color: "#17181C" }}>{value}</span>
         <ChevronDown className="w-3 h-3 ml-0.5 flex-shrink-0" style={{ color: "#94A3B8" }} />
       </span>
       {menu}
+      {catTip}
     </span>
   );
 }
@@ -790,6 +831,121 @@ function EvidenceTooltip({ rationale, confidence, children }: { rationale: strin
       className="inline-flex items-center"
       onMouseEnter={show}
       onMouseLeave={hide}
+    >
+      {children}
+      {tooltip}
+    </div>
+  );
+}
+
+function StatusPillsOverflow({ pills, maxVisible = 2 }: { pills: React.ReactNode[]; maxVisible?: number }) {
+  const [pos, setPos] = React.useState<{ top: number; left: number } | null>(null);
+  const cellRef = React.useRef<HTMLDivElement>(null);
+  const [visualOverflow, setVisualOverflow] = React.useState(false);
+  const countOverflow = pills.length > maxVisible;
+  const visiblePills = countOverflow ? pills.slice(0, maxVisible) : pills;
+  const hasOverflow = countOverflow || visualOverflow;
+
+  React.useEffect(() => {
+    if (!cellRef.current) return;
+    const el = cellRef.current;
+    setVisualOverflow(el.scrollWidth > el.clientWidth);
+  });
+
+  const show = () => {
+    if (!cellRef.current) return;
+    const el = cellRef.current;
+    const isOverflowing = countOverflow || el.scrollWidth > el.clientWidth;
+    if (!isOverflowing) return;
+    const r = el.getBoundingClientRect();
+    setPos({ top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 330) });
+  };
+  const hide = () => setPos(null);
+
+  const overlay = pos ? ReactDOM.createPortal(
+    <div
+      style={{
+        position: "fixed",
+        top: pos.top,
+        left: pos.left,
+        zIndex: 9999,
+        backgroundColor: "#ffffff",
+        borderRadius: 10,
+        padding: "8px 10px",
+        boxShadow: "0 4px 16px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06)",
+        border: "1px solid #E2E8F0",
+        pointerEvents: "none",
+        maxWidth: 320,
+      }}
+    >
+      <div className="flex items-center gap-1.5 flex-wrap">{pills}</div>
+    </div>,
+    document.body,
+  ) : null;
+
+  return (
+    <div
+      ref={cellRef}
+      className="flex items-center gap-1.5 overflow-hidden"
+      onMouseEnter={show}
+      onMouseLeave={hide}
+    >
+      {visiblePills}
+      {hasOverflow && (
+        <span
+          className="inline-flex items-center justify-center flex-shrink-0 cursor-default"
+          style={{ width: 20, height: 18, borderRadius: 9, backgroundColor: "#F1F5F9", color: "#64748B" }}
+        >
+          <MoreHorizontal className="w-3 h-3" />
+        </span>
+      )}
+      {overlay}
+    </div>
+  );
+}
+
+function CellOverflowTooltip({ children, text }: { children: React.ReactNode; text: string }) {
+  const [pos, setPos] = React.useState<{ top: number; left: number } | null>(null);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  const handleEnter = () => {
+    if (!ref.current) return;
+    const el = ref.current;
+    if (el.scrollWidth <= el.clientWidth) return;
+    const r = el.getBoundingClientRect();
+    setPos({ top: r.bottom + 4, left: Math.min(r.left, window.innerWidth - 330) });
+  };
+  const handleLeave = () => setPos(null);
+
+  const tooltip = pos ? ReactDOM.createPortal(
+    <div
+      style={{
+        position: "fixed",
+        top: pos.top,
+        left: pos.left,
+        zIndex: 9999,
+        backgroundColor: "#17181C",
+        borderRadius: 8,
+        padding: "6px 10px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        pointerEvents: "none",
+        maxWidth: 320,
+        color: "#F1F5F9",
+        fontSize: 12,
+        lineHeight: 1.5,
+      }}
+    >
+      {text}
+    </div>,
+    document.body,
+  ) : null;
+
+  return (
+    <div
+      ref={ref}
+      className="truncate"
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
     >
       {children}
       {tooltip}
@@ -1327,80 +1483,82 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
         );
       })()}
 
-      {/* Action Filter Bar */}
-      <div className="flex items-center justify-between px-6 py-2 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: "#FFFFFF" }}>
-        <div className="flex items-center gap-1.5">
-        {([
-          { key: "approval", label: "Needs Approval" },
-          { key: "anomalies", label: "Anomalies" },
-          { key: "missing_info", label: "Missing Info" },
-          { key: "processed", label: "Processed" },
-          { key: "all", label: "All" },
-        ] as const).map(({ key, label }) => {
-          const isActive = priorityFilter === key;
-          const count = key === "all" ? Object.values(priorityCounts).reduce((a, b) => a + b, 0) : priorityCounts[key] || 0;
-          const isProcessed = key === "processed";
-          if (key !== "all" && count === 0) return null;
-          return (
-            <button
-              key={key}
-              onClick={() => setPriorityFilter(key)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] transition-all"
-              style={{
-                fontWeight: isActive ? 600 : 400,
-                color: isActive ? (isProcessed ? "#166534" : "#17181C") : "#64748B",
-                backgroundColor: isActive ? (isProcessed ? "#DCFCE7" : "#F1F5F9") : "transparent",
-                border: isActive ? `1px solid ${isProcessed ? "#86EFAC" : "#CBD5E1"}` : "1px solid transparent",
-              }}
-            >
-              {isProcessed && (
-                <CheckCircle2 className="w-[9px] h-[9px] flex-shrink-0" style={{ color: isActive ? "#16A34A" : "#94A3B8" }} />
-              )}
-              {label}
-              {count > 0 && (
-                <span
-                  className="text-[11px] px-1.5 py-0.5 rounded-full ml-0.5"
+      {/* Table + Filter Bar */}
+      <div className="flex-1 overflow-hidden flex flex-col px-6 pb-20">
+        <div className="bg-white rounded-xl overflow-hidden flex flex-col flex-1 min-h-0" style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          {/* Action Filter Bar */}
+          <div className="flex items-center justify-between px-4 py-2 flex-shrink-0" style={{ borderBottom: "1px solid #F1F5F9", backgroundColor: "#FFFFFF" }}>
+            <div className="flex items-center gap-1.5">
+            {([
+              { key: "approval", label: "Needs Approval" },
+              { key: "anomalies", label: "Anomalies" },
+              { key: "missing_info", label: "Missing Info" },
+              { key: "processed", label: "Processed" },
+              { key: "all", label: "All" },
+            ] as const).map(({ key, label }) => {
+              const isActive = priorityFilter === key;
+              const count = key === "all" ? Object.values(priorityCounts).reduce((a, b) => a + b, 0) : priorityCounts[key] || 0;
+              const isProcessed = key === "processed";
+              if (key !== "all" && count === 0) return null;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setPriorityFilter(key)}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] transition-all"
                   style={{
-                    backgroundColor: isActive ? (isProcessed ? "#86EFAC40" : "#E2E8F0") : "#F1F5F9",
-                    color: isActive ? (isProcessed ? "#166534" : "#475569") : "#94A3B8",
-                    fontWeight: 600,
+                    fontWeight: isActive ? 600 : 400,
+                    color: isActive ? (isProcessed ? "#166534" : "#17181C") : "#64748B",
+                    backgroundColor: isActive ? (isProcessed ? "#DCFCE7" : "#F1F5F9") : "transparent",
+                    border: isActive ? `1px solid ${isProcessed ? "#86EFAC" : "#CBD5E1"}` : "1px solid transparent",
                   }}
                 >
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={accountFilter}
-            onChange={(e) => setAccountFilter(e.target.value)}
-            className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
-            style={{ border: "1px solid #E2E8F0", color: accountFilter === "all" ? "#64748B" : "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
-          >
-            {BANK_ACCOUNTS.map((ba) => (
-              <option key={ba.key} value={ba.key}>{ba.label}</option>
-            ))}
-          </select>
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
-            style={{ border: "1px solid #E2E8F0", color: "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
-          >
-            {RECON_MONTH_DATA.map((m) => (
-              <option key={m.key} value={m.key}>{m.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+                  {isProcessed && (
+                    <CheckCircle2 className="w-[9px] h-[9px] flex-shrink-0" style={{ color: isActive ? "#16A34A" : "#94A3B8" }} />
+                  )}
+                  {label}
+                  {count > 0 && (
+                    <span
+                      className="text-[11px] px-1.5 py-0.5 rounded-full ml-0.5"
+                      style={{
+                        backgroundColor: isActive ? (isProcessed ? "#86EFAC40" : "#E2E8F0") : "#F1F5F9",
+                        color: isActive ? (isProcessed ? "#166534" : "#475569") : "#94A3B8",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={accountFilter}
+                onChange={(e) => setAccountFilter(e.target.value)}
+                className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
+                style={{ border: "1px solid #E2E8F0", color: accountFilter === "all" ? "#64748B" : "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+              >
+                {BANK_ACCOUNTS.map((ba) => (
+                  <option key={ba.key} value={ba.key}>{ba.label}</option>
+                ))}
+              </select>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="text-[13px] rounded-lg px-2.5 py-1.5 outline-none cursor-pointer appearance-none pr-7"
+                style={{ border: "1px solid #E2E8F0", color: "#17181C", fontWeight: 500, backgroundColor: "#FFFFFF", backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+              >
+                {RECON_MONTH_DATA.map((m) => (
+                  <option key={m.key} value={m.key}>{m.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      {/* Table */}
-      <div className="flex-1 overflow-y-auto px-6 pb-20">
-        <div className="bg-white rounded-xl overflow-hidden" style={{ border: "1px solid #E2E8F0", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-          <table className="w-full table-fixed min-w-[1000px]">
+          {/* Scrollable table area */}
+          <div className="flex-1 overflow-auto">
+          <table className="w-full table-fixed">
             <thead>
               <tr style={{ borderBottom: "1px solid #F1F5F9", borderColor: "#F1F5F9" }}>
                 {[
@@ -1457,6 +1615,57 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                   BadgeIcon = Sparkles;
                 }
 
+                const statusPills: React.ReactNode[] = [
+                  <EvidenceTooltip key="status" rationale={row.agentRationale} confidence={row.confidence}>
+                    <span
+                      className="inline-flex items-center gap-1 text-[12px] px-2 py-[2px] rounded-full whitespace-nowrap flex-shrink-0 cursor-default"
+                      style={{ color: badgeColor, backgroundColor: badgeBg, fontWeight: 500 }}
+                    >
+                      <BadgeIcon className="w-[12px] h-[12px]" />
+                      {intelligenceLabel}
+                    </span>
+                  </EvidenceTooltip>,
+                ];
+                if (row.category === "Trust Deposit" || row.category === "Retainer Deposit" || row.category === "Trust Disbursement") {
+                  statusPills.push(
+                    <span
+                      key="iolta"
+                      className="inline-flex items-center gap-1 text-[11px] px-1.5 py-[2px] rounded whitespace-nowrap flex-shrink-0"
+                      style={{ color: "#0D9488", backgroundColor: "#F0FDFA", fontWeight: 600 }}
+                    >
+                      <Shield className="w-[10px] h-[10px]" />
+                      IOLTA
+                    </span>,
+                  );
+                }
+                if (row.flag) {
+                  statusPills.push(
+                    <span
+                      key="flag"
+                      className="inline-flex items-center gap-1 text-[11px] px-2 py-[2px] rounded-full whitespace-nowrap flex-shrink-0"
+                      style={{
+                        color: priorityConfig[row.flag.priority].badgeText,
+                        backgroundColor: priorityConfig[row.flag.priority].badgeBg,
+                        fontWeight: 500,
+                      }}
+                    >
+                      <Flag className="w-[11px] h-[11px]" />
+                      {cardTypeConfig[row.flag.type].label}
+                    </span>,
+                  );
+                }
+                if (row.billable) {
+                  statusPills.push(
+                    <span
+                      key="billable"
+                      className="inline-flex items-center gap-0.5 text-[12px] px-1.5 py-[1px] rounded-md whitespace-nowrap flex-shrink-0"
+                      style={{ color: "#B45309", backgroundColor: "#FFFBEB", fontWeight: 600 }}
+                    >
+                      <DollarSign className="w-[12px] h-[12px]" />
+                      Billable
+                    </span>,
+                  );
+                }
 
                 return (
                   <React.Fragment key={row.id}>
@@ -1474,7 +1683,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                     <td className="px-3 py-2.5 text-[14px]" style={{ color: "#64748B", fontFeatureSettings: "'tnum'" }}>{row.date}</td>
 
                     {/* Source */}
-                    <td className="px-3 py-2.5">
+                    <td className="px-3 py-2.5 overflow-hidden">
                       {row.source ? (() => {
                         const src = SOURCE_CONFIG[row.source];
                         return (
@@ -1489,7 +1698,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                       })() : <span className="text-[12px]" style={{ color: "#CBD5E1" }}>—</span>}
                     </td>
 
-                    <td className="px-3 py-2.5">
+                    <td className="px-3 py-2.5 overflow-hidden">
                       {row.bankAccount === "boa-7721" ? (
                         <span className="inline-flex items-center gap-1 text-[12px] px-1.5 py-0.5 rounded" style={{ color: "#0D9488", backgroundColor: "#F0FDFA", fontWeight: 600, fontFeatureSettings: "'tnum'" }}>
                           <Shield className="w-[10px] h-[10px] flex-shrink-0" />
@@ -1502,13 +1711,15 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                       )}
                     </td>
 
-                    <td className="px-3 py-2.5 text-[14px]" style={{ color: "#17181C", fontWeight: 500 }}>
+                    <td className="px-3 py-2.5 text-[14px] overflow-hidden" style={{ color: "#17181C", fontWeight: 500 }}>
                       <div className="flex items-center gap-1.5 min-w-0">
                         <div
                           className="w-[4px] h-[4px] rounded-full flex-shrink-0"
                           style={{ backgroundColor: row.amount >= 0 ? "#4ADE80" : "#94A3B8" }}
                         />
-                        <span className="truncate">{row.payee}</span>
+                        <CellOverflowTooltip text={row.payee}>
+                          <span>{row.payee}</span>
+                        </CellOverflowTooltip>
                       </div>
                     </td>
 
@@ -1535,60 +1746,9 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
                       />
                     </td>
 
-                    {/* Status — badges/chips */}
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {/* Status badge — hover reveals AI rationale */}
-                        <EvidenceTooltip rationale={row.agentRationale} confidence={row.confidence}>
-                          <span
-                            className="inline-flex items-center gap-1 text-[12px] px-2 py-[2px] rounded-full whitespace-nowrap flex-shrink-0 cursor-default"
-                            style={{ color: badgeColor, backgroundColor: badgeBg, fontWeight: 500 }}
-                          >
-                            <BadgeIcon className="w-[12px] h-[12px]" />
-                            {intelligenceLabel}
-                          </span>
-                        </EvidenceTooltip>
-
-                        {/* IOLTA chip for trust categories */}
-                        {(row.category === "Trust Deposit" || row.category === "Retainer Deposit" || row.category === "Trust Disbursement") && (
-                          <span
-                            className="inline-flex items-center gap-1 text-[11px] px-1.5 py-[2px] rounded whitespace-nowrap flex-shrink-0"
-                            style={{ color: "#0D9488", backgroundColor: "#F0FDFA", fontWeight: 600 }}
-                            title="IOLTA trust transaction"
-                          >
-                            <Shield className="w-[10px] h-[10px]" />
-                            IOLTA
-                          </span>
-                        )}
-
-                        {/* Flag type pill */}
-                        {row.flag && (
-                          <span
-                            className="inline-flex items-center gap-1 text-[11px] px-2 py-[2px] rounded-full whitespace-nowrap flex-shrink-0"
-                            style={{
-                              color: priorityConfig[row.flag.priority].badgeText,
-                              backgroundColor: priorityConfig[row.flag.priority].badgeBg,
-                              fontWeight: 500,
-                            }}
-                          >
-                            <Flag className="w-[11px] h-[11px]" />
-                            {cardTypeConfig[row.flag.type].label}
-                          </span>
-                        )}
-
-                        {/* Billable chip */}
-                        {row.billable && (
-                          <span
-                            className="inline-flex items-center gap-0.5 text-[12px] px-1.5 py-[1px] rounded-md whitespace-nowrap flex-shrink-0"
-                            style={{ color: "#B45309", backgroundColor: "#FFFBEB", fontWeight: 600 }}
-                            title="Billable expense"
-                          >
-                            <DollarSign className="w-[12px] h-[12px]" />
-                            Billable
-                          </span>
-                        )}
-
-                      </div>
+                    {/* Status — badges/chips (max 2 visible, overflow on hover) */}
+                    <td className="px-3 py-2.5 overflow-hidden">
+                      <StatusPillsOverflow pills={statusPills} maxVisible={2} />
                     </td>
                   </tr>
 
@@ -1611,6 +1771,7 @@ function UnifiedLedger({ ledger, updateField, showReconcile, editedCategories, o
               <span className="text-[12px]" style={{ color: "#CBD5E1" }}>All {filteredLedger.length} transactions loaded</span>
             </div>
           )}
+          </div>
         </div>
       </div>
 

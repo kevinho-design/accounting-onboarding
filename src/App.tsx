@@ -3,6 +3,18 @@ import { toast } from "sonner";
 
 const DEMO_PASSWORD = "clio2026";
 
+// ── Deeplink helpers ─────────────────────────────────────────────────────────
+// Supported: ?flow=setup | ?flow=bookkeeper | ?flow=finance
+function getFlowParam(): string | null {
+  return new URLSearchParams(window.location.search).get("flow");
+}
+function pushFlow(flow: string | null) {
+  const url = new URL(window.location.href);
+  if (flow) url.searchParams.set("flow", flow);
+  else url.searchParams.delete("flow");
+  window.history.replaceState({}, "", url.toString());
+}
+
 function PasswordGate({ onUnlock }: { onUnlock: () => void }) {
   const [value, setValue] = React.useState("");
   const [error, setError] = React.useState(false);
@@ -69,15 +81,17 @@ import { AccountingVisionPortal } from "./components/AccountingVisionPortal";
 import { cn } from "./components/ui/utils";
 
 export default function App() {
-  const [unlocked, setUnlocked] = React.useState(
-    () => sessionStorage.getItem("demo_unlocked") === "1"
-  );
-  const [currentPage, setCurrentPage] = React.useState("Dashboard");
-  const [showValueProp, setShowValueProp] = React.useState(true);
-  const [inMigrationFlow, setInMigrationFlow] = React.useState(false);
-  const [inBookkeeperFlow, setInBookkeeperFlow] = React.useState(false);
+  // Seed initial state from URL so deeplinks work on first paint
+  const _alreadyUnlocked = sessionStorage.getItem("demo_unlocked") === "1";
+  const _initialFlow = _alreadyUnlocked ? getFlowParam() : null;
+
+  const [unlocked, setUnlocked] = React.useState(_alreadyUnlocked);
+  const [currentPage, setCurrentPage] = React.useState(_initialFlow ? "Accounting" : "Dashboard");
+  const [showValueProp, setShowValueProp] = React.useState(!_initialFlow);
+  const [inMigrationFlow, setInMigrationFlow] = React.useState(_initialFlow === "setup");
+  const [inBookkeeperFlow, setInBookkeeperFlow] = React.useState(_initialFlow === "bookkeeper");
   const [showGoalSetting, setShowGoalSetting] = React.useState(false);
-  const [inAccountingApp, setInAccountingApp] = React.useState(false);
+  const [inAccountingApp, setInAccountingApp] = React.useState(_initialFlow === "finance");
   const [isTeammateRailOpen, setIsTeammateRailOpen] = React.useState(false);
   const [recentAgentActions, setRecentAgentActions] = React.useState<AgentAction[]>([]);
   const [exceptions, setExceptions] = React.useState<Exception[]>([]);
@@ -100,8 +114,10 @@ export default function App() {
     setInitialChatMessage("__sparkle__");
   }, []);
   const [isChatBarVisible, setIsChatBarVisible] = React.useState(true);
-  const [activeUser, setActiveUser] = React.useState<"jennifer" | "sarah" | "ryan">("jennifer");
-  const [showPortal, setShowPortal] = React.useState(true);
+  const [activeUser, setActiveUser] = React.useState<"jennifer" | "sarah" | "ryan">(
+    _initialFlow === "finance" ? "ryan" : _initialFlow === "bookkeeper" ? "sarah" : "jennifer"
+  );
+  const [showPortal, setShowPortal] = React.useState(!_initialFlow);
   const [initialPage, setInitialPage] = React.useState<string>("Dashboard");
 
   const handleMigrationComplete = () => {
@@ -127,6 +143,7 @@ export default function App() {
     setActiveUser("jennifer");
     setInitialPage("Dashboard");
     setShowPortal(true);
+    pushFlow(null);
   };
 
   const startSarahFlow = React.useCallback(() => {
@@ -179,7 +196,34 @@ export default function App() {
 
 
   if (!unlocked) {
-    return <PasswordGate onUnlock={() => setUnlocked(true)} />;
+    return (
+      <PasswordGate
+        onUnlock={() => {
+          const flow = getFlowParam();
+          setUnlocked(true);
+          if (flow === "setup") {
+            setShowPortal(false);
+            setCurrentPage("Accounting");
+            setShowValueProp(false);
+            setActiveUser("jennifer");
+            setInMigrationFlow(true);
+          } else if (flow === "bookkeeper") {
+            setShowPortal(false);
+            setCurrentPage("Accounting");
+            setShowValueProp(false);
+            setActiveUser("sarah");
+            setInBookkeeperFlow(true);
+            setExceptions([]);
+            setRecentAgentActions([]);
+          } else if (flow === "finance") {
+            setShowPortal(false);
+            setCurrentPage("Accounting");
+            setActiveUser("ryan");
+            setInAccountingApp(true);
+          }
+        }}
+      />
+    );
   }
 
   if (showPortal) {
@@ -188,16 +232,19 @@ export default function App() {
         <div className="h-screen w-screen overflow-auto">
           <AccountingVisionPortal
             onPillar1={() => {
+              pushFlow("setup");
               setShowPortal(false);
               setActiveUser("jennifer");
               setCurrentPage("Accounting");
               setInMigrationFlow(true);
             }}
             onPillar2={() => {
+              pushFlow("bookkeeper");
               setShowPortal(false);
               startSarahFlow();
             }}
             onPillar3={() => {
+              pushFlow("finance");
               setShowPortal(false);
               setActiveUser("ryan");
               setCurrentPage("Accounting");
